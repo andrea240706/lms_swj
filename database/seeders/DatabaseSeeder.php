@@ -15,35 +15,68 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $admin = User::updateOrCreate(
+        User::updateOrCreate(
+            ['email' => 'siswa@lms-swj.test'],
+            [
+                'name' => 'Nadia Putri',
+                'username' => '008492104',
+                'password' => bcrypt('password'),
+                'role' => 'siswa',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'teacher@lms-swj.test'],
+            [
+                'name' => 'Budi Santoso, S.Kom',
+                'username' => '198804122015041002',
+                'password' => bcrypt('password'),
+                'role' => 'guru',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'wali@lms-swj.test'],
+            [
+                'name' => 'Siti Rahma, M.Pd',
+                'username' => 'wali.xdkv1@smk.sch.id',
+                'password' => bcrypt('password'),
+                'role' => 'wali_kelas',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'kepsek@lms-swj.test'],
+            [
+                'name' => 'Drs. Hendra Wijaya',
+                'username' => 'kepsek@smk.sch.id',
+                'password' => bcrypt('password'),
+                'role' => 'kepsek',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        User::updateOrCreate(
             ['email' => 'admin@lms-swj.test'],
             [
-                'name' => 'Administrator',
-                'username' => 'admin',
+                'name' => 'Rizky Pratama',
+                'username' => 'admin@smk.sch.id',
                 'password' => bcrypt('password'),
                 'role' => 'admin',
                 'email_verified_at' => now(),
             ]
         );
 
-        $teacher = User::updateOrCreate(
-            ['email' => 'teacher@lms-swj.test'],
+        User::updateOrCreate(
+            ['email' => 'superadmin@lms-swj.test'],
             [
-                'name' => 'Guru / Pengajar',
-                'username' => 'guru',
+                'name' => 'Arif Darmawan',
+                'username' => 'superadmin@smk.sch.id',
                 'password' => bcrypt('password'),
-                'role' => 'teacher',
-                'email_verified_at' => now(),
-            ]
-        );
-
-        $student = User::updateOrCreate(
-            ['email' => 'student@lms-swj.test'],
-            [
-                'name' => 'Siswa / Pelajar',
-                'username' => 'siswa',
-                'password' => bcrypt('password'),
-                'role' => 'student',
+                'role' => 'super_admin',
                 'email_verified_at' => now(),
             ]
         );

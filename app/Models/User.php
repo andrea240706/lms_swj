@@ -29,17 +29,47 @@ class User extends Authenticatable implements FilamentUser
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'super_admin']);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
     }
 
     public function isTeacher(): bool
     {
-        return $this->role === 'teacher';
+        return in_array($this->role, ['teacher', 'guru']);
     }
 
     public function isStudent(): bool
     {
-        return $this->role === 'student';
+        return in_array($this->role, ['student', 'siswa']);
+    }
+
+    public function isHomeroomTeacher(): bool
+    {
+        return in_array($this->role, ['wali_kelas', 'wali']);
+    }
+
+    public function isPrincipal(): bool
+    {
+        return in_array($this->role, ['kepsek', 'principal']);
+    }
+
+    /**
+     * Get the standard role key matching the 6 LMS UI roles.
+     */
+    public function getRoleKey(): string
+    {
+        return match ($this->role) {
+            'student', 'siswa' => 'siswa',
+            'teacher', 'guru' => 'guru',
+            'wali', 'wali_kelas' => 'wali_kelas',
+            'kepsek', 'principal' => 'kepsek',
+            'super_admin' => 'super_admin',
+            default => 'admin',
+        };
     }
 
     /**

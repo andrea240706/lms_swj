@@ -14,6 +14,35 @@ export default {
     theme: {
         extend: {
             colors: {
+                canvas: '#F9F8F6',
+                charcoal: '#141416',
+                muted: '#F1EFEA',
+                subtext: '#6E6E77',
+                sage: {
+                    light: '#EBF2D5',
+                    DEFAULT: '#D4E4D2',
+                    dark: '#3D5A45',
+                },
+                blossom: {
+                    light: '#FDF0F5',
+                    DEFAULT: '#FBD2E0',
+                    dark: '#7A3E53',
+                },
+                sky: {
+                    light: '#EAF5FE',
+                    DEFAULT: '#D0E8F8',
+                    dark: '#2C5270',
+                },
+                amberpastel: {
+                    light: '#FEF5E7',
+                    DEFAULT: '#FDE4C3',
+                    dark: '#785021',
+                },
+                lavender: {
+                    light: '#F3EFFB',
+                    DEFAULT: '#E2D9F3',
+                    dark: '#4A3B69',
+                },
                 lingua: {
                     primary: '#6C5CE7',
                     'primary-dark': '#5B4BC4',
