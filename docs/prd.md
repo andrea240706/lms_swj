@@ -1,387 +1,210 @@
-# 📘 Product Requirement Document (PRD) & Architecture Specification
+# Product Requirement Document (PRD) — Mobile-First Edition
 ## E-Course / Learning Management System (LMS) SMK
 
-> **Status Dokumen**: Disetujui (Approved)  
-> **Target Pengguna**: SMK (Sekolah Menengah Kejuruan)  
-> **Arsitektur Teknis**: Monolith Modern (Laravel 13 + Vue.js 3 + Inertia.js + Tailwind CSS + DaisyUI + Filament UI)  
-> **Panduan Desain Terkait**: [docs/design.md](design.md) *(Standar Visual Lingua)*
+> **Fokus Dokumen**: Arsitektur Menu Mobile-First, Spesifikasi Fitur Inti (Zero-Bloat), & Alur Pengguna per Role  
+> **Prinsip Produk**: Anti-Bloatware (Hanya fitur esensial KBM vokasi SMK, tanpa chat room, forum tak terpakai, atau gamifikasi berlebihan)  
+> **Dokumen Desain Terkait**: `design.md` (Soft Pastel & Capsule Bento UI)
 
 ---
 
-## 📑 Daftar Isi
-1. [Pendahuluan & Gambaran Umum](#1-pendahuluan--gambaran-umum)
-2. [Fitur Utama Sistem (Core Features)](#2-fitur-utama-sistem-core-features)
-3. [Tech Stack & Template UI](#3-tech-stack--template-ui)
-4. [Matriks Hak Akses & Pengguna (6 User Roles)](#4-matriks-hak-akses--pengguna-6-user-roles)
-5. [Struktur Menu Final Per Role](#5-struktur-menu-final-per-role)
-6. [Struktur Arsitektur Framework & Folder](#6-struktur-arsitektur-framework--folder)
-7. [Blueprint Model Data & Relasi Entitas](#7-blueprint-model-data--relasi-entitas)
-8. [Alur Bisnis & Siklus Pembelajaran](#8-alur-bisnis--siklus-pembelajaran)
-9. [Kebijakan Keamanan & Middleware Otentikasi](#9-kebijakan-keamanan--middleware-otentikasi)
+## 1. Filosofi Produk & Prinsip "Zero-Bloat"
+Untuk memastikan sistem LMS SMK ini benar-benar digunakan secara efektif oleh siswa dan guru melalui perangkat seluler (*smartphone*), seluruh fitur dirancang dengan prinsip:
+1. **Maksimal 3 Ketukan (*3-Tap Rule*)**: Siswa dapat melakukan presensi atau mengumpulkan tugas maksimal dalam 3 ketukan dari halaman utama.
+2. **Bebas Fitur Sampah (*No Feature Creep*)**: Tidak ada fitur media sosial internal, papan peringkat (*leaderboard*) yang membingungkan, atau pengaturan profil yang rumit.
+3. **Navigasi Bawah Konsisten (*4-Tab Floating Pill*)**: Setiap *role* memiliki tepat 4 menu utama di navigasi bawah (*bottom bar*) agar mudah dijangkau dengan satu ibu jari.
 
 ---
 
-## 1. Pendahuluan & Gambaran Umum
+## 2. Alur Otentikasi & Onboarding (Semua Role)
 
-### 1.1 Deskripsi Produk
-**E-Course / LMS SMK** adalah platform pembelajaran digital berbasis web modern yang dirancang khusus untuk memfasilitasi dan mengoptimalkan Kegiatan Belajar Mengajar (KBM) interaktif di lingkungan Sekolah Menengah Kejuruan (SMK). Platform ini menyatukan pengelolaan kurikulum vokasi, penugasan praktik/teori, monitoring kelas perwalian, presensi real-time, dan evaluasi hasil belajar dalam satu ekosistem yang cepat, responsif, dan ringan.
+### 2.1 Layar Onboarding (First-Time Visit)
+* **Visual Header**: Ilustrasi/foto pelajar dengan aksen lengkungan warna pastel di latar belakang.
+* **Konten Kartu Bawah**: Judul sambutan tegas (*"Siap Memulai Perjalanan Belajarmu!"*), sub-teks singkat mengenai kemudahan akses KBM dan presensi SMK.
+* **Komponen Aksi Utama**: Tombol *Slide/Tap-to-Continue* berbentuk kapsul besar dengan ikon ceklis di sisi kiri dan panah ganda `>>>` di sisi kanan.
 
-Dengan memadukan arsitektur **Single Page Application (SPA) berbasis Inertia.js** pada sisi siswa/guru dan **Filament UI** pada sisi manajerial admin/kepala sekolah, antarmuka berpindah mulus tanpa melakukan *full page reload*, menghemat konsumsi kuota data siswa dan mempercepat respon kerja guru.
-
----
-
-## 2. Fitur Utama Sistem (Core Features)
-
-| Kategori Fitur | Deskripsi Fungsional | Target Pengguna Utama |
-| :--- | :--- | :--- |
-| **Pengelolaan Materi** | Penyusunan bab, konten teks interaktif, unggah berkas modul PDF/video, pengaturan hak akses, serta kunci/buka materi per kelas. | Guru Mapel, Admin |
-| **Pengelolaan Kelas** | Pemetaan jurusan (vokasi), tingkatan (X, XI, XII), rombongan belajar (rombel), plotting guru pengampu, serta penugasan wali kelas. | Super Admin, Admin |
-| **Pengelolaan Pertemuan (Sesi)** | Penjadwalan sesi pertemuan tatap muka maupun daring per mata pelajaran dan kelas perwalian. | Guru Mapel, Guru Wali Kelas |
-| **Presensi Interaktif** | Pencatatan kehadiran real-time per sesi pertemuan (Hadir, Izin, Sakit, Alpa) dengan jendela waktu presensi aktif mandiri bagi siswa. | Siswa, Guru Mapel, Wali Kelas, Admin |
-| **Tugas & Aktivitas** | Pembuatan tugas teori/praktik, instruksi detail, lampiran lembar kerja, batas tenggat (*due date*), dan konfigurasi toleransi revisi. | Guru Mapel |
-| **Pengumpulan Tugas** | Formulir submission siswa untuk mengunggah dokumen/berkas hasil kerja dengan riwayat waktu dan opsi kumpul ulang/revisi. | Siswa |
-| **Penilaian & Umpan Balik** | Evaluasi submission tugas berupa nilai kuantitatif (angka 0–100) dan catatan feedback kualitatif langsung dari guru pengampu. | Guru Mapel |
-| **Rekap Nilai Otomatis** | Kalkulasi nilai akumulatif tugas, ujian, dan partisipasi secara otomatis per mapel, per kelas, hingga rekapitulasi sekolah. | Guru Mapel, Wali Kelas, Kepsek |
-| **Monitoring Akademik & Perwalian** | Dasbor pemantauan ketercapaian belajar siswa, absensi akumulatif, dan deteksi dini siswa bermasalah secara terpadu. | Guru Wali Kelas, Kepsek, Admin |
+### 2.2 Layar Login Terpadu (Single Sign-On Role Detection)
+* **Input Kredensial**:
+  * Kolom **NISN / NIP / Username** (Otomatis mendeteksi apakah pengguna adalah Siswa, Guru, Wali Kelas, Kepsek, Admin, atau Super Admin).
+  * Kolom **Kata Sandi** dengan fitur tampilkan/sembunyikan.
+* **Fitur Pendukung Esensial**:
+  * *Ingat Sesi Saya* (Agar siswa tidak perlu login berulang kali setiap jam pelajaran).
+  * *Lupa Kata Sandi* (Mengarahkan ke instruksi kontak Operator/Admin Sekolah — tanpa alur email reset otomatis yang sering gagal karena email siswa tidak aktif).
 
 ---
 
-## 3. Tech Stack & Template UI
+## 3. Spesifikasi Menu & Fitur Detail Per Role (Mobile View)
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        E-COURSE / LMS SMK STACK                        │
-├───────────────────────────────────┬────────────────────────────────────┤
-│           FRONTEND LAYER          │           BACKEND LAYER            │
-│  • Vue.js 3 (Composition API)     │  • Laravel 13 (PHP 8.3)            │
-│  • Inertia.js (Seamless SPA)      │  • Eloquent ORM & Migrations       │
-│  • Tailwind CSS v3 (Lingua Tokens)│  • Laravel Policies & Gates        │
-│  • DaisyUI Component Library      │  • Laravel Middleware Pipeline     │
-│  • Heroicons / Lucide (No Emojis) │  • MySQL 8 / PostgreSQL Database   │
-├───────────────────────────────────┴────────────────────────────────────┤
-│                        ADMINISTRATION & UTILITIES                      │
-│  • Filament UI (Livewire 3 Engine untuk Super Admin & Panel Admin)     │
-│  • Vite Build System with Fast Hot Module Replacement (HMR)            │
-└────────────────────────────────────────────────────────────────────────┘
-```
-
-* **Backend Framework**: **Laravel 13** — Menangani *routing*, logika bisnis terstruktur, *Eloquent ORM*, enkripsi, dan *session management*.
-* **Frontend Framework**: **Vue.js 3 + Inertia.js** — Menghadirkan aplikasi SPA tanpa beban membangun REST API terpisah, sehingga rendering halaman instan tanpa *flash/white screen*.
-* **UI Styling & System**: **Tailwind CSS + DaisyUI** — Berpedoman pada [docs/design.md](design.md) (warna `#6C5CE7`, canvas `#F8F9FD`, kartu `#FFFFFF`, tipografi *Plus Jakarta Sans*).
-* **Admin Dashboard Panel**: **Filament UI** — Dasbor berbasis Livewire untuk kebutuhan CRUD data master cepat, audit log, dan plotting kelas.
-* **Database**: **MySQL** (atau PostgreSQL) — Struktur relasional integritas tinggi dengan *foreign keys* dan *indexing*.
-* **Otentikasi & Akses**: **Laravel Policies + Middleware** — Membatasi akses menu dan endpoint secara granular berdasarkan 6 peran pengguna.
+Setiap *role* menggunakan struktur **4 Tab Navigasi Bawah (*Floating Pill Navigation*)** ditambah **Drawer Samping / Menu Profil** untuk keluar sesi.
 
 ---
 
-## 4. Matriks Hak Akses & Pengguna (6 User Roles)
+### 3.1 Role: SISWA (Peserta Belajar)
+Fokus utama: **Hadir tepat waktu, unduh modul praktik, dan kumpulkan tugas sebelum tenggat.**
 
-| Modul / Kemampuan | Super Admin | Admin | Kepala Sekolah | Guru Wali Kelas | Guru Mapel | Siswa |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Konfigurasi Sistem Global & Log** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Kelola Akun Admin, Guru, & Kepsek** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Kelola Master Siswa, Kelas, & Mapel**| ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **Plotting Guru & Wali Kelas** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **Moderasi Materi & Koreksi Presensi**| ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **Pantau Metrik Sekolah & Ekspor PDF**| ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| **Presensi & Rapor Kelas Perwalian** | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| **Buat & Kunci Materi Mapel Sendiri** | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| **Buat Tugas, Sesi Pertemuan, & Nilai**| ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| **Akses Materi & Sesi Pertemuan Aktif**| ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **Isi Presensi & Unggah/Revisi Tugas** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **Lihat Nilai & Riwayat Kehadiran Diri**| ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+#### Tab 1: Beranda (`Home`)
+* **Top Bar**: Tombol menu cepat (kiri), sapaan nama & kelas rombel (misal: *XII RPL 1*), serta foto profil (kanan).
+* **Hero Card — Kelas Saat Ini (*Today's Active Class*)**:
+  * Kartu bergradasi pastel (*Sage Green* atau *Soft Pink*) yang menampilkan mata pelajaran yang sedang berlangsung saat ini.
+  * Indikator status langsung: *"Sesi Aktif • Berakhir dalam 45 menit"* atau *"Presensi Dibuka"*.
+  * Progres Bab (contoh: *Bab 06/10*) dan tombol bulat hitam (`Play/Masuk`) untuk langsung membuka materi & presensi.
+* **Kalender Kapsul Mingguan (*Class Schedule*)**:
+  * Pemilih bulan di kanan atas dan deretan 7 hari berbentuk kapsul vertikal (*Sun 17 - Sat 23*). Hari aktif berwarna hitam pekat (`#141416`).
+* **Garis Waktu Harian (*Timeline KBM*)**:
+  * Daftar jam pelajaran vertikal (`07:30`, `09:15`, `11:00`) dengan kartu kapsul mata pelajaran, ruang lab/kelas, dan ikon panah akses cepat.
 
----
+#### Tab 2: Materi (`Kelas`)
+* **Filter Mata Pelajaran**: Kapsul geser horizontal (*Semua, Produktif RPL, Matematika, B. Inggris*).
+* **Kartu Sorotan Materi Terakhir (*Featured Subject Card*)**:
+  * Menampilkan jam jadwal, nama mapel, tanggal, label tipe kelas (*Praktik Lab / Teori*), dan nama guru pengampu.
+* **Daftar Modul & Bab (*Last Lessons List*)**:
+  * Daftar kartu kapsul putih dengan ikon bulat pastel di kiri, judul bab, nama guru, serta status kunci:
+    * **Terbuka**: Dapat diketuk untuk membaca ringkasan materi dan mengunduh file PDF/Video.
+    * **Terkunci**: Ditandai ikon gembok jika guru belum membuka bab tersebut.
 
-## 5. Struktur Menu Final Per Role
+#### Tab 3: Tugas (`Tugas`)
+* **Tab Filter Status**: *Perlu Dikumpulkan (Aktif)*, *Menunggu Nilai*, dan *Selesai (Dinilai)*.
+* **Kartu Tugas**:
+  * Menampilkan judul tugas, mata pelajaran, dan label tenggat waktu (*Due Date*).
+* **Lembar Kerja Pengumpulan (*Bottom Sheet / Detail View*)**:
+  * Instruksi singkat dari guru dan unduhan lembar kerja (*Jobsheet*).
+  * Area unggah file tunggal (*PDF / ZIP / Gambar*) dengan batas ukuran jelas.
+  * Status Nilai & Umpan Balik: Jika sudah dinilai, menampilkan skor angka (`0-100`), komentar guru, dan tombol **Unggah Revisi** (hanya muncul jika guru mengaktifkan izin revisi).
 
-### 5.1 Super Admin (Panel Manajerial Puncak)
-* 📊 **Dashboard Utama**: Metrik penggunaan server, total akun aktif, statistik sesi berjalan.
-* ⚙️ **Pengaturan Sistem**:
-  * Tahun Ajaran & Semester Aktif (Ganjil/Genap).
-  * Kebijakan & Parameter Global LMS (Batas unggah, format berkas, notifikasi).
-* 👤 **Kelola Pengguna & Akun Pejabat**:
-  * Manajemen Akun Admin.
-  * Manajemen Akun Kepala Sekolah.
-  * Manajemen Akun Guru (Mapel & Wali Kelas).
-* 🏫 **Data Master Sekolah**:
-  * Data Jurusan & Tingkat (RPL, TKJ, DKV, Akuntansi, dll. / Kelas X, XI, XII).
-  * Data Kelas & Ruang Belajar.
-  * Data Mata Pelajaran (Muatan Nasional, Kewilayahan, Kejuruan).
-* 🛡️ **Atur Peran & Hak Akses (Roles & Permissions)**.
-* 📋 **System & Audit Log**: Rekam jejak aktivitas sensitif login dan modifikasi data.
-
----
-
-### 5.2 Admin (Operator Sekolah)
-* 📊 **Dashboard Admin**: Overview total siswa, jumlah guru aktif, sesi KBM hari ini.
-* 👥 **Manajemen Siswa & Pengguna**:
-  * Direktori Siswa (Tambah satuan, Import batch Excel/CSV, Plotting rombel kelas).
-  * Fasilitas Reset Kata Sandi Pengguna.
-* 📚 **Kelola Kelas & Mapel**:
-  * Plotting Guru Pengampu ke Mata Pelajaran & Kelas.
-  * Penetapan Guru Wali Kelas ke Rombel.
-* 🛠️ **Moderasi Pembelajaran**:
-  * Tinjau dan moderasi konten materi belajar yang diunggah guru.
-* ⏱️ **Manajemen Kehadiran**:
-  * Koreksi Presensi Siswa (*Adjustment data kehadiran jika terjadi kendala teknis*).
-* 📈 **Rekapitulasi Data**:
-  * Rekapitulasi Kehadiran Tingkat Sekolah.
-  * Rekapitulasi Nilai Akademik Sekolah.
+#### Tab 4: Presensi & Nilai (`Rekap`)
+* **Kartu Aksi Presensi Mandiri**:
+  * Muncul paling atas jika ada guru yang sedang membuka gerbang waktu presensi. Siswa cukup menekan tombol **"Konfirmasi Hadir Sekarang"** dalam batas waktu hitung mundur (*timer*).
+* **Ringkasan Kehadiran Semester**:
+  * 4 Kotak metrik ringkas: Total **Hadir**, **Izin**, **Sakit**, dan **Alpa**.
+* **Daftar Transkrip Nilai Mapel**:
+  * Rata-rata nilai tugas per mata pelajaran secara transparan.
 
 ---
 
-### 5.3 Kepala Sekolah (Eksekutif & Pengambil Kebijakan)
-* 📊 **Dashboard Pantauan Sekolah**:
-  * Indikator Kinerja Pembelajaran (Persentase KBM terlaksana).
-  * Tingkat kehadiran harian siswa & guru secara makro.
-* 📈 **Laporan Rekapitulasi**:
-  * Laporan Rekap Kehadiran Seluruh Rombel & Jurusan.
-  * Laporan Distribusi Nilai per Mata Pelajaran.
-* 🖨️ **Ekspor Dokumen Resmi**:
-  * Unduh Laporan Kehadiran format PDF / Excel.
-  * Unduh Laporan Leger Nilai Sekolah format PDF / Excel.
+### 3.2 Role: GURU MATA PELAJARAN (Fasilitator KBM)
+Fokus utama: **Buka sesi & presensi kelas dengan cepat, atur kunci modul, dan nilai tugas siswa dari HP.**
+
+#### Tab 1: Beranda Mengajar (`Home`)
+* **Hero Card — Jadwal Mengajar Saat Ini**:
+  * Menampilkan kelas yang sedang/akan diajar (misal: *XI TKJ 2 — Administrasi Server*), jam sesi, serta tombol cepat **"Buka Presensi (15 Menit)"**.
+* **Kalender Kapsul & Timeline Mengajar**:
+  * Jadwal mengajar harian guru lintas kelas/rombel pada hari tersebut.
+* **Widget Antrean Penilaian (*Needs Grading*)**:
+  * Kartu peringatan ringkas berisi jumlah pengumpulan tugas baru yang belum diberi nilai.
+
+#### Tab 2: Kelola Materi (`Materi`)
+* **Pemilih Kelas & Mapel**: Dropdown kapsul untuk memilih mata pelajaran yang diampu.
+* **Daftar Bab Materi**:
+  * Setiap kartu bab memiliki **Sakelar Kunci/Buka (*Lock/Unlock Toggle*)** langsung di daftar agar guru bisa membuka materi tepat saat masuk kelas.
+* **Form Tambah/Sunting Materi**:
+  * Input Judul Bab, Pilih Kelas Penerima (bisa lebih dari satu rombel paralel), Teks Ringkasan, dan Unggah Modul PDF/Tautan Video.
+
+#### Tab 3: Tugas & Penilaian (`Nilai`)
+* **Daftar Tugas per Kelas**: Menampilkan progres pengumpulan (contoh: *28/32 Siswa Mengumpulkan*).
+* **Antarmuka Penilaian Cepat (*Quick Grader*)**:
+  * Daftar nama siswa yang sudah mengumpulkan tugas.
+  * Ketuk siswa -> Lihat/Unduh berkas -> Input angka nilai (`0-100`), ketik catatan feedback singkat, dan centang opsi *"Izinkan Kumpul Ulang (Revisi)"* bila nilai di bawah KKM.
+
+#### Tab 4: Sesi & Presensi (`Presensi`)
+* **Kontrol Gerbang Presensi**:
+  * Buat sesi pertemuan baru, atur durasi timer presensi mandiri (10/15/30 menit).
+* **Daftar Hadir Siswa Manual**:
+  * Daftar seluruh siswa di kelas tersebut dengan pemilih status cepat (**H**adir / **I**zin / **S**akit / **A**lpa) untuk mengubah status siswa yang terkendala perangkat.
 
 ---
 
-### 5.4 Guru Wali Kelas (Pembina Rombongan Belajar)
-* 📊 **Dashboard Perwalian**:
-  * Ringkasan aktivitas siswa perwalian hari ini.
-  * Peringatan Dini (*Early Warning System*): Notifikasi siswa dengan absensi alpa tinggi atau nilai di bawah KKM.
-* 📋 **Presensi Perwalian**:
-  * Buka & isi presensi kehadiran kelas perwalian harian.
-  * Lihat rekap kehadiran bulanan kelas perwalian.
-* 🎓 **Monitoring Siswa Perwalian**:
-  * Profil lengkap dan ringkasan riwayat siswa binaan.
-  * Buku Nilai Terpadu: Pantau capaian nilai siswa di seluruh mata pelajaran yang diikutinya.
+### 3.3 Role: GURU WALI KELAS (Pembina Rombel)
+Fokus utama: **Deteksi dini siswa bermasalah (alpa/nilai rendah) dan rekap perwalian satu rombel.**
+
+#### Tab 1: Dasbor Perwalian (`Home`)
+* **Hero Card — Identitas Rombel Binaan**:
+  * Menampilkan nama kelas binaan (misal: *Wali Kelas X DKV 1*), persentase kehadiran kelas hari ini, dan total siswa.
+* **Peringatan Dini (*Early Warning System*)**:
+  * Daftar kartu siswa yang memerlukan perhatian khusus (contoh: *Alpa $\ge 3$ hari* atau *Rata-rata nilai tugas $< 75$*).
+
+#### Tab 2: Presensi Harian Rombel (`Absensi`)
+* **Kalender Kapsul Harian**: Memilih tanggal pemeriksaan.
+* **Verifikasi Kehadiran Perwalian**:
+  * Melihat dan menginput presensi apel pagi/perwalian serta memantau rekap kehadiran siswa di setiap jam mata pelajaran hari itu.
+
+#### Tab 3: Buku Nilai Rombel (`Leger`)
+* **Daftar Siswa Binaan**:
+  * Pencarian cepat nama siswa di kelas perwalian.
+* **Kartu Rapor Bayangan Siswa**:
+  * Saat nama siswa diketuk, menampilkan rincian nilai tugas dari seluruh mata pelajaran yang diikuti siswa tersebut beserta persentase kehadirannya.
+
+#### Tab 4: Rekap Bulanan (`Laporan`)
+* **Ringkasan Kehadiran Bulanan Kelas**: Statistik akumulatif Hadir, Sakit, Izin, Alpa satu kelas penuh.
+* **Unduh Ringkasan Kelas**: Tombol unduh PDF/Excel rekap kelas untuk bahan rapat orang tua/pembinaan.
 
 ---
 
-### 5.5 Guru Mata Pelajaran (Fasilitator KBM)
-* 📊 **Dashboard Mengajar**:
-  * Jadwal sesi pertemuan hari ini.
-  * Notifikasi anti-overdue grading (*Daftar tugas siswa yang belum dinilai*).
-* 📖 **Pengelolaan Materi Pembelajaran**:
-  * Tambah, sunting, dan hapus materi ajar.
-  * Strukturisasi Bab & urutan materi pertemuan.
-  * Atur kelas penerima & sematkan tautan referensi/video.
-  * Fitur kunci (*lock*) dan buka (*unlock*) materi berdasarkan jadwal.
-* 📝 **Pengelolaan Tugas & Aktivitas**:
-  * Buat tugas/proyek praktik (Deskripsi, panduan, tenggat waktu, kuota revisi).
-  * Antarmuka daftar pengumpulan tugas siswa.
-  * Form penilaian cepat (Nilai angka 0–100 + catatan feedback guru).
-  * Rekap nilai per tugas dan per materi.
-* ⏱️ **Pengelolaan Pertemuan & Presensi**:
-  * Buat sesi pertemuan KBM (Tatap muka / daring).
-  * Buka gerbang presensi siswa secara mandiri dengan timer.
-  * Isi dan verifikasi presensi manual bagi siswa berkendala.
+### 3.4 Role: KEPALA SEKOLAH (Eksekutif & Monitoring)
+Fokus utama: **Pemantauan kinerja KBM satu sekolah secara makro dan unduh laporan resmi (Read-Only).**
+
+#### Tab 1: Pantauan Eksekutif (`Home`)
+* **Hero Card — Indikator KBM Hari Ini**:
+  * Persentase sesi kelas yang terlaksana hari ini (contoh: *94% Kelas Aktif*), tingkat kehadiran siswa nasional sekolah, dan ketertiban pengisian materi guru.
+* **Grafik Ringkas Kehadiran Mingguan**: Visualisasi tren kehadiran 7 hari terakhir per tingkat (Kelas X, XI, XII).
+
+#### Tab 2: Analitik Jurusan (`Jurusan`)
+* **Daftar Kompetensi Keahlian (RPL, TKJ, DKV, Akuntansi)**:
+  * Menampilkan rata-rata nilai akademik dan tingkat kehadiran masing-masing jurusan.
+
+#### Tab 3: Kinerja Guru (`KBM`)
+* **Monitoring Keaktifan Pengajar**:
+  * Daftar ringkas ketertiban guru dalam mengunggah materi ajar dan persentase tugas siswa yang sudah dinilai tepat waktu.
+
+#### Tab 4: Pusat Unduh Laporan (`Ekspor`)
+* **Generator Dokumen Resmi**:
+  * Pilih periode semester/bulan -> Unduh **Laporan Kehadiran Sekolah (PDF/Excel)** atau **Leger Nilai Akademik Sekolah (PDF/Excel)** sekali ketuk.
 
 ---
 
-### 5.6 Siswa (Peserta Belajar)
-* 📊 **Dashboard Siswa**:
-  * Jadwal pelajaran & sesi pertemuan hari ini.
-  * Kartu penugasan mendesak (*Upcoming Deadlines*).
-  * Status progres belajar dan indikator streak harian.
-* 📖 **Materi Belajar**:
-  * Jelajah materi berdasarkan mata pelajaran & bab.
-  * Baca isi materi, streaming media pembelajaran, dan unduh berkas lampiran.
-* ✍️ **Tugas & Aktivitas**:
-  * Daftar tugas aktif, terlambat, dan selesai.
-  * Unggah berkas jawaban tugas (PDF, ZIP/RAR, gambar).
-  * Fitur kumpul ulang (*revisi tugas*) jika diberikan izin oleh guru.
-  * Lihat skor nilai dan umpan balik langsung dari guru pengampu.
-* ⏱️ **Presensi Kehadiran**:
-  * Konfirmasi presensi mandiri pada sesi pertemuan mapel yang sedang aktif.
-  * Riwayat presensi kehadiran pribadi secara transparan.
+### 3.5 Role: ADMIN (Operator Sekolah)
+Fokus utama: **Operasional harian: koreksi absen, plotting jadwal/guru, dan kelola data siswa.**
+
+#### Tab 1: Dasbor Operator (`Home`)
+* **Hero Card — Status Operasional Harian**:
+  * Total siswa terdaftar, total guru aktif, dan sesi KBM berjalan hari ini.
+* **Aksi Cepat Operator**: Tombol pintas *Reset Sandi Pengguna*, *Import Siswa CSV*, dan *Koreksi Presensi*.
+
+#### Tab 2: Direktori Pengguna (`Pengguna`)
+* **Pencarian Siswa & Guru**: Filter berdasarkan Rombel atau Role.
+* **Aksi Kartu Pengguna**:
+  * Tambah siswa baru, pindah rombel kelas, atau tekan tombol **Reset Kata Sandi Instan** (menampilkan sandi sementara untuk diberikan ke siswa/guru).
+
+#### Tab 3: Plotting Kelas & Mapel (`Plotting`)
+* **Daftar Rombongan Belajar**:
+  * Menetapkan **Wali Kelas** untuk setiap rombel.
+  * Menambahkan pasangan **Mata Pelajaran + Guru Pengampu** ke dalam rombel terkait.
+
+#### Tab 4: Koreksi & Moderasi (`Moderasi`)
+* **Koreksi Presensi (*Attendance Adjustment*)**:
+  * Mengubah status kehadiran siswa pada tanggal lampau (misal: mengubah status *Alpa* menjadi *Sakit* setelah surat dokter diserahkan ke TU).
+* **Moderasi Materi**: Meninjau daftar materi yang diunggah guru bila diperlukan penertiban konten.
 
 ---
 
-## 6. Struktur Arsitektur Framework & Folder
+### 3.6 Role: SUPER ADMIN (Otoritas Sistem & Master Data)
+Fokus utama: **Konfigurasi tahun ajaran, struktur data master sekolah, manajemen akun pejabat, dan audit log.**
 
-Blueprint struktur direktori proyek berbasis Laravel 13 dan Vue 3 + Inertia:
+#### Tab 1: Pusat Sistem (`Home`)
+* **Hero Card — Status Tahun Ajaran Aktif**:
+  * Menampilkan Tahun Ajaran berjalan (misal: *2026/2027 — Semester Ganjil*), kesehatan layanan, dan ringkasan total entitas database.
+* **Pengaturan Parameter Global**:
+  * Sakelar batas ukuran unggahan berkas (misal: Maks 10 MB), format file yang diizinkan, dan penguncian semester saat masa rapor.
 
-```
-lms-smk/
-├── app/
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   │   ├── Admin/
-│   │   │   │   ├── UserController.php                  # Kelola data siswa, guru, staff
-│   │   │   │   ├── ClassSubjectController.php          # Plotting mapel & wali kelas
-│   │   │   │   └── AttendanceCorrectionController.php  # Koreksi data presensi
-│   │   │   ├── Auth/
-│   │   │   │   ├── AuthenticatedSessionController.php  # Login & Logout
-│   │   │   │   └── PasswordResetLinkController.php     # Reset password
-│   │   │   ├── Guru/
-│   │   │   │   ├── MaterialController.php              # CRUD & penyusunan bab materi
-│   │   │   │   ├── AssignmentController.php            # Manajemen tugas & penilaian
-│   │   │   │   └── AttendanceController.php            # Sesi KBM & presensi mapel
-│   │   │   ├── Kepsek/
-│   │   │   │   └── ReportController.php                # Rekapitulasi & ekspor laporan
-│   │   │   └── Siswa/
-│   │   │       ├── StudentMaterialController.php       # Akses & unduh materi
-│   │   │       ├── StudentAssignmentController.php     # Pengumpulan & revisi tugas
-│   │   │       └── StudentAttendanceController.php     # Presensi mandiri sesi aktif
-│   │   ├── Middleware/
-│   │   │   ├── HandleInertiaRequests.php               # Shared props (auth user, role, flash)
-│   │   │   ├── EnsureUserRole.php                      # Multi-role route protection
-│   │   │   └── CheckClassAccess.php                    # Verifikasi siswa/guru di kelas
-│   │   └── Policies/
-│   │       ├── UserPolicy.php                          # Akses data profil & pengguna
-│   │       ├── MaterialPolicy.php                      # Hak cipta & modifikasi materi
-│   │       ├── AssignmentPolicy.php                    # Hak nilai & revisi tugas
-│   │       └── AttendancePolicy.php                    # Izin buka & tutup sesi presensi
-│   ├── Models/
-│   │   ├── Pengguna.php                                # Model User dengan role enum
-│   │   ├── MataPelajaran.php                           # Master data mapel
-│   │   ├── Kelas.php                                   # Master data rombel & jurusan
-│   │   ├── Materi.php                                  # Konten pembelajaran & bab
-│   │   ├── LampiranMateri.php                          # Berkas fisik materi (PDF/Doc)
-│   │   ├── MateriKelas.php                             # Pivot materi dengan kelas penerima
-│   │   ├── Tugas.php                                   # Entitas penugasan siswa
-│   │   ├── PengumpulanTugas.php                        # Berkas submission & riwayat revisi
-│   │   ├── NilaiUmpanBalik.php                         # Nilai angka & komentar guru
-│   │   ├── SesiKehadiran.php                           # Sesi pertemuan KBM / perwalian
-│   │   ├── PresensiSiswa.php                           # Record status hadir siswa
-│   │   ├── LaporanRekap.php                            # Snapshot rekapitulasi nilai/absen
-│   │   └── PengaturanSistem.php                        # Variabel sistem global
-│   └── Filament/                                       # Panel Super Admin & Data Master
-│       ├── Resources/                                  # CRUD Resources Filament
-│       └── Pages/                                      # Halaman dashboard audit
-├── database/
-│   ├── migrations/                                     # Skema database terstruktur
-│   └── seeders/                                        # Data awal role, superadmin, master
-├── resources/
-│   ├── css/
-│   │   └── app.css                                     # Tailwind & custom tokens
-│   └── js/
-│       ├── Components/                                 # Komponen UI Reusable
-│       │   ├── Modal.vue                               # Pop-up dialog modal
-│       │   ├── DataTable.vue                           # Tabel dinamis sorting & filtering
-│       │   ├── StatCard.vue                            # Kartu metrik indikator
-│       │   └── FormInput.vue                           # Kontrol form standar
-│       ├── Layouts/                                    # Kerangka tampilan per role
-│       │   ├── AdminLayout.vue                         # Layout dashboard admin
-│       │   ├── GuruLayout.vue                          # Layout kerja guru
-│       │   ├── KepsekLayout.vue                        # Layout pantauan kepsek
-│       │   ├── SiswaLayout.vue                         # Layout mobile-first siswa
-│       │   └── GuestLayout.vue                         # Layout login / landing
-│       ├── Pages/                                      # Inertia Views
-│       │   ├── Admin/                                  # Halaman CRUD & plotting
-│       │   ├── Guru/                                   # Halaman materi, nilai, sesi
-│       │   ├── Kepsek/                                 # Halaman grafik & ekspor
-│       │   ├── Siswa/                                  # Halaman KBM, tugas, absensi
-│       │   └── Auth/                                   # Form login & otentikasi
-│       └── app.js                                      # Vue 3 App setup & Inertia plugins
-├── routes/
-│   ├── web.php                                         # Rute aplikasi & group middleware
-│   └── auth.php                                        # Rute otentikasi Breeze
-└── tailwind.config.js                                  # Token desain & tema DaisyUI
-```
+#### Tab 2: Data Master (`Master`)
+* **Manajemen Entitas Inti**:
+  * Kelola **Jurusan / Program Keahlian** (Kode & Nama Jurusan).
+  * Kelola **Tingkat & Ruang Kelas** (X, XI, XII).
+  * Kelola **Master Mata Pelajaran** (Muatan Nasional, Kewilayahan, Produktif Kejuruan).
 
----
+#### Tab 3: Akun Pejabat & Role (`Akses`)
+* **Kelola Akun Khusus**:
+  * Pembuatan dan penonaktifan akun **Admin Operator**, **Kepala Sekolah**, dan **Guru**.
+* **Matriks Hak Akses Role**: Mengatur izin modul untuk ke-6 role pengguna.
 
-## 7. Blueprint Model Data & Relasi Entitas
-
-Hubungan relasional antar-tabel dirancang untuk menjamin integritas referensial dan mencegah anomali data:
-
-```mermaid
-erDiagram
-    PENGGUNA ||--o{ KELAS : "wali_kelas_id"
-    PENGGUNA ||--o{ MATERI : "dibuat_oleh (guru)"
-    PENGGUNA ||--o{ TUGAS : "dibuat_oleh (guru)"
-    PENGGUNA ||--o{ PENGUMPULAN_TUGAS : "siswa_id"
-    PENGGUNA ||--o{ PRESENSI_SISWA : "siswa_id"
-
-    KELAS ||--o{ PENGGUNA : "memiliki_anggota (siswa)"
-    KELAS ||--o{ MATERI_KELAS : "menerima_materi"
-    KELAS ||--o{ SESI_KEHADIRAN : "tempat_sesi"
-
-    MATA_PELAJARAN ||--o{ MATERI : "bagian_dari"
-    MATA_PELAJARAN ||--o{ TUGAS : "bagian_dari"
-    MATA_PELAJARAN ||--o{ SESI_KEHADIRAN : "mata_pelajaran_id"
-
-    MATERI ||--o{ LAMPIRAN_MATERI : "memiliki_lampiran"
-    MATERI ||--o{ MATERI_KELAS : "didistribusikan_ke"
-    MATERI ||--o{ TUGAS : "terkait_dengan"
-
-    TUGAS ||--o{ PENGUMPULAN_TUGAS : "dikumpulkan_ke"
-    PENGUMPULAN_TUGAS ||--o| NILAI_UMPAN_BALIK : "dinilai_pada"
-
-    SESI_KEHADIRAN ||--o{ PRESENSI_SISWA : "mencatat_kehadiran"
-```
-
----
-
-## 8. Alur Bisnis & Siklus Pembelajaran
-
-### 8.1 Alur Pengelolaan Sesi & Presensi Mandiri
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Guru as Guru Mapel
-    participant Siswa
-    participant Sistem as LMS SMK (Laravel)
-    
-    Guru->>Sistem: Buka Sesi Pertemuan (Aktifkan Timer Presensi 15 Menit)
-    Sistem-->>Siswa: Notifikasi Sesi Dibuka pada Dashboard
-    Siswa->>Sistem: Klik "Isi Kehadiran" (Status: Hadir)
-    alt Timer Masih Aktif
-        Sistem->>Sistem: Simpan PresensiSiswa (status: Hadir, timestamp)
-        Sistem-->>Siswa: Konfirmasi Kehadiran Berhasil
-    else Timer Habis
-        Sistem-->>Siswa: Presensi Ditutup (Hubungi Guru Mapel)
-    end
-    Guru->>Sistem: Rekap & Tutup Sesi Pertemuan
-```
-
-### 8.2 Alur Siklus Tugas, Pengumpulan, & Penilaian
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Guru as Guru Mapel
-    actor Siswa
-    participant Sistem as LMS SMK (Laravel)
-
-    Guru->>Sistem: Buat Tugas (Instruksi, Due Date, Izin Revisi)
-    Sistem-->>Siswa: Notifikasi Tugas Baru di Dashboard
-    Siswa->>Sistem: Unggah File Pengumpulan Tugas (Sebelum Due Date)
-    Sistem->>Sistem: Simpan status = "Terkumpul" (On-Time / Late)
-    Guru->>Sistem: Evaluasi Submission (Beri Nilai Angka & Komentar Feedback)
-    Sistem->>Sistem: Simpan NilaiUmpanBalik & Hitung Rata-rata
-    Sistem-->>Siswa: Siswa Menerima Nilai & Masukan Perbaikan
-    opt Jika Izin Revisi Aktif & Perlu Perbaikan
-        Siswa->>Sistem: Unggah Berkas Kumpul Ulang (Revisi)
-        Guru->>Sistem: Perbarui Nilai Akhir
-    end
-```
-
----
-
-## 9. Kebijakan Keamanan & Middleware Otentikasi
-
-### 9.1 Matriks Middleware Rute (`bootstrap/app.php` & `routes/web.php`)
-Setiap grup rute dilindungi oleh `EnsureUserRole` middleware dengan parameter role yang diizinkan:
-
-```php
-// Contoh Definisi Grup Rute Berbasis Role
-Route::middleware(['auth', 'role:super_admin'])->prefix('super-admin')->group(...);
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(...);
-Route::middleware(['auth', 'role:kepsek'])->prefix('kepsek')->group(...);
-Route::middleware(['auth', 'role:wali_kelas'])->prefix('wali-kelas')->group(...);
-Route::middleware(['auth', 'role:guru'])->prefix('guru')->group(...);
-Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->group(...);
-```
-
-### 9.2 Kebijakan Otorisasi Granular (*Laravel Policies*)
-* **`MaterialPolicy`**: Memastikan Guru hanya dapat menyunting materi yang dibuat oleh dirinya sendiri, kecuali Admin/Super Admin yang berhak memoderasi.
-* **`AssignmentPolicy`**: Memastikan siswa hanya dapat mengumpulkan tugas pada kelas di mana ia terdaftar, serta memblokir submission jika batas toleransi revisi telah habis.
-* **`AttendancePolicy`**: Memastikan presensi mandiri hanya dapat diajukan jika sesi kehadiran berstatus aktif dan dalam batas radius/waktu yang ditentukan.
-
----
-
-## 🔗 Referensi & Integrasi Antarmuka
-Panduan spesifikasi komponen visual, kode warna pastel, sistem tipografi, serta aturan bebas emoji mengacu secara langsung ke:
-* 📄 **[docs/design.md](design.md)** — *Design System & UI/UX Guidelines: Lingua E-Course App*.
-* 🖼️ **[docs/design-reference.png](design-reference.png)** — *Visual Layout Reference Antarmuka Utama*.
+#### Tab 4: Audit Log (`Log`)
+* **Rekam Jejak Keamanan (*System Trail*)**:
+  * Daftar kronologis aktivitas kritikal (siapa mengubah nilai, siapa mengoreksi presensi, dan riwayat login pejabat sekolah) lengkap dengan stempel waktu.

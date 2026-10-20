@@ -1,331 +1,126 @@
-# 🎨 Design System & UI/UX Guidelines: Lingua E-Course App
+# Mobile-First Design System & Google Stitch Guide
+## E-Course / LMS SMK — "Soft Pastel Capsule & Bento UI"
 
-![Lingua E-Course Design Reference](design-reference.png)
-
-> **Dokumen Arsitektur & PRD Terkait**: [docs/prd.md](prd.md)  
-> Dokumen ini merupakan panduan resmi standar desain antarmuka (*Design System & UI/UX Guidelines*) untuk aplikasi **Lingua E-Course & LMS SMK**, yang dirancang dengan presisi visual modern, konsistensi token, hierarki informasi yang jelas, dan implementasi komponen berbasis **Tailwind CSS + DaisyUI + Vue.js (Inertia.js) & Filament UI**.
-
----
-
-## 📌 1. Prinsip Utama & Filosofi Desain
-
-Aplikasi Lingua mengedepankan pengalaman belajar yang menyenangkan (*engaging*), bersih (*clean*), dan ringan (*lightweight*). Khusus untuk platform pembelajaran berbasis sekolah/LMS, diterapkan prinsip desain berikut:
-
-1. **Satu Identitas Visual yang Konsisten**: Seluruh elemen warna, tipografi, radius sudut, dan tata letak memiliki token terukur yang seragam di seluruh modul aplikasi.
-2. **Desain Bersih & Fungsional (Anti Over-decoration)**:
-   - Hindari penggunaan *gradient* dan *glassmorphism* berlebihan di setiap sudut.
-   - Tidak semua elemen dibuat menjadi *card*. Gunakan **tabel** untuk rekap nilai/data, **daftar list** untuk modul/materi belajar, dan **panel/card** hanya untuk ringkasan metrik atau hero progress.
-3. **Prioritas Hierarki Informasi**:
-   - Siswa dapat langsung melihat status belajar aktif, modul terakhir yang sedang dikerjakan (*Pick up where you left off*), dan target belajar harian tanpa terhalang menu yang rumit.
-4. **Dashboard Spesifik Berdasarkan Peran (Role-Based UX)**:
-   - **Dashboard Siswa**: Interaktif, visual gamifikasi (progres bar, streak, target harian, modul cepat).
-   - **Dashboard Guru**: Fokus pada efisiensi kerja (tabel rekap nilai, daftar pengumpulan tugas, manajemen kelas).
-   - **Dashboard Kepala Sekolah / Admin (Filament UI)**: Analisis agregat institusi, KPI capaian kurikulum, dan manajemen otentikasi/kebijakan akses (*Laravel Policies & Middleware*).
-5. **Animasi Mikro Bertujuan (Purposeful Micro-interactions)**: Animasi hanya dipakai untuk respons interaksi (klik tombol, transisi halaman SPA tanpa reload via Inertia.js, animasi denyut/pulse saat merekam suara), bukan sekadar hiasan statis.
-6. **🛑 ATURAN MUTLAK IKON (100% Zero-Emoji as UI Icons)**:
-   - **DILARANG KERAS** menggunakan emoji Unicode (seperti 🔥, ❤️, ⭐, 📚, 🎧, 🎙️) sebagai ikon navigasi atau penanda antarmuka UI.
-   - **WAJIB** memanfaatkan pustaka ikon vektor SVG murni seperti **Heroicons (Blade/Vue)** atau **Lucide Icons** dengan *stroke/fill* yang dapat dikontrol dinamis melalui CSS.
+> **Referensi Visual**: Berdasarkan gambar referensi *Mobile E-Course UI* (Warm Ivory Canvas, Charcoal Pill Controls, Soft Pastel Hero Cards, & Capsule Lists).  
+> **Target Viewport Utama**: Mobile-First (`375px` – `430px` width, rasio `9:19.5`), dengan pembungkus responsif terpusat pada layar desktop.
 
 ---
 
-## 🌈 2. Palet Warna (Color Palette & Design Tokens)
+## 1. Karakteristik Visual Utama (Berdasarkan Gambar Referensi)
+Desain ini meninggalkan tampilan tabel kaku khas dashboard lama dan beralih ke estetika **Editorial Mobile Learning** yang hangat, bersih, dan sangat ramah ibu jari:
+1. **Kanvas Hangat (*Warm Alabaster Canvas*)**: Latar belakang tidak menggunakan putih menyilaukan maupun abu-abu dingin, melainkan krem gading sangat lembut (`#F9F8F6`) dengan pendaran gradasi *peach/cream* halus di sudut atas.
+2. **Kontras Hitam Arang (*Deep Charcoal Accents*)**: Elemen aktif seperti hari yang dipilih pada kalender, tombol aksi utama (*Play/Action*), dan bilah navigasi bawah menggunakan warna hitam arang pekat (`#141416`) sehingga menciptakan fokus visual yang tajam.
+3. **Kartu Hero Pastel Bergradasi**: Kartu sorotan utama (*Today's Class* / Ringkasan Role) menggunakan warna pastel lembut seperti **Sage Green** (`#D4E4D2` ke `#E9F0CE`) atau **Blush Pink** (`#F9D5E5` ke `#FCE8F1`) dengan sudut ekstra membulat (`28px`).
+4. **Komponen Serba Kapsul (*Pill & Capsule Geometry*)**:
+   * Pemilih tanggal mingguan berbentuk kapsul vertikal (`border-radius: 9999px`).
+   * Daftar pelajaran/item berbentuk kapsul horisontal putih bersih (`border-radius: 24px`) dengan ikon berlatar bulat pastel di sisi kiri.
+   * Tombol *Onboarding Slide* dan *Bottom Navigation* berbentuk kapsul penuh.
 
-### A. Primary & Accent Colors
-| Nama Token | Nilai HEX / CSS | Deskripsi & Penggunaan |
+---
+
+## 2. Palet Warna (Color Tokens)
+
+### 2.1 Permukaan & Latar (Surfaces)
+| Token | Hex Code | Penggunaan |
 | :--- | :--- | :--- |
-| **Primary Indigo / Purple** | `#6C5CE7` | Warna aksen utama, tombol CTA primer, indikator tab aktif, progress bar aktif. |
-| **Primary Purple Dark** | `#5B4BC4` | Status *hover/active* tombol primer. |
-| **Light Purple Accent** | `#EEEDFE` / `#E8E5FF` | Latar belakang chip aktif, highlight kategori, hover state. |
-| **Hero Gradient** | `linear-gradient(135deg, #7C69EF 0%, #9080F4 100%)` | Latar belakang kartu hero progress siswa ("Pick up where you left off"). |
+| `--bg-canvas` | `#F9F8F6` | Latar belakang utama layar mobile |
+| `--bg-glow` | `#FFF1E6` | Efek *radial blur* lembut di bagian kanan atas layar |
+| `--surface-card` | `#FFFFFF` | Kartu daftar pelajaran, timeline item, dan lembaran putih |
+| `--surface-muted` | `#F1EFEA` | Track tombol *slide*, kapsul non-aktif, atau input field |
+| `--surface-dark` | `#141416` | Bilah navigasi bawah aktif, kapsul tanggal aktif, tombol bulat utama |
 
-### B. Neutral Colors
-| Nama Token | Nilai HEX | Penggunaan |
-| :--- | :--- | :--- |
-| **Background Canvas** | `#F8F9FD` | Latar belakang seluruh halaman aplikasi (lembut, tidak silau). |
-| **Surface White** | `#FFFFFF` | Latar belakang kartu, modal, popover, dan panel kontainer. |
-| **Text Primary (Dark)** | `#1E1F24` | Judul utama (Headings), teks instruksi penting. |
-| **Text Secondary (Muted)** | `#6E717C` | Teks keterangan, deskripsi, sub-heading, metadata waktu. |
-| **Border & Divider** | `#F0F1F5` | Garis pembatas kartu, separator list, dan border tabel halus. |
+### 2.2 Warna Aksen Kartu Pastel (Hero & Subject Accents)
+Setiap *role* atau kategori mata pelajaran menggunakan variasi kartu pastel yang tetap satu keluarga warna:
+* **Pastel Sage (Siswa / Produktif)**: Linear Gradient `135deg`, `#C8DFC6` $\rightarrow$ `#EBF2D5`
+* **Pastel Blossom (Materi / Guru Mapel)**: Linear Gradient `135deg`, `#FBD2E0` $\rightarrow$ `#FDF0F5`
+* **Pastel Sky (Wali Kelas / Presensi)**: Linear Gradient `135deg`, `#D0E8F8` $\rightarrow$ `#EAF5FE`
+* **Pastel Amber (Kepsek / Analitik)**: Linear Gradient `135deg`, `#FDE4C3` $\rightarrow$ `#FEF5E7`
+* **Pastel Lavender (Admin & Super Admin)**: Linear Gradient `135deg`, `#E2D9F3` $\rightarrow$ `#F3EFFB`
 
-### C. Functional & Gamification Colors
-| Kategori | Token Warna | Nilai HEX | Penggunaan UI |
-| :--- | :--- | :--- | :--- |
-| **Streak / Focus** | `Streak Orange` | `#FF7A00` | Penanda jumlah hari belajar berturut-turut (*streak*). |
-| **Health / Lives** | `Red Accent` | `#FF4D4D` | Jumlah nyawa/kuota kuis (*Lives*). |
-| **Success** | `Emerald Green` | `#00B894` | Indikator jawaban benar, status tuntas. |
-| **Warning** | `Amber Yellow` | `#FDCB6E` | Tenggat tugas mendekat, notifikasi peringatan. |
-
-### D. Pastel Category Colors (Quick Practice & Modul)
-| Kategori Modul | Background Chip | Aksen Ikon |
-| :--- | :--- | :--- |
-| **Vocabulary** | `#FFF5E5` (Pastel Yellow) | `#E17055` / `#D35400` |
-| **Listening** | `#FFEEF0` (Pastel Pink) | `#E84393` / `#D63031` |
-| **Speaking** | `#E8FAF0` (Pastel Green) | `#00B894` / `#27AE60` |
-| **Grammar** | `#EBF3FE` (Pastel Blue) | `#0984E3` / `#2980B9` |
+### 2.3 Tipografi & Warna Teks
+* **Font Family**: `'Plus Jakarta Sans'`, sans-serif (Bulat, modern, keterbacaan tinggi di layar kecil).
+* **Text Primary**: `#141416` (Judul, angka tanggal, nama pelajaran).
+* **Text Secondary**: `#6E6E77` (Jam pelajaran, nama guru, sub-teks).
+* **Text On-Dark**: `#FFFFFF` (Teks di dalam navigasi hitam atau kapsul aktif).
 
 ---
 
-## 🔤 3. Tipografi (Typography)
+## 3. Spesifikasi Komponen Kunci (Component Anatomy)
 
-Sistem tipografi menggunakan jenis huruf Sans-Serif modern berkarakter ramah dan mudah dibaca: **Plus Jakarta Sans** (primer) atau **Inter** sebagai alternatif fallback.
+### 3.1 Top Header Bar
+* Tinggi `56px`, menyatu dengan latar belakang.
+* **Kiri**: Tombol bulat putih/transparan (`44px x 44px`, border tipis `#E6E4DF`) berisi ikon menu garis dua/tiga atau panah kembali `<-`.
+* **Tengah** (Opsional pada sub-halaman): Judul halaman (`18px`, `font-weight: 700`).
+* **Kanan**: Avatar pengguna bulat (`44px x 44px`) atau pemilih *Role/Semester*.
 
-| Skala Tipografi | Ukuran | Bobot (Weight) | Line-height | Tracking / Spacing | Penggunaan |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Heading XL** | `32px` (`2rem`) | Bold (`700`) | `1.2` | `-0.02em` | Judul hero landing page, skor capaian akhir. |
-| **Heading L** | `22px` (`1.375rem`) | Bold (`700`) | `1.3` | `-0.01em` | Salam header aplikasi (*"Hello, Alex!"*), judul halaman. |
-| **Heading M** | `16px` (`1rem`) | SemiBold (`600`)| `1.4` | `normal` | Judul seksi (*"My Courses"*, *"Today's Goal"*). |
-| **Body Normal** | `14px` (`0.875rem`)| Regular / Medium | `1.5` | `normal` | Paragraf soal, instruksi belajar, konten tabel. |
-| **Caption / Small**| `12px` (`0.75rem`) | Regular / SemiBold| `1.4` | `+0.01em`| Metadata, label status badge, tab bottom bar. |
+### 3.2 Hero Spotlight Card (`Today's Class` / `Role Overview`)
+* **Radius**: `28px`, padding `20px`, posisi `relative`, `overflow: hidden`.
+* **Elemen Dalam**:
+  * *Status Pill* di bagian atas: Titik hijau/ikon ceklis + teks waktu (misal: `Live • 08:00 - 09:30` atau `12 PM - 03 AM` di dalam kapsul putih `#FFFFFF`).
+  * *Judul Utama*: `22px`, Bold (`#141416`).
+  * *Metadata*: Ikon kalender/batch + teks kecil (`13px`).
+  * *Progress Bar / Action*: Garis progres hitam dengan thumb bulat, serta tombol bulat hitam (`44px x 44px`) dengan ikon `Play` atau panah di kiri bawah, bersebelahan dengan ilustrasi 3D/vektor tematik di kanan bawah.
 
----
+### 3.3 Weekly Capsule Date Selector (`Class Schedule`)
+* Baris 7 kolom (`grid-template-columns: repeat(7, 1fr)`), jarak `8px`.
+* Setiap item berbentuk kapsul vertikal (`padding: 12px 4px`, `border-radius: 999px`).
+* **Status Normal**: Latar `#FFFFFF`, border `1px solid #ECEAE4`, teks hari `11px` (`#6E6E77`), angka tanggal `15px` Bold (`#141416`).
+* **Status Aktif**: Latar `#141416`, teks putih `#FFFFFF`, dengan 4 titik indikator kecil di bawah angka tanggal.
 
-## 🛡️ 4. Sistem Ikonografi Vektor (Bebas Emoji)
+### 3.4 Capsule Lesson / Data List (`Last Lessons`)
+* Setiap baris adalah kartu putih (`#FFFFFF`) dengan `border-radius: 24px`, padding `12px 16px`, bayangan sangat lembut (`0 4px 20px rgba(20, 20, 22, 0.04)`).
+* **Kiri**: Lingkaran (`48px x 48px`) berwarna pastel lembut sesuai kategori, memuat ikon garis (`stroke-width: 1.75px`).
+* **Tengah**: Judul item (`15px` Bold), sub-teks waktu, dan tumpukan avatar kecil (*avatar group* `+5`) atau badge status.
+* **Kanan**: Kapsul metadata kecil (tanggal & jam) dengan latar `#F9F8F6`.
 
-Setiap ikon dibuat menggunakan format vektor SVG (`heroicons` atau `lucide-vue-next`). Emoji dilarang digunakan sebagai elemen ikon.
-
-| Elemen UI | Ikon SVG yang Ditentukan | Format / Kelas Tailwind | Catatan Tampilan |
-| :--- | :--- | :--- | :--- |
-| **Streak Tracker** | `heroicon-s-fire` (Flame Solid) | `text-[#FF7A00] w-5 h-5` | Menggantikan emoji 🔥 |
-| **Lives / Heart** | `heroicon-s-heart` (Heart Solid) | `text-[#FF4D4D] w-5 h-5` | Menggantikan emoji ❤️ |
-| **Logo / Language**| `heroicon-o-globe-alt` | `text-[#6C5CE7] w-6 h-6` | Ikon bola dunia di navbar & landing. |
-| **Vocabulary** | `heroicon-o-book-open` | `text-[#D35400] w-6 h-6` | Ikon buku terbuka latar pastel kuning. |
-| **Listening** | `heroicon-o-headphones` | `text-[#E84393] w-6 h-6` | Ikon headphone latar pastel pink. |
-| **Speaking** | `heroicon-o-microphone` | `text-[#00B894] w-6 h-6` | Ikon mikrofon latar pastel hijau. |
-| **Grammar** | `heroicon-o-pencil-square` | `text-[#0984E3] w-6 h-6` | Ikon catatan/pena latar pastel biru. |
-| **Search Bar** | `heroicon-o-magnifying-glass` | `text-gray-400 w-5 h-5` | Ikon pencarian rounded explore. |
-| **Gift / Goal** | `heroicon-o-gift` | `text-purple-600 w-5 h-5` | Ikon kado pada capaian target harian. |
-| **Achievements** | `heroicon-o-trophy` / `star` | `text-amber-500 w-6 h-6` | Ikon lencana medali & prestasi. |
-| **Navigasi Home** | `heroicon-o-home` / `heroicon-s-home`| `w-6 h-6` | Tab beranda aplikasi. |
-| **Navigasi Explore**| `heroicon-o-compass` | `w-6 h-6` | Tab jelajah kursus & bahasa. |
-| **Navigasi Practice**| `heroicon-o-academic-cap` | `w-6 h-6` | Tab latihan interaktif & kuis. |
-| **Navigasi Progress**| `heroicon-o-chart-bar` | `w-6 h-6` | Tab statistik XP dan rekap. |
-| **Navigasi Profile**| `heroicon-o-user` | `w-6 h-6` | Tab profil dan pengaturan akun. |
+### 3.5 Floating Bottom Navigation Pill
+* Melayang di bagian bawah layar (`bottom: 20px`, kiri-kanan `24px`), tinggi `68px`.
+* **Wadah Luar**: Kapsul putih/krem transparan (`rgba(255, 255, 255, 0.92)`), `backdrop-filter: blur(16px)`, `border-radius: 999px`, padding `8px`, bayangan `0 12px 32px rgba(20, 20, 22, 0.08)`.
+* **Tab Aktif**: Berbentuk kapsul hitam pekat (`#141416`) yang menampilkan **Ikon + Teks Label** (contoh: `[ 🏠 Home ]`).
+* **3 Tab Lainnya**: Hanya menampilkan ikon garis berwarna `#141416` di dalam lingkaran transparan, yang akan berubah menjadi kapsul hitam saat diketuk.
 
 ---
 
-## 📐 5. Spesifikasi Komponen UI (UI Components)
+## 4. Panduan Prompt Google Stitch (Siap Pakai per Layar & Role)
 
-### A. Buttons (Tombol)
-1. **Primary Action Button (Ungu Solid)**:
-   - **Background**: `#6C5CE7`
-   - **Hover**: `#5B4BC4`
-   - **Text**: `#FFFFFF`, font-weight `600`, ukuran `14px`.
-   - **Border Radius**: `16px` (`rounded-2xl`) atau *pill* (`rounded-full`).
-   - **Padding**: `14px 24px`
-   - **Shadow**: `0 8px 20px rgba(108, 92, 231, 0.25)`
+Salin dan tempelkan *prompt* bahasa Inggris di bawah ini ke **Google Stitch** untuk menghasilkan desain UI per layar yang 100% konsisten dengan gambar referensi Anda.
 
-2. **Secondary / Glass Button (Tombol "Continue Learning")**:
-   - **Background**: `rgba(255, 255, 255, 0.9)` (atau solid putih pada kartu hero ungu).
-   - **Text**: `#6C5CE7`, font-weight `600`, ukuran `13px`.
-   - **Border Radius**: `9999px` (`rounded-full`).
-   - **Padding**: `10px 20px`
-   - **Efek**: Sedikit scaling saat hover (`hover:scale-105 transition-transform`).
-
-3. **Word Chips (Opsi Kata untuk Jawaban)**:
-   - **Background**: `#FFFFFF`
-   - **Border**: `1.5px solid #F0F1F5`
-   - **Shadow**: `0 2px 6px rgba(0,0,0,0.03)`
-   - **Border Radius**: `14px`
-   - **State Terpilih / Kosong**: Latar abu-abu redup `#F4F5F9` dengan border putus-putus (*dashed*).
-
-### B. Cards & Containers
-1. **Hero Progress Card ("Pick up where you left off")**:
-   - **Latar Belakang**: `linear-gradient(135deg, #7C69EF 0%, #9080F4 100%)`
-   - **Sudut Lengkung**: `24px` (`rounded-3xl`)
-   - **Dekorasi**: Watermark lingkaran lembut semi-transparan (`opacity-10`) di pojok kartu.
-   - **Isi**: Label "Pick up where you left off", Judul Modul, Progress Bar putih transparan (65%), tombol CTA putih melengkung.
-   - **Ilustrasi**: Sisi kanan memuat karakter pendukung 2D/vektor ramah.
-
-2. **White Standard Card**:
-   - **Latar Belakang**: `#FFFFFF`
-   - **Border Radius**: `20px`
-   - **Box Shadow**: `0px 4px 16px rgba(0, 0, 0, 0.04)`
-   - **Padding**: `16px 20px`
-
-3. **Quick Practice Category Chip**:
-   - Bentuk kotak bersudut lembut `rounded-2xl`.
-   - Menggunakan warna pastel masing-masing modul dengan ikon SVG di tengah dan label teks 12px di bawahnya.
-
-### C. Navigation Bar (Bottom Navigation & Desktop Sidebar)
-- **Mobile Bottom Bar**:
-  - Background: `#FFFFFF` dengan garis batas atas halus `border-t border-[#F0F1F5]`.
-  - 5 Tab Item: *Home*, *Explore*, *Practice*, *Progress*, *Profile*.
-  - Status Aktif: Teks & ikon berubah ke `#6C5CE7` disertai titik penanda kecil (*indicator dot*) di bawahnya.
-  - Status Tidak Aktif: Teks & ikon berwarna `#A0A5B5`.
-- **Desktop Sidebar**:
-  - Menyediakan navigasi vertikal responsif dengan logo Lingua di bagian atas, menu utama di tengah, dan profil ringkas di bagian bawah.
+### 4.1 Prompt Dasar Gaya Visual (Sertakan di Awal atau Sebagai System Style)
+> **Style Prompt**:  
+> *"Mobile app UI design, warm alabaster background (#F9F8F6) with subtle soft peach top-right radial glow, Plus Jakarta Sans typography, deep charcoal black (#141416) primary accents, soft pastel rounded hero cards (28px radius) in sage green (#D4E4D2) and blush pink (#FBD2E0), vertical pill-shaped date selector, white capsule list items (24px radius) with circular pastel icons, and a floating glassmorphic bottom navigation bar featuring an expanding black pill (#141416) for the active tab. Clean, modern vocational high school LMS, zero clutter, dribbble high-craft aesthetic."*
 
 ---
 
-## 📱 6. Perincian Tata Letak Layar (Screen Layouts)
-
-### Layar 1: Landing Page / Web Header
-- **Top Bar**: Logo Lingua dengan ikon vektor Globe + Tombol CTA "Masuk / Mulai Belajar".
-- **Hero Title**:
-  - Teks: `"Learn Languages, "` dalam warna hitam gelap `#1E1F24` + `"Open Worlds."` dengan gradasi ungu violet.
-  - Sub-judul: `"Fun, interactive and effective language learning for everyone."`
-- **Feature Showcase Grid**: 4 baris item fitur dengan ikon vektor SVG berlatar pastel:
-  1. *Interactive Lessons* (Ikon Buku Vektor)
-  2. *Practice Speaking* (Ikon Headphone Vektor)
-  3. *Track Progress* (Ikon Target Vektor)
-  4. *Earn Rewards* (Ikon Bintang Vektor)
-- **Quote Banner**: Banner ungu bertepi lengkung dengan kutipan inspiratif dan watermark tanda kutip ganda.
-
-### Layar 2: Home Screen (Dashboard Belajar)
-- **Header**:
-  - Sapaan personal: `"Hello, Alex!"` + Subtitle `"What do you want to learn today?"`
-  - Badge Streak Kanan Atas: Ikon SVG api oranye `#FF7A00` + Angka hari berturut-turut (misal: `12`).
-- **Hero Section**: Kartu bergradasi ungu berisi progres kursus terakhir (*"Spanish for Beginners"* - 65%) + tombol *"Continue Learning >"*.
-- **Section "My Courses"**: Daftar kartu kursus yang diikuti lengkap dengan bendera negara, nama bahasa, progres capaian, dan ikon panah navigasi.
-- **Section "Today's Goal"**: Indikator capaian target harian (*"Learn 20 new words"* - 12/20) dilengkapi ikon hadiah vektor.
-- **Section "Quick Practice"**: 4 kotak mini pastel:
-  - 🟦 *Vocabulary* (Ikon Buku Terbuka)
-  - 🟥 *Listening* (Ikon Headphone)
-  - 🟩 *Speaking* (Ikon Mikrofon)
-  - 🟨 *Grammar* (Ikon Lembar Catatan)
-
-### Layar 3: Interactive Lesson (Quiz / Word Scramble)
-- **Header**: Tombol tutup/kembali + Progress bar kuis (misal: 3/10) + Indikator Nyawa (Ikon SVG Hati Merah).
-- **Soal / Perintah**:
-  - Teks: *"Translate this sentence"*
-  - Bubble Chat percakapan dengan ikon speaker audio untuk mendengarkan lafal kalimat (*"¿Cómo estás?"*).
-- **Answer Slots**: Barisan kotak kosong untuk meletakkan kata yang tersusun.
-- **Word Chips**: Kumpulan tombol kata acak (*"How"*, *"are"*, *"you"*, *"?"*) yang dapat disentuh untuk berpindah ke slot jawaban.
-- **Bottom Footer**: Tombol CTA lebar penuh berwarna ungu solid (*"Check"* / *"Periksa"*).
-
-### Layar 4: Voice / Speaking Practice Screen
-- **Header**: Tombol kembali + Bar progress (2/10) + Ikon hati merah.
-- **Instruksi Latihan**: Teks instruksi: *"Speak this sentence"* + Kata yang harus diucapkan: *"Good morning!"*
-- **Microphone Interaction Zone**:
-  - Lingkaran konsentris gradasi ungu lembut dengan animasi denyut (*subtle pulse animation*).
-  - Ikon mikrofon putih di lingkaran inti ungu `#6C5CE7`.
-  - Teks petunjuk di bawah lingkaran: *"Tap the mic and speak"*.
-
-### Layar 5: Explore Screen (Katalog Pembelajaran)
-- **Search Bar**: Kotak input pencarian bersudut bulat (*rounded-full*) dengan latar `#F8F9FD` dan ikon kaca pembesar SVG.
-- **Section "Popular Languages"**: Grid kartu bahasa populer (Spanyol, Prancis, Jepang, Jerman) menampilkan bendera negara, nama bahasa, dan jumlah pelajar (*"32.5K learners"*).
-- **Section "Categories"**: Grid ikon kategori (Beginner, Travel, Business, Kids) dengan latar pastel harmonis.
-
-### Layar 6: Progress & Analytics Screen
-- **Filter Header**: Judul *"Progress"* dengan dropdown pilihan rentang waktu (*"This Week"*, *"This Month"*).
-- **XP Analytics Chart**: Grafik kurva garis halus (*smooth line chart*) yang menunjukkan perolehan XP harian dengan titik sorot capaian tertinggi.
-- **Stats Summary Cards**: Tiga kartu metrik ringkas:
-  - 💼 *Lessons*: 12 Sesi
-  - ⚡ *Words Learned*: 86 Kosakata
-  - 🔴 *Streak*: 7 Hari
-- **Achievements Badge Grid**: Deretan medali pencapaian (*7 Days Streak*, *100 Words Learner*, *First Lesson Complete*, *Week Goal Achiever*).
-
-### Layar 7: User Profile Screen
-- **Profil Header**: Foto profil avatar melingkar + Nama siswa (*Alex Johnson*) + Email + Tombol *"Edit Profile"*.
-- **Ringkasan Angka**: 4 kolom statistik horizontal (*Courses: 3*, *Lessons: 24*, *Words: 256*, *Streak: 7*).
-- **Daftar Menu Navigasi Akun**:
-  - 📘 *My Vocabulary*
-  - 🔖 *Saved Lessons*
-  - ⭐ *Achievements*
-  - 📊 *Statistics*
-  - ⚙️ *Settings*
+### 4.2 Prompt Layar 1: Onboarding & Login Page
+> **Google Stitch Prompt — Onboarding & Login**:  
+> *"Design a two-screen mobile onboarding and login flow for a vocational school LMS following a warm pastel aesthetic (#F9F8F6 canvas). Screen 1 (Onboarding): Top half features a friendly Indonesian high school student holding a notebook with concentric pastel rainbow arcs behind them; bottom half has a white rounded sheet (32px top radius) with bold title 'Siap Memulai Perjalanan Belajarmu!', a short subtitle, and a full-width gray capsule slide button (#F1EFEA) containing a white circular checkmark button on the left and 'Masuk ke Akun >>>' on the right. Screen 2 (Login): Clean header with back circle button, pastel sage badge 'LMS SMK Vokasi', bold heading 'Masuk ke Ruang Belajar', two rounded capsule input fields for 'NISN / NIP / Username' and 'Kata Sandi', a subtle 'Ingat Sesi Saya' toggle, and a full-width deep charcoal (#141416) pill button 'Masuk Sekarang'."*
 
 ---
 
-## 🏫 7. Standar Desain Berbasis Peran untuk LMS Sekolah
-
-Untuk memastikan kesesuaian dengan kebutuhan institusi sekolah, antarmuka dibagi berdasarkan tanggung jawab pengguna:
-
-```
-                          ┌──────────────────────────┐
-                          │   Lingua LMS Platform    │
-                          └─────────────┬────────────┘
-                                        │
-         ┌──────────────────────────────┼──────────────────────────────┐
-         ▼                              ▼                              ▼
-  [ Dashboard Siswa ]            [ Dashboard Guru ]          [ Dashboard Admin/KS ]
-  • Gamified & Friendly          • Efisien & Fungsional      • Agregat & Tata Kelola
-  • Hero Card "Lanjut Belajar"   • Tabel Penilaian Tugas     • Panel Admin Filament
-  • Latihan Cepat & Kuis         • Rekap Kehadiran Kelas     • KPI Capaian Sekolah
-  • Progres XP & Streak          • Manajemen Modul & Soal    • Kebijakan Akses & Role
-```
-
-1. **Dashboard Siswa (Aplikasi Web SPA via Inertia + Vue 3)**:
-   - Berfokus pada kemudahan akses materi dan memicu motivasi belajar mandiri.
-   - Menggunakan komponen *Hero Card*, *Quick Practice*, dan modul kuis interaktif tanpa reload sistem saat navigasi menu.
-2. **Dashboard Guru**:
-   - Meminimalkan kartu dekoratif; memprioritaskan **tabel data** untuk koreksi nilai, pemantauan ketuntasan belajar siswa per kelas, dan pengelolaan bank soal.
-3. **Dashboard Kepala Sekolah & Administrator (Panel Admin Filament)**:
-   - Terintegrasi pada rute `/admin` dengan autentikasi `FilamentUser` dan kebijakan akses *Laravel Policies*.
-   - Menyajikan metrik institusi: statistik keaktifan guru & siswa, distribusi penguasaan materi, dan manajemen data induk.
+### 4.3 Prompt Layar 2: Role Siswa (Home, Kelas, & Tugas)
+> **Google Stitch Prompt — Student Dashboard & Lessons**:  
+> *"Design a mobile LMS student dashboard screen on a #F9F8F6 background. Top bar: left circular menu button, right student avatar. Section 1 'Kelas Hari Ini': A sage green pastel gradient card (28px radius) showing a green live dot 'Sesi Aktif • 45 menit lagi', bold title 'Pemrograman Web & Perangkat Bergerak', subtitle 'Kelas: XII RPL 1 • Bab 06/10', a black progress bar, a round black play button (#141416) on bottom-left, and a 3D coding illustration on bottom-right. Section 2 'Jadwal Kelas': Month dropdown 'Okt 2026' and a 7-day vertical capsule calendar where Sunday 17 is highlighted in solid black (#141416). Section 3 'Timeline': Vertical time slots (08:00, 10:00, 12:00) with horizontal white pill cards showing subject name, time, and small pastel icon. Bottom: Floating white pill navigation bar with active black capsule 'Home', plus icons for Lessons, Tasks, and Attendance."*
 
 ---
 
-## 💻 8. Konfigurasi Token Desain (Tailwind & DaisyUI)
+### 4.4 Prompt Layar 3: Role Guru Mapel (Dashboard Mengajar & Penilaian Cepat)
+> **Google Stitch Prompt — Teacher Mobile UI**:  
+> *"Design a mobile LMS teacher screen matching the soft pastel capsule design system (#F9F8F6 canvas, #141416 accents). Top bar with teacher profile. Hero card in soft blush pink pastel (#FBD2E0) with a white pill badge '08:00 - 10:30 WIB • Lab RPL 2', bold title 'Basis Data Lanjutan (XI RPL 1)', and a solid black pill button 'Buka Presensi 15 Menit'. Below, a section titled 'Antrean Penilaian Tugas' with white capsule cards (24px radius); each card has a pastel circular icon on the left, assignment title 'Praktikum SQL Join', student submission counter badge '28/32 Terkumpul', and a quick 'Nilai' action pill. Include the signature floating bottom navigation bar with active black pill."*
 
-Token desain Lingua didaftarkan langsung ke dalam `tailwind.config.js` agar seluruh komponen Vue dan Blade dapat memanggil kelas utilitas standar secara konsisten:
+---
 
-```javascript
-// tailwind.config.js
-import defaultTheme from 'tailwindcss/defaultTheme';
-import forms from '@tailwindcss/forms';
-import daisyui from 'daisyui';
+### 4.5 Prompt Layar 4: Role Guru Wali Kelas (Monitoring Rombel & Peringatan Dini)
+> **Google Stitch Prompt — Homeroom Teacher Mobile UI**:  
+> *"Design a mobile homeroom teacher monitoring screen on a #F9F8F6 canvas. Hero card in soft pastel sky blue (#D0E8F8) showing white pill 'Wali Kelas • X DKV 1', bold title 'Kehadiran Hari Ini: 96%', and 3 mini stat pills (34 Hadir, 1 Sakit, 1 Alpa). Below, section 'Perhatian Khusus (Early Warning)' featuring white capsule cards with soft coral/amber circular icons highlighting students with 3+ absences or grades below KKM 75, complete with a quick 'Lihat Rapor' pill button. Bottom floating pill navigation bar."*
 
-export default {
-    content: [
-        './resources/views/**/*.blade.php',
-        './resources/js/**/*.vue',
-    ],
-    theme: {
-        extend: {
-            colors: {
-                lingua: {
-                    primary: '#6C5CE7',
-                    'primary-dark': '#5B4BC4',
-                    accent: '#EEEDFE',
-                    'accent-soft': '#E8E5FF',
-                    canvas: '#F8F9FD',
-                    surface: '#FFFFFF',
-                    dark: '#1E1F24',
-                    muted: '#6E717C',
-                    divider: '#F0F1F5',
-                    streak: '#FF7A00',
-                    heart: '#FF4D4D',
-                    pastel: {
-                        yellow: '#FFF5E5',
-                        pink: '#FFEEF0',
-                        green: '#E8FAF0',
-                        blue: '#EBF3FE',
-                    },
-                },
-            },
-            fontFamily: {
-                sans: ['"Plus Jakarta Sans"', 'Inter', ...defaultTheme.fontFamily.sans],
-            },
-            boxShadow: {
-                'lingua-card': '0px 4px 16px rgba(0, 0, 0, 0.04)',
-                'lingua-primary': '0px 8px 20px rgba(108, 92, 231, 0.25)',
-            },
-            borderRadius: {
-                'card': '20px',
-                'hero': '24px',
-            },
-        },
-    },
-    plugins: [forms, daisyui],
-    daisyui: {
-        themes: [
-            {
-                lingua: {
-                    primary: '#6C5CE7',
-                    secondary: '#EEEDFE',
-                    accent: '#FF7A00',
-                    neutral: '#1E1F24',
-                    'base-100': '#FFFFFF',
-                    'base-200': '#F8F9FD',
-                    'base-300': '#F0F1F5',
-                    info: '#0984E3',
-                    success: '#00B894',
-                    warning: '#FF7A00',
-                    error: '#FF4D4D',
-                },
-            },
-        ],
-    },
-};
-```
+---
+
+### 4.6 Prompt Layar 5: Role Kepala Sekolah (Pantauan Eksekutif & Unduh Laporan)
+> **Google Stitch Prompt — Principal Executive Mobile UI**:  
+> *"Design a mobile executive dashboard for a school principal using a warm pastel bento aesthetic (#F9F8F6). Hero card in soft pastel amber/peach (#FDE4C3) displaying a white pill 'Pantauan KBM Sekolah', bold title '94.8% Kelas Terlaksana', and a clean mini bar chart of weekly attendance across Grade X, XI, and XII. Below, section 'Ekspor Dokumen Resmi' with white capsule cards for 'Laporan Kehadiran Bulanan (PDF)' and 'Leger Nilai Akademik Sekolah (Excel)', each having a circular black download button (#141416). Floating bottom navigation bar."*
+
+---
+
+### 4.7 Prompt Layar 6: Role Admin & Super Admin (Operator & Master Data)
+> **Google Stitch Prompt — Admin & Super Admin Mobile UI**:  
+> *"Design a mobile school operator and super admin screen in the soft pastel capsule style (#F9F8F6 background). Hero card in soft pastel lavender (#E2D9F3) with a white pill badge 'Tahun Ajaran 2026/2027 • Ganjil', bold title 'Pusat Kendali & Data Master', and quick action pills for 'Reset Sandi' and 'Koreksi Absen'. Below, a list of white capsule cards (24px radius) for managing 'Plotting Guru & Wali Kelas', 'Direktori Siswa (1.240 Aktif)', and 'Audit Log Sistem', with clean line icons in pastel circles. Bottom floating pill navigation bar."*
