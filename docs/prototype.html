@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LMS SMK Vokasi — Mobile UI Prototype (6 Roles)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            canvas: '#F9F8F6',
+            charcoal: '#141416',
+            muted: '#F1EFEA',
+            subtext: '#6E6E77',
+            sage: {
+              light: '#EBF2D5',
+              DEFAULT: '#D4E4D2',
+              dark: '#3D5A45'
+            },
+            blossom: {
+              light: '#FDF0F5',
+              DEFAULT: '#FBD2E0',
+              dark: '#7A3E53'
+            },
+            sky: {
+              light: '#EAF5FE',
+              DEFAULT: '#D0E8F8',
+              dark: '#2C5270'
+            },
+            amberpastel: {
+              light: '#FEF5E7',
+              DEFAULT: '#FDE4C3',
+              dark: '#785021'
+            },
+            lavender: {
+              light: '#F3EFFB',
+              DEFAULT: '#E2D9F3',
+              dark: '#4A3B69'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #E4E2DD;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Hide scrollbars inside mobile frame */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .hero-sage {
+      background: linear-gradient(135deg, #CBE0C8 0%, #EBF2D5 100%);
+    }
+    .hero-blossom {
+      background: linear-gradient(135deg, #FAD0E0 0%, #FCEBF2 100%);
+    }
+    .hero-sky {
+      background: linear-gradient(135deg, #CBE5F8 0%, #EBF6FE 100%);
+    }
+    .hero-amber {
+      background: linear-gradient(135deg, #FCDFB8 0%, #FEF4E4 100%);
+    }
+    .hero-lavender {
+      background: linear-gradient(135deg, #DFD4F4 0%, #F4F0FC 100%);
+    }
+    .soft-shadow {
+      box-shadow: 0 6px 24px -4px rgba(20, 20, 22, 0.05);
+    }
+    .pill-nav-shadow {
+      box-shadow: 0 14px 34px -6px rgba(20, 20, 22, 0.12);
+    }
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.35); opacity: 0.65; }
+    }
+    .live-dot {
+      animation: pulse-dot 1.8s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col lg:flex-row items-center justify-center p-0 sm:p-4 lg:p-8 gap-6">
+
+  <!-- LEFT CONTROL PANEL (Desktop Switcher to inspect all Screens & 6 Roles) -->
+  <aside class="w-full max-w-[410px] lg:max-w-[340px] bg-white/90 backdrop-blur-xl rounded-[28px] p-5 soft-shadow border border-white/60 self-center lg:self-start lg:mt-4">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-charcoal text-white">Studio Inspector</span>
+      <span class="text-xs text-subtext font-medium">Mobile-First LMS</span>
+    </div>
+    <h1 class="text-lg font-extrabold text-charcoal leading-snug">E-Course / LMS SMK</h1>
+    <p class="text-xs text-subtext mt-1 mb-4">Pilih layar otentikasi atau ganti <strong>Role Login</strong> untuk menguji struktur menu & desain setiap pengguna.</p>
+
+    <!-- Flow Stage Selector -->
+    <div class="mb-4">
+      <label class="text-[11px] font-bold uppercase tracking-wider text-subtext block mb-2">1. Alur Masuk (Auth Flow)</label>
+      <div class="grid grid-cols-3 gap-1.5 bg-muted p-1.5 rounded-2xl">
+        <button onclick="setFlow('onboarding')" id="btn-flow-onboarding" class="text-xs font-bold py-2 px-2 rounded-xl transition-all">Onboarding</button>
+        <button onclick="setFlow('login')" id="btn-flow-login" class="text-xs font-bold py-2 px-2 rounded-xl transition-all">Login</button>
+        <button onclick="setFlow('app')" id="btn-flow-app" class="text-xs font-bold py-2 px-2 rounded-xl transition-all">Menu App</button>
+      </div>
+    </div>
+
+    <!-- 6 Role Selector -->
+    <div class="mb-4">
+      <label class="text-[11px] font-bold uppercase tracking-wider text-subtext block mb-2">2. Pilih Role Pengguna (6 Roles)</label>
+      <div class="grid grid-cols-2 gap-2" id="role-buttons-container">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Active Role Quick Summary -->
+    <div id="inspector-role-summary" class="p-3.5 rounded-2xl bg-canvas border border-[#ECEAE4] text-xs space-y-1.5">
+      <!-- Dynamic summary -->
+    </div>
+  </aside>
+
+  <!-- MOBILE PHONE SIMULATOR FRAME -->
+  <main class="relative w-full max-w-[400px] h-[844px] bg-canvas sm:rounded-[48px] shadow-2xl border-[10px] border-white overflow-hidden flex flex-col">
+    
+    <!-- Warm Top-Right Radial Glow (Matches Reference Image) -->
+    <div class="pointer-events-none absolute -top-16 -right-16 w-64 h-64 rounded-full bg-[#FFE8D6] opacity-70 blur-3xl z-0"></div>
+
+    <!-- iOS Status Bar -->
+    <div class="relative z-20 flex items-center justify-between px-7 pt-3 pb-2 text-charcoal text-[13px] font-bold select-none">
+      <span>9:30</span>
+      <div class="flex items-center gap-1.5">
+        <!-- Signal Icon -->
+        <svg class="w-4 h-3.5" viewBox="0 0 16 14" fill="currentColor">
+          <rect x="1" y="9" width="2.2" height="4" rx="1"/>
+          <rect x="4.5" y="6.5" width="2.2" height="6.5" rx="1"/>
+          <rect x="8" y="3.5" width="2.2" height="9.5" rx="1"/>
+          <rect x="11.5" y="1" width="2.2" height="12" rx="1"/>
+        </svg>
+        <!-- Wifi -->
+        <svg class="w-4 h-3.5" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <path d="M1.5 4.5C5.2 1.2 10.8 1.2 14.5 4.5"/>
+          <path d="M4 7.5C6.3 5.5 9.7 5.5 12 7.5"/>
+          <circle cx="8" cy="10.5" r="1" fill="currentColor" stroke="none"/>
+        </svg>
+        <!-- Battery -->
+        <div class="flex items-center">
+          <div class="w-6 h-3 rounded-[4px] border border-charcoal/80 p-0.5 flex items-center">
+            <div class="w-full h-full bg-charcoal rounded-[2px]"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DYNAMIC VIEWPORT CONTAINER -->
+    <div id="mobile-viewport" class="relative z-10 flex-1 flex flex-col overflow-hidden">
+      <!-- Populated dynamically via JS -->
+    </div>
+
+  </main>
+
+  <!-- MODAL / BOTTOM SHEET FOR INTERACTIVE ACTIONS (Grading, Upload, Attendance, Lesson View) -->
+  <div id="action-sheet-backdrop" onclick="closeSheet()" class="fixed inset-0 bg-charcoal/40 backdrop-blur-xs hidden items-end justify-center z-50 p-0 sm:p-4">
+    <div onclick="event.stopPropagation()" id="action-sheet-content" class="w-full max-w-[400px] bg-white rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl transition-all">
+      <!-- Dynamic Modal Content -->
+    </div>
+  </div>
+
+  <script>
+    /********************************************************************
+     * DATA STORE & CONFIGURATION FOR ALL 6 ROLES (ZERO-BLOAT PRD)
+     ********************************************************************/
+    const ROLES = {
+      siswa: {
+        id: 'siswa',
+        label: 'Siswa',
+        badge: 'XII RPL 1',
+        userName: 'Nadia Putri',
+        userSub: 'NISN: 008492104 • Rekayasa Perangkat Lunak',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        heroStyle: 'hero-sage',
+        focusNote: 'Akses sesi aktif, unduh modul belajar, kumpul tugas, & isi presensi mandiri.',
+        tabs: [
+          { id: 'home', label: 'Home', icon: 'home' },
+          { id: 'materi', label: 'Materi', icon: 'book' },
+          { id: 'tugas', label: 'Tugas', icon: 'task' },
+          { id: 'presensi', label: 'Rekap', icon: 'chart' }
+        ]
+      },
+      guru: {
+        id: 'guru',
+        label: 'Guru Mapel',
+        badge: 'Produktif RPL',
+        userName: 'Budi Santoso, S.Kom',
+        userSub: 'NIP: 19880412 201504 1 002 • Pengampu RPL',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+        heroStyle: 'hero-blossom',
+        focusNote: 'Buka presensi dengan timer, kunci/buka bab materi, & nilai tugas cepat.',
+        tabs: [
+          { id: 'home', label: 'Home', icon: 'home' },
+          { id: 'materi', label: 'Materi', icon: 'book' },
+          { id: 'tugas', label: 'Nilai', icon: 'task' },
+          { id: 'presensi', label: 'Sesi', icon: 'clock' }
+        ]
+      },
+      wali_kelas: {
+        id: 'wali_kelas',
+        label: 'Wali Kelas',
+        badge: 'Wali X DKV 1',
+        userName: 'Siti Rahma, M.Pd',
+        userSub: 'Pembina Rombel X DKV 1 • 36 Siswa',
+        avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+        heroStyle: 'hero-sky',
+        focusNote: 'Early warning siswa bermasalah, presensi perwalian, & leger nilai rombel.',
+        tabs: [
+          { id: 'home', label: 'Home', icon: 'home' },
+          { id: 'absensi', label: 'Absensi', icon: 'clock' },
+          { id: 'leger', label: 'Leger', icon: 'book' },
+          { id: 'laporan', label: 'Rekap', icon: 'chart' }
+        ]
+      },
+      kepsek: {
+        id: 'kepsek',
+        label: 'Kepala Sekolah',
+        badge: 'Eksekutif',
+        userName: 'Drs. Hendra Wijaya',
+        userSub: 'Kepala SMKN 1 Nusantara',
+        avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
+        heroStyle: 'hero-amber',
+        focusNote: 'Monitoring keterlaksanaan KBM makro, analitik jurusan, & unduh PDF resmi.',
+        tabs: [
+          { id: 'home', label: 'Home', icon: 'home' },
+          { id: 'jurusan', label: 'Jurusan', icon: 'chart' },
+          { id: 'kbm', label: 'KBM', icon: 'book' },
+          { id: 'ekspor', label: 'Ekspor', icon: 'download' }
+        ]
+      },
+      admin: {
+        id: 'admin',
+        label: 'Admin TU',
+        badge: 'Operator',
+        userName: 'Rizky Pratama',
+        userSub: 'Operator Akademik & Kesiswaan',
+        avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
+        heroStyle: 'hero-lavender',
+        focusNote: 'Kelola siswa, reset sandi instan, plotting guru/wali kelas, & koreksi absen.',
+        tabs: [
+          { id: 'home', label: 'Home', icon: 'home' },
+          { id: 'pengguna', label: 'Siswa', icon: 'user' },
+          { id: 'plotting', label: 'Plotting', icon: 'book' },
+          { id: 'moderasi', label: 'Koreksi', icon: 'clock' }
+        ]
+      },
+      super_admin: {
+        id: 'super_admin',
+        label: 'Super Admin',
+        badge: 'Root System',
+        userName: 'Arif Darmawan',
+        userSub: 'Kepala Pusdatin & Infrastruktur IT',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+        heroStyle: 'hero-sage',
+        focusNote: 'Konfigurasi tahun ajaran aktif, data master jurusan/mapel, & audit log.',
+        tabs: [
+          { id: 'home', label: 'Home', icon: 'home' },
+          { id: 'master', label: 'Master', icon: 'book' },
+          { id: 'akses', label: 'Pejabat', icon: 'user' },
+          { id: 'log', label: 'Audit', icon: 'chart' }
+        ]
+      }
+    };
+
+    // Interactive Mutable State
+    let state = {
+      flow: 'app',         // 'onboarding' | 'login' | 'app'
+      role: 'siswa',       // current active role key
+      activeTab: 'home',   // current bottom bar tab id
+      selectedDay: 17,     // capsule calendar day (17-23)
+      studentAttendanceDone: false,
+      teacherGateOpen: true,
+      materialsLock: {
+        1: false,
+        2: false,
+        3: true,
+        4: true
+      },
+      assignments: [
+        { id: 101, title: 'Praktikum REST API Laravel 13', subject: 'Pemrograman Web', due: 'Hari ini, 16:00', status: 'Perlu Dikumpulkan', score: null, feedback: '', allowRevision: true },
+        { id: 102, title: 'Desain ERD Sistem Kasir SMK', subject: 'Basis Data', due: '22 Okt 2026', status: 'Dinilai', score: 92, feedback: 'Relasi antar tabel sudah sangat rapi dan memenuhi 3NF.', allowRevision: false },
+        { id: 103, title: 'Konfigurasi VLAN & Routing Statis', subject: 'Infrastruktur Jaringan', due: '18 Okt 2026', status: 'Perlu Revisi', score: 70, feedback: 'Sub-interface router belum diberi IP gateway yang sesuai.', allowRevision: true }
+      ]
+    };
+
+    const DAYS = [
+      { d: 'Sun', n: 17 },
+      { d: 'Mon', n: 18 },
+      { d: 'Tue', n: 19 },
+      { d: 'Wed', n: 20 },
+      { d: 'Thu', n: 21 },
+      { d: 'Fri', n: 22 },
+      { d: 'Sat', n: 23 }
+    ];
+
+    /********************************************************************
+     * ICON HELPER (CLEAN SVG LINE ICONS - NO EMOJI BLOAT)
+     ********************************************************************/
+    function getIcon(name, cls = 'w-5 h-5') {
+      const icons = {
+        home: `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z"/></svg>`,
+        book: `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+        task: `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M9 9h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg>`,
+        chart: `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>`,
+        clock: `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`,
+        user: `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 20c1.5-3.5 4.2-5 7-5s5.5 1.5 7 5"/></svg>`,
+        download: `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>`,
+        menu: `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16"/><path d="M4 12h10"/><path d="M4 17h14"/></svg>`,
+        back: `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>`,
+        play: `<svg class="${cls}" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"/></svg>`,
+        check: `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>`,
+        lock: `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>`,
+        unlock: `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-1.8"/></svg>`,
+        arrowUpRight: `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>`
+      };
+      return icons[name] || icons.home;
+    }
+
+    /********************************************************************
+     * STUDIO INSPECTOR CONTROLS
+     ********************************************************************/
+    function renderInspector() {
+      // Flow Buttons
+      ['onboarding', 'login', 'app'].forEach(f => {
+        const btn = document.getElementById(`btn-flow-${f}`);
+        if (state.flow === f) {
+          btn.className = 'text-xs font-bold py-2 px-2 rounded-xl bg-charcoal text-white shadow-xs transition-all';
+        } else {
+          btn.className = 'text-xs font-semibold py-2 px-2 rounded-xl text-subtext hover:text-charcoal transition-all';
+        }
+      });
+
+      // Role Buttons
+      const roleContainer = document.getElementById('role-buttons-container');
+      roleContainer.innerHTML = Object.values(ROLES).map(r => {
+        const active = state.role === r.id;
+        return `
+          <button onclick="selectRole('${r.id}')" class="flex items-center justify-between px-3 py-2.5 rounded-2xl border text-left transition-all ${
+            active
+              ? 'bg-charcoal text-white border-charcoal shadow-xs'
+              : 'bg-canvas text-charcoal border-[#E8E6E0] hover:border-charcoal/40'
+          }">
+            <div>
+              <div class="text-xs font-bold leading-tight">${r.label}</div>
+              <div class="text-[10px] ${active ? 'text-white/75' : 'text-subtext'} mt-0.5">${r.badge}</div>
+            </div>
+            <span class="w-2 h-2 rounded-full ${active ? 'bg-[#B9E2A7]' : 'bg-transparent'}"></span>
+          </button>
+        `;
+      }).join('');
+
+      // Active Role Info
+      const currentRole = ROLES[state.role];
+      document.getElementById('inspector-role-summary').innerHTML = `
+        <div class="flex items-center gap-2.5">
+          <img src="${currentRole.avatar}" class="w-9 h-9 rounded-full object-cover border border-white shadow-xs" alt="${currentRole.userName}"/>
+          <div>
+            <div class="font-bold text-charcoal leading-tight">${currentRole.userName}</div>
+            <div class="text-[11px] text-subtext">${currentRole.label} • ${currentRole.badge}</div>
+          </div>
+        </div>
+        <p class="text-[11px] text-subtext pt-1 border-t border-[#ECEAE4] leading-relaxed">${currentRole.focusNote}</p>
+      `;
+    }
+
+    function setFlow(flowName) {
+      state.flow = flowName;
+      renderInspector();
+      renderViewport();
+    }
+
+    function selectRole(roleKey) {
+      state.role = roleKey;
+      state.activeTab = ROLES[roleKey].tabs[0].id;
+      state.flow = 'app';
+      renderInspector();
+      renderViewport();
+    }
+
+    function selectTab(tabId) {
+      state.activeTab = tabId;
+      renderViewport();
+    }
+
+    function selectDay(dayNum) {
+      state.selectedDay = dayNum;
+      renderViewport();
+    }
+
+    /********************************************************************
+     * SCREEN 1: ONBOARDING (MATCHES LEFT SCREEN IN IMAGE REFERENCE)
+     ********************************************************************/
+    function renderOnboardingScreen() {
+      return `
+        <div class="flex-1 flex flex-col justify-between overflow-hidden pt-2">
+          <!-- Top Student Portrait with Pastel Rainbow Arcs -->
+          <div class="relative flex-1 flex items-end justify-center overflow-hidden px-6">
+            <!-- Pastel Concentric Rainbow Rings -->
+            <div class="absolute bottom-[-90px] w-[320px] h-[320px] rounded-full border-[18px] border-[#BDE0C2]/70"></div>
+            <div class="absolute bottom-[-90px] w-[284px] h-[284px] rounded-full border-[18px] border-[#F9D6C1]/80"></div>
+            <div class="absolute bottom-[-90px] w-[248px] h-[248px] rounded-full border-[18px] border-[#F8C7D8]/70"></div>
+            <div class="absolute bottom-[-90px] w-[212px] h-[212px] rounded-full bg-[#ECE9E2]"></div>
+
+            <!-- Student Hero Image -->
+            <img
+              src="https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80"
+              alt="Pelajar SMK"
+              class="relative z-10 w-[235px] h-[290px] object-cover object-top rounded-t-[110px] drop-shadow-xl"
+            />
+          </div>
+
+          <!-- Bottom White Rounded Sheet -->
+          <div class="relative z-20 bg-white rounded-t-[38px] px-7 pt-8 pb-8 shadow-[0_-10px_35px_rgba(20,20,22,0.06)] text-center">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sage-light text-sage-dark text-[11px] font-bold mb-3">
+              <span class="w-1.5 h-1.5 rounded-full bg-sage-dark"></span>
+              E-Course & LMS Vokasi SMK
+            </span>
+            <h2 class="text-[27px] font-extrabold text-charcoal leading-[1.18] tracking-tight">
+              Siap Memulai Perjalanan Belajarmu!
+            </h2>
+            <p class="text-[13px] text-subtext mt-3 leading-relaxed px-2">
+              Akses modul praktik, presensi kehadiran mandiri, dan pengumpulan tugas dalam satu genggaman.
+            </p>
+
+            <!-- Capsule Slide/Continue Button (Exact match to Left Image) -->
+            <button
+              onclick="setFlow('login')"
+              class="mt-7 w-full bg-[#F1EFEA] hover:bg-[#E7E4DD] active:scale-[0.99] transition-all p-2 rounded-full flex items-center justify-between group"
+            >
+              <span class="w-12 h-12 rounded-full bg-white text-charcoal flex items-center justify-center shadow-xs group-hover:translate-x-1 transition-transform">
+                ${getIcon('check', 'w-5 h-5')}
+              </span>
+              <span class="text-sm font-bold text-charcoal">Lanjutkan</span>
+              <span class="pr-4 text-subtext font-bold tracking-widest text-xs flex items-center gap-0.5">
+                <span class="opacity-40">&gt;</span>
+                <span class="opacity-70">&gt;</span>
+                <span class="text-charcoal">&gt;</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    /********************************************************************
+     * SCREEN 2: UNIFIED LOGIN SCREEN (MULTI-ROLE)
+     ********************************************************************/
+    function renderLoginScreen() {
+      const currentRole = ROLES[state.role];
+      return `
+        <div class="flex-1 flex flex-col justify-between px-6 pt-2 pb-7 overflow-y-auto no-scrollbar">
+          <div>
+            <!-- Top Nav -->
+            <div class="flex items-center justify-between mb-6">
+              <button onclick="setFlow('onboarding')" class="w-11 h-11 rounded-full bg-white border border-[#ECEAE4] flex items-center justify-center text-charcoal soft-shadow">
+                ${getIcon('back', 'w-5 h-5')}
+              </button>
+              <span class="text-xs font-bold px-3.5 py-1.5 rounded-full bg-white border border-[#ECEAE4] text-charcoal">
+                SMK Negeri 1 Nusantara
+              </span>
+            </div>
+
+            <!-- Pastel Welcome Card -->
+            <div class="${currentRole.heroStyle} rounded-[28px] p-5 mb-6 relative overflow-hidden">
+              <span class="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-xs px-3 py-1 rounded-full text-[11px] font-bold text-charcoal">
+                Mode Simulasi: ${currentRole.label}
+              </span>
+              <h2 class="text-[22px] font-extrabold text-charcoal mt-3 leading-tight">
+                Masuk ke Ruang Akademik
+              </h2>
+              <p class="text-xs text-charcoal/75 mt-1">
+                Sistem otomatis mengenali hak akses berdasarkan NISN, NIP, atau akun Operator Anda.
+              </p>
+            </div>
+
+            <!-- Login Form -->
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-charcoal mb-1.5 ml-1">NISN / NIP / Username</label>
+                <input
+                  type="text"
+                  value="${currentRole.userName}"
+                  readonly
+                  class="w-full bg-white border border-[#E6E4DF] rounded-2xl px-4 py-3.5 text-sm font-semibold text-charcoal focus:outline-none"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-charcoal mb-1.5 ml-1">Kata Sandi</label>
+                <input
+                  type="password"
+                  value="••••••••••••"
+                  readonly
+                  class="w-full bg-white border border-[#E6E4DF] rounded-2xl px-4 py-3.5 text-sm font-semibold text-charcoal focus:outline-none"
+                />
+              </div>
+
+              <!-- Quick Role Pill Switcher right on Login Screen -->
+              <div class="pt-1">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-[11px] font-bold text-subtext">Pilih Sesi Role untuk Masuk:</span>
+                  <span class="text-[11px] font-bold text-charcoal">${currentRole.label}</span>
+                </div>
+                <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                  ${Object.values(ROLES).map(r => `
+                    <button
+                      onclick="selectRole('${r.id}'); setFlow('login');"
+                      class="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                        state.role === r.id
+                          ? 'bg-charcoal text-white'
+                          : 'bg-white text-subtext border border-[#E6E4DF]'
+                      }"
+                    >
+                      ${r.label}
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit CTA -->
+          <div class="pt-4">
+            <button
+              onclick="setFlow('app')"
+              class="w-full bg-charcoal text-white font-bold text-sm py-4 rounded-full shadow-lg hover:opacity-95 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+            >
+              <span>Masuk sebagai ${currentRole.label}</span>
+              ${getIcon('arrowUpRight', 'w-4 h-4')}
+            </button>
+            <button
+              onclick="openPasswordHelpSheet()"
+              class="w-full text-center text-xs font-semibold text-subtext mt-3 hover:text-charcoal"
+            >
+              Lupa kata sandi? Hubungi Operator Admin TU
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    /********************************************************************
+     * SHARED TOP HEADER & CAPSULE CALENDAR COMPONENTS
+     ********************************************************************/
+    function renderTopBar(titleText = null) {
+      const r = ROLES[state.role];
+      return `
+        <div class="flex items-center justify-between px-6 pt-1 pb-3">
+          <button
+            onclick="openRoleSwitcherSheet()"
+            class="w-11 h-11 rounded-full bg-white border border-[#ECEAE4] flex items-center justify-center text-charcoal soft-shadow active:scale-95 transition-transform"
+            title="Ganti Role / Menu"
+          >
+            ${getIcon('menu', 'w-5 h-5')}
+          </button>
+
+          ${titleText ? `
+            <h1 class="text-[17px] font-extrabold text-charcoal tracking-tight">${titleText}</h1>
+          ` : `
+            <div class="text-center">
+              <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white border border-[#ECEAE4] text-subtext">${r.label} • ${r.badge}</span>
+            </div>
+          `}
+
+          <button onclick="setFlow('login')" class="relative group" title="Profil & Ganti Akun">
+            <img src="${r.avatar}" alt="${r.userName}" class="w-11 h-11 rounded-full object-cover border-2 border-white shadow-sm"/>
+            <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#4CAF50] border-2 border-white"></span>
+          </button>
+        </div>
+      `;
+    }
+
+    function renderCapsuleCalendar(sectionTitle = 'Class Schedule') {
+      return `
+        <div class="mt-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-[16px] font-extrabold text-charcoal">${sectionTitle}</h3>
+            <span class="text-xs font-bold text-charcoal bg-white border border-[#ECEAE4] px-3 py-1 rounded-full flex items-center gap-1">
+              Okt 2026
+              <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+            </span>
+          </div>
+          <div class="grid grid-cols-7 gap-1.5">
+            ${DAYS.map(item => {
+              const active = state.selectedDay === item.n;
+              return `
+                <button
+                  onclick="selectDay(${item.n})"
+                  class="py-3 rounded-full flex flex-col items-center justify-center transition-all ${
+                    active
+                      ? 'bg-charcoal text-white shadow-md scale-[1.03]'
+                      : 'bg-white text-charcoal border border-[#ECEAE4] hover:border-charcoal/30'
+                  }"
+                >
+                  <span class="text-[10px] font-semibold ${active ? 'text-white/75' : 'text-subtext'}">${item.d}</span>
+                  <span class="text-[15px] font-extrabold mt-0.5">${item.n}</span>
+                  <div class="flex gap-0.5 mt-1">
+                    <span class="w-1 h-1 rounded-full ${active ? 'bg-white' : 'bg-charcoal/25'}"></span>
+                    <span class="w-1 h-1 rounded-full ${active ? 'bg-white/70' : 'bg-transparent'}"></span>
+                  </div>
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderFloatingBottomNav() {
+      const tabs = ROLES[state.role].tabs;
+      return `
+        <div class="absolute bottom-4 inset-x-5 z-30">
+          <nav class="bg-white/95 backdrop-blur-md border border-[#ECEAE4] rounded-full p-2 pill-nav-shadow flex items-center justify-between">
+            ${tabs.map(t => {
+              const isActive = state.activeTab === t.id;
+              return isActive ? `
+                <button
+                  onclick="selectTab('${t.id}')"
+                  class="bg-charcoal text-white px-4 py-2.5 rounded-full flex items-center gap-2 text-xs font-bold transition-all shadow-sm"
+                >
+                  ${getIcon(t.icon, 'w-4 h-4')}
+                  <span>${t.label}</span>
+                </button>
+              ` : `
+                <button
+                  onclick="selectTab('${t.id}')"
+                  class="w-11 h-11 rounded-full flex items-center justify-center text-charcoal/70 hover:text-charcoal hover:bg-muted/60 transition-all"
+                  title="${t.label}"
+                >
+                  ${getIcon(t.icon, 'w-5 h-5')}
+                </button>
+              `;
+            }).join('')}
+          </nav>
+        </div>
+      `;
+    }
+
+    /********************************************************************
+     * ROLE 1: SISWA VIEWS (HOME, MATERI, TUGAS, PRESENSI)
+     ********************************************************************/
+    function renderSiswaContent() {
+      if (state.activeTab === 'home') {
+        return `
+          ${renderTopBar()}
+          <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+            <h2 class="text-[17px] font-extrabold text-charcoal mb-2.5">Today Class</h2>
+
+            <!-- Hero Card (Matches Center Screen of Reference Image) -->
+            <div class="hero-sage rounded-[28px] p-5 relative overflow-hidden soft-shadow">
+              <div class="relative z-10 max-w-[68%]">
+                <div class="flex items-center gap-1.5 text-[11px] font-bold text-sage-dark">
+                  <span class="w-2 h-2 rounded-full bg-[#2E7D32] live-dot"></span>
+                  <span>Sesi Aktif • Lab RPL 2</span>
+                </div>
+                <h3 class="text-[21px] font-extrabold text-charcoal mt-1 leading-tight">
+                  Pemrograman Web & Perangkat
+                </h3>
+                <p class="text-xs font-semibold text-charcoal/75 mt-1">
+                  Rombel: XII RPL 1 (Semester 5)
+                </p>
+
+                <!-- Step Progress Bar -->
+                <div class="mt-3.5">
+                  <div class="text-[11px] font-bold text-charcoal mb-1">Bab 06/10</div>
+                  <div class="w-full h-1.5 bg-white/70 rounded-full flex items-center">
+                    <div class="w-3/5 h-1.5 bg-charcoal rounded-full relative">
+                      <span class="absolute -right-1.5 -top-1 w-3.5 h-3.5 rounded-full bg-charcoal border-2 border-white"></span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Play Button + Quick Presensi Pill -->
+                <div class="mt-4 flex items-center gap-2.5">
+                  <button
+                    onclick="selectTab('materi')"
+                    class="w-11 h-11 rounded-full bg-charcoal text-white flex items-center justify-center shadow-md active:scale-95 transition-transform"
+                  >
+                    ${getIcon('play', 'w-4 h-4')}
+                  </button>
+                  <button
+                    onclick="openStudentAttendanceModal()"
+                    class="px-3.5 py-2 rounded-full text-xs font-bold ${
+                      state.studentAttendanceDone
+                        ? 'bg-white/90 text-[#2E7D32]'
+                        : 'bg-charcoal text-white'
+                    } shadow-xs"
+                  >
+                    ${state.studentAttendanceDone ? '✓ Sudah Presensi' : 'Isi Presensi Sekarang'}
+                  </button>
+                </div>
+              </div>
+
+              <!-- 3D Style Decorative Vector Cluster (Bottom Right) -->
+              <div class="absolute -right-3 -bottom-3 w-32 h-32 rounded-full bg-white/35 flex items-center justify-center">
+                <div class="w-20 h-20 rounded-2xl bg-white/80 backdrop-blur-xs shadow-sm rotate-6 flex flex-col items-center justify-center p-2 border border-white">
+                  <span class="text-[10px] font-extrabold text-charcoal bg-sage px-2 py-0.5 rounded-full">LARAVEL</span>
+                  <span class="text-lg font-extrabold text-charcoal mt-1">&lt;/&gt;</span>
+                  <span class="text-[9px] font-bold text-subtext">Bab 06 Aktif</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Capsule Weekly Schedule -->
+            ${renderCapsuleCalendar('Class Schedule')}
+
+            <!-- Daily Timeline (Matches Reference Timeline) -->
+            <div class="mt-5">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-[16px] font-extrabold text-charcoal">Timeline</h3>
+                <span class="text-xs font-bold text-subtext">Selasa, ${state.selectedDay} Okt</span>
+              </div>
+
+              <div class="space-y-3">
+                <div class="flex items-start gap-3">
+                  <span class="text-xs font-bold text-subtext w-11 pt-2.5">08:00</span>
+                  <div class="flex-1 grid grid-cols-2 gap-2">
+                    <div onclick="selectTab('materi')" class="cursor-pointer bg-white rounded-2xl p-2.5 border border-[#ECEAE4] soft-shadow flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-full bg-sage-light text-sage-dark flex items-center justify-center text-xs font-bold">W</span>
+                        <div>
+                          <div class="text-xs font-extrabold text-charcoal">Web Dev</div>
+                          <div class="text-[10px] text-subtext">08:00–09:30</div>
+                        </div>
+                      </div>
+                      <span class="text-subtext">${getIcon('arrowUpRight', 'w-3.5 h-3.5')}</span>
+                    </div>
+                    <div onclick="selectTab('materi')" class="cursor-pointer bg-white rounded-2xl p-2.5 border border-[#ECEAE4] soft-shadow flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-full bg-blossom-light text-blossom-dark flex items-center justify-center text-xs font-bold">M</span>
+                        <div>
+                          <div class="text-xs font-extrabold text-charcoal">Matematika</div>
+                          <div class="text-[10px] text-subtext">09:30–11:00</div>
+                        </div>
+                      </div>
+                      <span class="text-subtext">${getIcon('arrowUpRight', 'w-3.5 h-3.5')}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-3 border-t border-dashed border-[#E2DFD7] pt-3">
+                  <span class="text-xs font-bold text-subtext w-11 pt-2.5">11:00</span>
+                  <div class="flex-1">
+                    <div onclick="selectTab('tugas')" class="cursor-pointer bg-white rounded-2xl p-3 border border-[#ECEAE4] soft-shadow flex items-center justify-between">
+                      <div class="flex items-center gap-2.5">
+                        <span class="w-8 h-8 rounded-full bg-lavender-light text-lavender-dark flex items-center justify-center text-xs font-bold">DB</span>
+                        <div>
+                          <div class="text-xs font-extrabold text-charcoal">Basis Data Praktik • Lab 1</div>
+                          <div class="text-[10px] text-subtext">11:00–13:30 • 1 Tugas Aktif</div>
+                        </div>
+                      </div>
+                      <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-canvas text-charcoal">Buka</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (state.activeTab === 'materi') {
+        // Matches Right Screen of Reference Image ("Today's Class" + "Last Lessons")
+        const lessons = [
+          { id: 1, title: 'Arsitektur MVC & Routing', subject: 'Pemrograman Web', date: '16 Okt', time: '08:00–09:30', color: 'bg-sky-light text-sky-dark', locked: state.materialsLock[1] },
+          { id: 2, title: 'Eloquent ORM & Migration', subject: 'Pemrograman Web', date: '17 Okt', time: '08:00–09:30', color: 'bg-sage-light text-sage-dark', locked: state.materialsLock[2] },
+          { id: 3, title: 'Middleware & Autentikasi Role', subject: 'Pemrograman Web', date: '20 Okt', time: '08:00–09:30', color: 'bg-lavender-light text-lavender-dark', locked: state.materialsLock[3] },
+          { id: 4, title: 'Deployment Server Produksi', subject: 'Pemrograman Web', date: '24 Okt', time: '08:00–09:30', color: 'bg-blossom-light text-blossom-dark', locked: state.materialsLock[4] }
+        ];
+
+        return `
+          ${renderTopBar("Today's Class")}
+          <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+            <!-- Pastel Pink Spotlight Card (Exact Match to Right Phone in Image) -->
+            <div class="hero-blossom rounded-[28px] p-5 relative overflow-hidden soft-shadow">
+              <div class="inline-flex items-center gap-2 bg-white rounded-full px-3 py-1.5 shadow-2xs">
+                <span class="w-5 h-5 rounded-full bg-blossom flex items-center justify-center text-charcoal">
+                  ${getIcon('check', 'w-3 h-3')}
+                </span>
+                <span class="text-xs font-extrabold text-charcoal">08:00 - 10:30 WIB</span>
+              </div>
+
+              <h3 class="text-[21px] font-extrabold text-charcoal mt-3.5 leading-tight max-w-[70%]">
+                Rekayasa Web Modern
+              </h3>
+
+              <div class="flex items-center gap-3 mt-2 text-xs font-semibold text-charcoal/80">
+                <span>📅 20 Okt</span>
+                <span>•</span>
+                <span>🏷️ Praktik Intensif</span>
+              </div>
+
+              <div class="flex items-center gap-2.5 mt-4">
+                <img src="${ROLES.guru.avatar}" class="w-8 h-8 rounded-full object-cover border border-white" alt="Guru"/>
+                <div>
+                  <div class="text-xs font-extrabold text-charcoal leading-none">${ROLES.guru.userName}</div>
+                  <div class="text-[10px] font-medium text-charcoal/70 mt-0.5">Guru Pengampu RPL</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Last Lessons Capsule List -->
+            <div class="flex items-center justify-between mt-6 mb-3">
+              <h3 class="text-[16px] font-extrabold text-charcoal">Daftar Bab & Modul</h3>
+              <span class="text-xs font-bold text-subtext">4 Bab</span>
+            </div>
+
+            <div class="space-y-2.5">
+              ${lessons.map(l => `
+                <div
+                  onclick="${l.locked ? '' : `openLessonSheet('${l.title}', '${l.subject}')`}"
+                  class="bg-white rounded-[24px] p-3.5 border border-[#ECEAE4] soft-shadow flex items-center justify-between ${
+                    l.locked ? 'opacity-60' : 'cursor-pointer active:scale-[0.99]'
+                  } transition-all"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-full ${l.color} flex items-center justify-center shrink-0">
+                      ${l.locked ? getIcon('lock', 'w-5 h-5') : getIcon('book', 'w-5 h-5')}
+                    </div>
+                    <div>
+                      <h4 class="text-sm font-extrabold text-charcoal leading-snug">${l.title}</h4>
+                      <div class="text-[11px] font-medium text-subtext mt-0.5">${l.subject}</div>
+                    </div>
+                  </div>
+                  <div class="text-right shrink-0 ml-2">
+                    <span class="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full ${
+                      l.locked ? 'bg-muted text-subtext' : 'bg-canvas text-charcoal border border-[#E6E4DF]'
+                    }">
+                      ${l.locked ? 'Terkunci' : 'PDF • Video'}
+                    </span>
+                    <div class="text-[10px] text-subtext mt-1">${l.date}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if (state.activeTab === 'tugas') {
+        return `
+          ${renderTopBar('Tugas & Aktivitas')}
+          <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+            <div class="space-y-3 mt-1">
+              ${state.assignments.map(a => `
+                <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold px-2.5 py-1 rounded-full ${
+                      a.score !== null ? 'bg-sage-light text-sage-dark' : 'bg-blossom-light text-blossom-dark'
+                    }">
+                      ${a.status}
+                    </span>
+                    <span class="text-[11px] font-bold text-subtext">Tenggat: ${a.due}</span>
+                  </div>
+                  <h4 class="text-[15px] font-extrabold text-charcoal mt-2">${a.title}</h4>
+                  <p class="text-xs text-subtext mt-0.5">${a.subject}</p>
+
+                  ${a.score !== null ? `
+                    <div class="mt-3 p-3 rounded-2xl bg-canvas border border-[#ECEAE4] flex items-center justify-between">
+                      <div>
+                        <div class="text-[10px] font-bold text-subtext uppercase">Umpan Balik Guru</div>
+                        <div class="text-xs font-medium text-charcoal mt-0.5">"${a.feedback}"</div>
+                      </div>
+                      <div class="w-11 h-11 rounded-2xl bg-charcoal text-white flex flex-col items-center justify-center shrink-0 ml-3">
+                        <span class="text-[9px] uppercase opacity-70">Nilai</span>
+                        <span class="text-sm font-extrabold leading-none">${a.score}</span>
+                      </div>
+                    </div>
+                  ` : ''}
+
+                  <div class="mt-3.5 flex items-center justify-end gap-2">
+                    ${a.allowRevision ? `
+                      <button
+                        onclick="openStudentUploadModal(${a.id})"
+                        class="px-4 py-2 rounded-full bg-charcoal text-white text-xs font-bold active:scale-95 transition-transform"
+                      >
+                        ${a.score !== null ? 'Unggah Revisi Tugas' : 'Unggah Berkas Tugas'}
+                      </button>
+                    ` : `
+                      <span class="text-[11px] font-bold text-[#2E7D32]">✓ Tugas Tuntas</span>
+                    `}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      // Tab 4: Presensi & Rekap Siswa
+      return `
+        ${renderTopBar('Presensi & Transkrip')}
+        <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+          <div class="hero-sky rounded-[28px] p-5 soft-shadow">
+            <span class="inline-block bg-white px-3 py-1 rounded-full text-[11px] font-bold text-charcoal">
+              Semester Ganjil 2026/2027
+            </span>
+            <h3 class="text-xl font-extrabold text-charcoal mt-2.5">Kehadiran: 96.4%</h3>
+            <div class="grid grid-cols-4 gap-2 mt-4">
+              <div class="bg-white/90 rounded-2xl p-2.5 text-center">
+                <div class="text-base font-extrabold text-charcoal">54</div>
+                <div class="text-[10px] font-bold text-subtext">Hadir</div>
+              </div>
+              <div class="bg-white/90 rounded-2xl p-2.5 text-center">
+                <div class="text-base font-extrabold text-charcoal">1</div>
+                <div class="text-[10px] font-bold text-subtext">Sakit</div>
+              </div>
+              <div class="bg-white/90 rounded-2xl p-2.5 text-center">
+                <div class="text-base font-extrabold text-charcoal">1</div>
+                <div class="text-[10px] font-bold text-subtext">Izin</div>
+              </div>
+              <div class="bg-white/90 rounded-2xl p-2.5 text-center">
+                <div class="text-base font-extrabold text-charcoal">0</div>
+                <div class="text-[10px] font-bold text-subtext">Alpa</div>
+              </div>
+            </div>
+          </div>
+
+          <h3 class="text-[15px] font-extrabold text-charcoal mt-6 mb-3">Rekap Nilai Rata-Rata Mapel</h3>
+          <div class="space-y-2.5">
+            ${[
+              { mapel: 'Pemrograman Web & Perangkat Bergerak', avg: 91, kkm: 78 },
+              { mapel: 'Basis Data Rombel XII', avg: 88, kkm: 78 },
+              { mapel: 'Infrastruktur Jaringan', avg: 84, kkm: 75 },
+              { mapel: 'Bahasa Inggris Vokasi', avg: 89, kkm: 75 }
+            ].map(n => `
+              <div class="bg-white rounded-[22px] p-3.5 border border-[#ECEAE4] flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-extrabold text-charcoal">${n.mapel}</div>
+                  <div class="text-[11px] text-subtext mt-0.5">KKM: ${n.kkm} • Status: Melampaui</div>
+                </div>
+                <span class="w-10 h-10 rounded-full bg-sage-light text-sage-dark font-extrabold text-xs flex items-center justify-center">${n.avg}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    /********************************************************************
+     * ROLE 2: GURU MAPEL VIEWS
+     ********************************************************************/
+    function renderGuruContent() {
+      if (state.activeTab === 'home') {
+        return `
+          ${renderTopBar()}
+          <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+            <h2 class="text-[17px] font-extrabold text-charcoal mb-2.5">Sesi Mengajar Hari Ini</h2>
+
+            <div class="hero-blossom rounded-[28px] p-5 soft-shadow">
+              <div class="flex items-center justify-between">
+                <span class="bg-white px-3 py-1 rounded-full text-[11px] font-extrabold text-charcoal">08:00 - 10:30 WIB</span>
+                <span class="text-[11px] font-bold text-blossom-dark">Lab RPL 2</span>
+              </div>
+              <h3 class="text-[20px] font-extrabold text-charcoal mt-3 leading-tight">
+                Pemrograman Web • XII RPL 1
+              </h3>
+              <p class="text-xs text-charcoal/75 mt-1">34 Siswa Terdaftar • Bab 06 Aktif</p>
+
+              <div class="mt-4 flex items-center gap-2">
+                <button
+                  onclick="toggleTeacherGate()"
+                  class="px-4 py-2.5 rounded-full bg-charcoal text-white text-xs font-bold shadow-sm active:scale-95 transition-transform"
+                >
+                  ${state.teacherGateOpen ? 'Tutup Gerbang Presensi (Aktif)' : 'Buka Presensi (15 Menit)'}
+                </button>
+                <button
+                  onclick="selectTab('tugas')"
+                  class="px-3.5 py-2.5 rounded-full bg-white text-charcoal text-xs font-bold"
+                >
+                  Nilai Tugas (4)
+                </button>
+              </div>
+            </div>
+
+            ${renderCapsuleCalendar('Jadwal Mengajar')}
+
+            <h3 class="text-[15px] font-extrabold text-charcoal mt-5 mb-2.5">Antrean Penilaian Cepat</h3>
+            <div class="space-y-2.5">
+              <div onclick="selectTab('tugas')" class="cursor-pointer bg-white rounded-[24px] p-3.5 border border-[#ECEAE4] soft-shadow flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-11 h-11 rounded-full bg-blossom-light text-blossom-dark flex items-center justify-center font-bold text-xs">XII</div>
+                  <div>
+                    <div class="text-xs font-extrabold text-charcoal">Praktikum REST API Laravel</div>
+                    <div class="text-[11px] text-subtext">28/34 Siswa Mengumpulkan • 4 Belum Dinilai</div>
+                  </div>
+                </div>
+                <span class="text-xs font-bold px-3 py-1.5 rounded-full bg-charcoal text-white">Nilai</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (state.activeTab === 'materi') {
+        const chaps = [
+          { id: 1, title: 'Bab 1: Arsitektur MVC & Routing', rombel: 'XII RPL 1, XII RPL 2' },
+          { id: 2, title: 'Bab 2: Eloquent ORM & Migration', rombel: 'XII RPL 1, XII RPL 2' },
+          { id: 3, title: 'Bab 3: Middleware & Multi-Role Auth', rombel: 'XII RPL 1' },
+          { id: 4, title: 'Bab 4: Deployment Server Produksi', rombel: 'XII RPL 1' }
+        ];
+        return `
+          ${renderTopBar('Kelola & Kunci Materi')}
+          <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+            <p class="text-xs text-subtext mb-3">Ketuk tombol kunci untuk membuka atau mengunci akses materi pada layar HP siswa secara instan.</p>
+            <div class="space-y-2.5">
+              ${chaps.map(c => {
+                const locked = state.materialsLock[c.id];
+                return `
+                  <div class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex items-center justify-between">
+                    <div>
+                      <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full ${locked ? 'bg-muted text-subtext' : 'bg-sage-light text-sage-dark'}">
+                        ${locked ? 'Terkunci bagi Siswa' : 'Terbuka • Siswa Dapat Akses'}
+                      </span>
+                      <h4 class="text-sm font-extrabold text-charcoal mt-1.5">${c.title}</h4>
+                      <div class="text-[11px] text-subtext mt-0.5">Kelas: ${c.rombel}</div>
+                    </div>
+                    <button
+                      onclick="toggleMaterialLock(${c.id})"
+                      class="w-11 h-11 rounded-full ${locked ? 'bg-muted text-charcoal' : 'bg-charcoal text-white'} flex items-center justify-center shrink-0 ml-3"
+                    >
+                      ${locked ? getIcon('lock', 'w-4 h-4') : getIcon('unlock', 'w-4 h-4')}
+                    </button>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if (state.activeTab === 'tugas') {
+        const submissions = [
+          { name: 'Nadia Putri', nisn: '008492104', time: 'Tepat Waktu • 14:20', score: 92 },
+          { name: 'Dimas Anggara', nisn: '008492119', time: 'Tepat Waktu • 14:45', score: null },
+          { name: 'Putri Maharani', nisn: '008492130', time: 'Terlambat 10m • 16:10', score: null }
+        ];
+        return `
+          ${renderTopBar('Penilaian Tugas Siswa')}
+          <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+            <div class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] mb-4">
+              <div class="text-[11px] font-bold text-subtext">Tugas Aktif • XII RPL 1</div>
+              <div class="text-sm font-extrabold text-charcoal">Praktikum REST API Laravel 13</div>
+            </div>
+            <div class="space-y-2.5">
+              ${submissions.map(s => `
+                <div class="bg-white rounded-[24px] p-3.5 border border-[#ECEAE4] soft-shadow flex items-center justify-between">
+                  <div>
+                    <div class="text-sm font-extrabold text-charcoal">${s.name}</div>
+                    <div class="text-[11px] text-subtext">${s.time}</div>
+                  </div>
+                  <button
+                    onclick="openTeacherGradeModal('${s.name}')"
+                    class="px-3.5 py-2 rounded-full text-xs font-bold ${
+                      s.score ? 'bg-sage-light text-sage-dark' : 'bg-charcoal text-white'
+                    }"
+                  >
+                    ${s.score ? `Nilai: ${s.score}` : 'Beri Nilai'}
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      // Guru Tab 4: Sesi & Presensi Manual
+      return `
+        ${renderTopBar('Kontrol Presensi Kelas')}
+        <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+          <div class="space-y-2.5">
+            ${[
+              { name: 'Nadia Putri', status: 'Hadir' },
+              { name: 'Dimas Anggara', status: 'Hadir' },
+              { name: 'Raka Pratama', status: 'Sakit' },
+              { name: 'Fajar Nugraha', status: 'Hadir' }
+            ].map(st => `
+              <div class="bg-white rounded-[22px] p-3.5 border border-[#ECEAE4] flex items-center justify-between">
+                <div class="text-sm font-bold text-charcoal">${st.name}</div>
+                <div class="flex gap-1">
+                  ${['Hadir', 'Izin', 'Sakit', 'Alpa'].map(k => `
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                      st.status === k ? 'bg-charcoal text-white' : 'bg-muted text-subtext'
+                    }">${k[0]}</span>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    /********************************************************************
+     * ROLE 3: GURU WALI KELAS VIEWS
+     ********************************************************************/
+    function renderWaliKelasContent() {
+      return `
+        ${renderTopBar('Perwalian Rombel X DKV 1')}
+        <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+          <div class="hero-sky rounded-[28px] p-5 soft-shadow">
+            <span class="bg-white px-3 py-1 rounded-full text-[11px] font-extrabold text-charcoal">Wali Kelas • X DKV 1</span>
+            <h3 class="text-[21px] font-extrabold text-charcoal mt-3">Kehadiran Rombel: 94.4%</h3>
+            <p class="text-xs text-charcoal/75 mt-1">34 Hadir • 1 Sakit • 1 Alpa Hari Ini</p>
+          </div>
+
+          <h3 class="text-[15px] font-extrabold text-charcoal mt-5 mb-2.5">Peringatan Dini (Early Warning)</h3>
+          <div class="space-y-2.5">
+            <div class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blossom-light text-blossom-dark">Alpa 3 Hari Berturut-turut</span>
+                <div class="text-sm font-extrabold text-charcoal mt-1.5">Aldiansyah Putra</div>
+                <div class="text-[11px] text-subtext">Rata-rata Nilai Tugas: 68.5 (Di bawah KKM)</div>
+              </div>
+              <span class="px-3 py-1.5 rounded-full bg-charcoal text-white text-xs font-bold">Pantau</span>
+            </div>
+
+            <div class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amberpastel-light text-amberpastel-dark">2 Tugas Produktif Belum Kumpul</span>
+                <div class="text-sm font-extrabold text-charcoal mt-1.5">Salsabila Azzahra</div>
+                <div class="text-[11px] text-subtext">Rata-rata Nilai Tugas: 74.0</div>
+              </div>
+              <span class="px-3 py-1.5 rounded-full bg-charcoal text-white text-xs font-bold">Pantau</span>
+            </div>
+          </div>
+
+          <h3 class="text-[15px] font-extrabold text-charcoal mt-5 mb-2.5">Buku Nilai Lintas Mapel (Leger Rombel)</h3>
+          <div class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow space-y-2">
+            <div class="flex justify-between text-xs font-bold text-charcoal">
+              <span>Dasar Desain Komunikasi Visual</span>
+              <span>Rata-rata: 86.4</span>
+            </div>
+            <div class="flex justify-between text-xs font-bold text-charcoal">
+              <span>Fotografi & Tata Cahaya</span>
+              <span>Rata-rata: 89.1</span>
+            </div>
+            <div class="flex justify-between text-xs font-bold text-charcoal">
+              <span>Bahasa Indonesia</span>
+              <span>Rata-rata: 84.0</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /********************************************************************
+     * ROLE 4: KEPALA SEKOLAH VIEWS
+     ********************************************************************/
+    function renderKepsekContent() {
+      return `
+        ${renderTopBar('Pantauan Eksekutif Sekolah')}
+        <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+          <div class="hero-amber rounded-[28px] p-5 soft-shadow">
+            <span class="bg-white px-3 py-1 rounded-full text-[11px] font-extrabold text-charcoal">Indikator KBM Hari Ini</span>
+            <h3 class="text-[22px] font-extrabold text-charcoal mt-3">96.2% Sesi Terlaksana</h3>
+            <p class="text-xs text-charcoal/75 mt-1">42 Rombel Aktif • Kehadiran Siswa Makro: 95.8%</p>
+          </div>
+
+          <h3 class="text-[15px] font-extrabold text-charcoal mt-5 mb-2.5">Capaian per Program Keahlian (Jurusan)</h3>
+          <div class="space-y-2.5">
+            ${[
+              { jur: 'Rekayasa Perangkat Lunak (RPL)', hadir: '97.1%', avg: '87.5' },
+              { jur: 'Teknik Komputer & Jaringan (TKJ)', hadir: '95.4%', avg: '85.2' },
+              { jur: 'Desain Komunikasi Visual (DKV)', hadir: '94.8%', avg: '86.9' },
+              { jur: 'Akuntansi & Keuangan Lembaga', hadir: '96.9%', avg: '88.1' }
+            ].map(j => `
+              <div class="bg-white rounded-[24px] p-3.5 border border-[#ECEAE4] soft-shadow flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-extrabold text-charcoal">${j.jur}</div>
+                  <div class="text-[11px] text-subtext mt-0.5">Kehadiran: ${j.hadir}</div>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-sage-light text-sage-dark text-xs font-extrabold">Nilai: ${j.avg}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <h3 class="text-[15px] font-extrabold text-charcoal mt-5 mb-2.5">Unduh Laporan Resmi (PDF / Excel)</h3>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button onclick="openToastSheet('Laporan Kehadiran Sekolah (PDF) berhasil disiapkan.')" class="bg-charcoal text-white rounded-[22px] p-3.5 text-left flex flex-col justify-between">
+              ${getIcon('download', 'w-5 h-5')}
+              <div class="mt-3">
+                <div class="text-xs font-extrabold">Rekap Presensi</div>
+                <div class="text-[10px] opacity-75">Format PDF Resmi</div>
+              </div>
+            </button>
+            <button onclick="openToastSheet('Leger Nilai Akademik Sekolah (Excel) berhasil disiapkan.')" class="bg-white border border-[#ECEAE4] text-charcoal rounded-[22px] p-3.5 text-left flex flex-col justify-between">
+              ${getIcon('download', 'w-5 h-5')}
+              <div class="mt-3">
+                <div class="text-xs font-extrabold">Leger Nilai</div>
+                <div class="text-[10px] text-subtext">Format Excel (.xlsx)</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    /********************************************************************
+     * ROLE 5: ADMIN OPERATOR SEKOLAH VIEWS
+     ********************************************************************/
+    function renderAdminContent() {
+      return `
+        ${renderTopBar('Panel Operator Sekolah')}
+        <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+          <div class="hero-lavender rounded-[28px] p-5 soft-shadow">
+            <span class="bg-white px-3 py-1 rounded-full text-[11px] font-extrabold text-charcoal">Operasional Akademik</span>
+            <h3 class="text-[21px] font-extrabold text-charcoal mt-3">1.240 Siswa & 68 Guru</h3>
+            <p class="text-xs text-charcoal/75 mt-1">Plotting Rombel, Reset Sandi, & Koreksi Presensi</p>
+          </div>
+
+          <h3 class="text-[15px] font-extrabold text-charcoal mt-5 mb-2.5">Tindakan Cepat Operator</h3>
+          <div class="space-y-2.5">
+            <div onclick="openToastSheet('Sandi sementara [SMK-8821] dibuat untuk siswa terkait.')" class="cursor-pointer bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex items-center justify-between">
+              <div>
+                <div class="text-sm font-extrabold text-charcoal">Reset Kata Sandi Pengguna</div>
+                <div class="text-[11px] text-subtext">Buat sandi sementara untuk Siswa / Guru</div>
+              </div>
+              <span class="px-3 py-1.5 rounded-full bg-charcoal text-white text-xs font-bold">Reset</span>
+            </div>
+
+            <div onclick="openToastSheet('Status Alpa siswa berhasil dikoreksi menjadi Sakit (Surat Dokter).')" class="cursor-pointer bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex items-center justify-between">
+              <div>
+                <div class="text-sm font-extrabold text-charcoal">Koreksi Presensi Siswa</div>
+                <div class="text-[11px] text-subtext">Sesuaikan status izin/sakit susulan</div>
+              </div>
+              <span class="px-3 py-1.5 rounded-full bg-lavender-light text-lavender-dark text-xs font-bold">Koreksi</span>
+            </div>
+
+            <div class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex items-center justify-between">
+              <div>
+                <div class="text-sm font-extrabold text-charcoal">Plotting Guru & Wali Kelas</div>
+                <div class="text-[11px] text-subtext">42 Rombel telah memiliki Wali Kelas aktif</div>
+              </div>
+              <span class="px-3 py-1.5 rounded-full bg-sage-light text-sage-dark text-xs font-bold">Lengkap</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /********************************************************************
+     * ROLE 6: SUPER ADMIN VIEWS
+     ********************************************************************/
+    function renderSuperAdminContent() {
+      return `
+        ${renderTopBar('Konfigurasi & Master Data')}
+        <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+          <div class="hero-sage rounded-[28px] p-5 soft-shadow">
+            <span class="bg-white px-3 py-1 rounded-full text-[11px] font-extrabold text-charcoal">TA 2026/2027 • Semester Ganjil</span>
+            <h3 class="text-[21px] font-extrabold text-charcoal mt-3">Sistem Utama & Master</h3>
+            <p class="text-xs text-charcoal/75 mt-1">Batas Unggah: 15 MB • Format: PDF, ZIP, JPG</p>
+          </div>
+
+          <h3 class="text-[15px] font-extrabold text-charcoal mt-5 mb-2.5">Data Master & Keamanan</h3>
+          <div class="space-y-2.5">
+            <div class="bg-white rounded-[24px] p-3.5 border border-[#ECEAE4] flex items-center justify-between">
+              <div>
+                <div class="text-sm font-extrabold text-charcoal">Master Jurusan & Tingkat</div>
+                <div class="text-[11px] text-subtext">RPL, TKJ, DKV, AKL • Kelas X, XI, XII</div>
+              </div>
+              <span class="text-xs font-bold px-3 py-1 rounded-full bg-canvas border border-[#E6E4DF]">4 Jurusan</span>
+            </div>
+
+            <div class="bg-white rounded-[24px] p-3.5 border border-[#ECEAE4] flex items-center justify-between">
+              <div>
+                <div class="text-sm font-extrabold text-charcoal">Kelola Akun Pejabat Sekolah</div>
+                <div class="text-[11px] text-subtext">1 Kepsek, 3 Admin TU, 68 Guru Aktif</div>
+              </div>
+              <span class="text-xs font-bold px-3 py-1 rounded-full bg-charcoal text-white">Kelola</span>
+            </div>
+
+            <div class="bg-white rounded-[24px] p-3.5 border border-[#ECEAE4]">
+              <div class="text-xs font-extrabold text-charcoal mb-2">Audit Log Aktivitas Terbaru</div>
+              <div class="text-[11px] text-subtext space-y-1">
+                <div>• <strong>09:14</strong> — Admin Rizky mengoreksi presensi X DKV 1</div>
+                <div>• <strong>08:02</strong> — Guru Budi membuka sesi presensi XII RPL 1</div>
+                <div>• <strong>07:45</strong> — Kepsek mengunduh Leger Semester</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /********************************************************************
+     * MAIN VIEWPORT DISPATCHER
+     ********************************************************************/
+    function renderViewport() {
+      const container = document.getElementById('mobile-viewport');
+      if (state.flow === 'onboarding') {
+        container.innerHTML = renderOnboardingScreen();
+        return;
+      }
+      if (state.flow === 'login') {
+        container.innerHTML = renderLoginScreen();
+        return;
+      }
+
+      let roleContent = '';
+      if (state.role === 'siswa') roleContent = renderSiswaContent();
+      else if (state.role === 'guru') roleContent = renderGuruContent();
+      else if (state.role === 'wali_kelas') roleContent = renderWaliKelasContent();
+      else if (state.role === 'kepsek') roleContent = renderKepsekContent();
+      else if (state.role === 'admin') roleContent = renderAdminContent();
+      else roleContent = renderSuperAdminContent();
+
+      container.innerHTML = `
+        ${roleContent}
+        ${renderFloatingBottomNav()}
+      `;
+    }
+
+    /********************************************************************
+     * INTERACTIVE SHEETS & ACTIONS
+     ********************************************************************/
+    function openSheet(html) {
+      const backdrop = document.getElementById('action-sheet-backdrop');
+      const content = document.getElementById('action-sheet-content');
+      content.innerHTML = html;
+      backdrop.classList.remove('hidden');
+      backdrop.classList.add('flex');
+    }
+
+    function closeSheet() {
+      const backdrop = document.getElementById('action-sheet-backdrop');
+      backdrop.classList.add('hidden');
+      backdrop.classList.remove('flex');
+    }
+
+    function openStudentAttendanceModal() {
+      openSheet(`
+        <div class="text-center">
+          <span class="inline-block px-3 py-1 rounded-full bg-sage-light text-sage-dark text-xs font-bold">Timer Sesi Aktif: 12:40 Tersisa</span>
+          <h3 class="text-lg font-extrabold text-charcoal mt-2">Konfirmasi Presensi Kehadiran</h3>
+          <p class="text-xs text-subtext mt-1">Mata Pelajaran: Pemrograman Web & Perangkat Bergerak (XII RPL 1)</p>
+          <button
+            onclick="state.studentAttendanceDone = true; closeSheet(); renderViewport();"
+            class="mt-5 w-full py-3.5 rounded-full bg-charcoal text-white text-xs font-bold"
+          >
+            Konfirmasi Hadir Sekarang
+          </button>
+        </div>
+      `);
+    }
+
+    function openLessonSheet(title, subject) {
+      openSheet(`
+        <div>
+          <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-blossom-light text-blossom-dark">${subject}</span>
+          <h3 class="text-lg font-extrabold text-charcoal mt-2">${title}</h3>
+          <p class="text-xs text-subtext mt-1 leading-relaxed">
+            Modul ini membahas implementasi struktur Controller, Route Group berbasis Role Middleware, serta integrasi tampilan mobile-first.
+          </p>
+          <div class="mt-4 p-3 rounded-2xl bg-canvas border border-[#ECEAE4] flex items-center justify-between">
+            <span class="text-xs font-bold text-charcoal">📄 Modul_Praktikum_RPL.pdf (2.4 MB)</span>
+            <span class="text-xs font-extrabold text-charcoal underline">Unduh</span>
+          </div>
+          <button onclick="closeSheet()" class="mt-4 w-full py-3 rounded-full bg-charcoal text-white text-xs font-bold">Selesai Membaca</button>
+        </div>
+      `);
+    }
+
+    function openStudentUploadModal(assignmentId) {
+      openSheet(`
+        <div>
+          <h3 class="text-lg font-extrabold text-charcoal">Unggah Jawaban / Revisi Tugas</h3>
+          <p class="text-xs text-subtext mt-1">Format didukung: PDF, ZIP/RAR, atau Gambar (Maks 15 MB).</p>
+          <div class="mt-4 border-2 border-dashed border-[#D5D2C9] rounded-2xl p-5 text-center bg-canvas">
+            <div class="text-xs font-bold text-charcoal">Ketuk untuk memilih berkas dari HP</div>
+            <div class="text-[11px] text-subtext mt-0.5">Tugas_NadiaPutri_XIIRPL1.zip</div>
+          </div>
+          <button
+            onclick="submitAssignment(${assignmentId})"
+            class="mt-4 w-full py-3.5 rounded-full bg-charcoal text-white text-xs font-bold"
+          >
+            Kirim Berkas Tugas
+          </button>
+        </div>
+      `);
+    }
+
+    function submitAssignment(id) {
+      const item = state.assignments.find(a => a.id === id);
+      if (item) {
+        item.status = 'Menunggu Penilaian Guru';
+      }
+      closeSheet();
+      renderViewport();
+    }
+
+    function toggleMaterialLock(id) {
+      state.materialsLock[id] = !state.materialsLock[id];
+      renderViewport();
+    }
+
+    function toggleTeacherGate() {
+      state.teacherGateOpen = !state.teacherGateOpen;
+      renderViewport();
+    }
+
+    function openTeacherGradeModal(studentName) {
+      openSheet(`
+        <div>
+          <h3 class="text-lg font-extrabold text-charcoal">Penilaian Cepat: ${studentName}</h3>
+          <p class="text-xs text-subtext mt-0.5">Berkas: Praktikum_API_${studentName.replace(' ', '')}.zip</p>
+          <div class="mt-3">
+            <label class="text-xs font-bold text-charcoal block mb-1">Nilai Angka (0 - 100)</label>
+            <input type="number" value="90" class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E4DF] text-sm font-bold"/>
+          </div>
+          <div class="mt-3">
+            <label class="text-xs font-bold text-charcoal block mb-1">Catatan Feedback Guru</label>
+            <input type="text" value="Endpoint berjalan baik dan struktur rapi." class="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E4DF] text-xs"/>
+          </div>
+          <button onclick="closeSheet(); renderViewport();" class="mt-4 w-full py-3.5 rounded-full bg-charcoal text-white text-xs font-bold">
+            Simpan Nilai & Kirim Feedback
+          </button>
+        </div>
+      `);
+    }
+
+    function openRoleSwitcherSheet() {
+      openSheet(`
+        <div>
+          <h3 class="text-base font-extrabold text-charcoal mb-3">Pindah Role Simulasi Cepat</h3>
+          <div class="grid grid-cols-2 gap-2">
+            ${Object.values(ROLES).map(r => `
+              <button
+                onclick="selectRole('${r.id}'); closeSheet();"
+                class="p-3 rounded-2xl border text-left ${
+                  state.role === r.id ? 'bg-charcoal text-white border-charcoal' : 'bg-canvas text-charcoal border-[#E6E4DF]'
+                }"
+              >
+                <div class="text-xs font-bold">${r.label}</div>
+                <div class="text-[10px] opacity-75">${r.badge}</div>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `);
+    }
+
+    function openPasswordHelpSheet() {
+      openToastSheet('Silakan hubungi Operator Admin TU Sekolah untuk mereset kata sandi akun Anda secara instan.');
+    }
+
+    function openToastSheet(msg) {
+      openSheet(`
+        <div class="text-center">
+          <div class="w-11 h-11 rounded-full bg-sage-light text-sage-dark mx-auto flex items-center justify-center mb-3">
+            ${getIcon('check', 'w-5 h-5')}
+          </div>
+          <p class="text-sm font-bold text-charcoal">${msg}</p>
+          <button onclick="closeSheet()" class="mt-4 w-full py-3 rounded-full bg-charcoal text-white text-xs font-bold">Tutup</button>
+        </div>
+      `);
+    }
+
+    // Initialize App
+    renderInspector();
+    renderViewport();
+  </script>
+</body>
+</html>

@@ -2,6 +2,7 @@
 ## E-Course / LMS SMK — "Soft Pastel Capsule & Bento UI"
 
 > **Referensi Visual**: Berdasarkan gambar referensi *Mobile E-Course UI* (Warm Ivory Canvas, Charcoal Pill Controls, Soft Pastel Hero Cards, & Capsule Lists).  
+> **Prototipe Interaktif**: [prototype.html](prototype.html) (Simulator interaktif HTML + Tailwind untuk 6 role & alur otentikasi siap uji langsung di browser).  
 > **Target Viewport Utama**: Mobile-First (`375px` – `430px` width, rasio `9:19.5`), dengan pembungkus responsif terpusat pada layar desktop.
 
 ---
