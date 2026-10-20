@@ -51,4 +51,31 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
         $response->assertRedirect('/');
     }
+
+    public function test_all_6_roles_can_authenticate_using_quick_credentials(): void
+    {
+        $this->seed();
+
+        $roleCredentials = [
+            'siswa' => '008492104',
+            'guru' => '198804122015041002',
+            'wali' => 'wali.xdkv1@smk.sch.id',
+            'kepsek' => 'kepsek@smk.sch.id',
+            'admin' => 'admin@smk.sch.id',
+            'super_admin' => 'superadmin@smk.sch.id',
+        ];
+
+        foreach ($roleCredentials as $role => $username) {
+            $response = $this->post('/login', [
+                'username' => $username,
+                'password' => 'password',
+            ]);
+
+            $this->assertAuthenticated();
+            $response->assertRedirect(route('dashboard', absolute: false));
+
+            $this->post('/logout');
+            $this->assertGuest();
+        }
+    }
 }

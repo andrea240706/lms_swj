@@ -17,9 +17,6 @@ defineProps({
 // Flow Stage for Mobile View: 'onboarding' | 'login'
 const currentScreen = ref('onboarding');
 
-// Display Mode Switcher (For Desktop Testing: 'desktop' | 'mobile_sim')
-const desktopViewMode = ref('desktop');
-
 const form = useForm({
     username: '',
     password: '',
@@ -46,12 +43,14 @@ const setQuickAccount = (role) => {
         form.username = '008492104';
     } else if (role === 'guru') {
         form.username = '198804122015041002';
-    } else if (role === 'admin') {
-        form.username = 'admin@smk.sch.id';
-    } else if (role === 'kepsek') {
-        form.username = 'kepsek@smk.sch.id';
     } else if (role === 'wali') {
         form.username = 'wali.xdkv1@smk.sch.id';
+    } else if (role === 'kepsek') {
+        form.username = 'kepsek@smk.sch.id';
+    } else if (role === 'admin') {
+        form.username = 'admin@smk.sch.id';
+    } else if (role === 'super_admin' || role === 'superadmin') {
+        form.username = 'superadmin@smk.sch.id';
     }
     form.password = 'password';
 };
@@ -68,13 +67,13 @@ const submit = () => {
 
     <!-- Full-page Canvas: Warm Alabaster (#F9F8F6) -->
     <div class="min-h-screen bg-[#F9F8F6] text-[#141416] flex flex-col items-center justify-center p-3 sm:p-6 lg:p-8 relative overflow-hidden select-none font-sans">
-        
+
         <!-- Soft Ambient Background Glows -->
         <div class="pointer-events-none absolute -top-32 -right-32 w-[520px] h-[520px] rounded-full bg-[#FFE8D6] opacity-70 blur-3xl z-0"></div>
         <div class="pointer-events-none absolute -bottom-32 -left-32 w-[480px] h-[480px] rounded-full bg-[#EBF2D5] opacity-50 blur-3xl z-0"></div>
 
-        <!-- TOP BAR: Desktop/Mobile Inspector Mode Switcher (Visible on medium/large screens) -->
-        <header class="relative z-20 w-full max-w-[1140px] hidden md:flex items-center justify-between mb-4 px-2">
+        <!-- TOP BAR: Brand header (Desktop only) -->
+        <header class="relative z-20 w-full max-w-[1140px] hidden lg:flex items-center justify-between mb-4 px-2">
             <!-- Authentic School Brand Lockup -->
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-[#141416] text-white flex items-center justify-center font-bold text-xs shadow-xs tracking-wider">
@@ -85,47 +84,25 @@ const submit = () => {
                     <span class="text-[11px] text-[#6E6E77] block font-medium">Sistem Pembelajaran &amp; Akademik Terpadu</span>
                 </div>
             </div>
-
-            <!-- View Switcher Tabs -->
-            <div class="bg-white/90 backdrop-blur-md border border-[#ECEAE4] p-1 rounded-full shadow-2xs flex items-center gap-1">
-                <button
-                    type="button"
-                    @click="desktopViewMode = 'desktop'"
-                    class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer"
-                    :class="desktopViewMode === 'desktop' ? 'bg-[#141416] text-white shadow-xs' : 'text-[#6E6E77] hover:text-[#141416]'"
-                >
-                    Mode Desktop
-                </button>
-                <button
-                    type="button"
-                    @click="desktopViewMode = 'mobile_sim'"
-                    class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer"
-                    :class="desktopViewMode === 'mobile_sim' ? 'bg-[#141416] text-white shadow-xs' : 'text-[#6E6E77] hover:text-[#141416]'"
-                >
-                    Simulasi Mobile
-                </button>
-            </div>
         </header>
 
         <!-- ============================================================== -->
-        <!-- 1. EXPANSIVE DESKTOP DUAL-PANEL LAYOUT (ONBOARDING + LOGIN)   -->
+        <!-- DESKTOP DUAL-PANEL LAYOUT — tampil di lg+ (≥1024px)            -->
         <!-- ============================================================== -->
-        <main
-            v-if="desktopViewMode === 'desktop'"
-            class="relative z-10 w-full max-w-[1140px] bg-white rounded-[36px] sm:rounded-[40px] shadow-[0_24px_70px_-15px_rgba(20,20,22,0.08)] border border-[#ECEAE4] overflow-hidden hidden lg:flex flex-row min-h-[660px]"
-        >
+        <main class="relative z-10 w-full max-w-[1140px] bg-white rounded-[36px] sm:rounded-[40px] shadow-[0_24px_70px_-15px_rgba(20,20,22,0.08)] border border-[#ECEAE4] overflow-hidden hidden lg:flex flex-row min-h-[660px]">
+
             <!-- ============================================== -->
             <!-- DESKTOP LEFT PANEL: ONBOARDING SHOWCASE        -->
             <!-- ============================================== -->
             <section class="w-[48%] xl:w-[47%] bg-[#FAF8F5] p-10 xl:p-12 relative overflow-hidden flex flex-col justify-between border-r border-[#ECEAE4]">
-                
+
                 <!-- Concentric Pastel Arcs (Background Decorative) -->
                 <div class="absolute -right-24 -bottom-24 w-[480px] h-[480px] rounded-full border-[32px] border-[#D4E4D2]/70 pointer-events-none"></div>
                 <div class="absolute -right-24 -bottom-24 w-[416px] h-[416px] rounded-full border-[28px] border-[#FDE4C3]/80 pointer-events-none"></div>
                 <div class="absolute -right-24 -bottom-24 w-[360px] h-[360px] rounded-full border-[28px] border-[#FBD2E0]/75 pointer-events-none"></div>
                 <div class="absolute -right-24 -bottom-24 w-[304px] h-[304px] rounded-full bg-[#F3EFFB]/60 pointer-events-none"></div>
 
-                <!-- Clean Top Metadata (No generic pill) -->
+                <!-- Clean Top Metadata -->
                 <div class="relative z-10 flex items-center justify-between text-xs font-semibold text-[#6E6E77]">
                     <span class="tracking-wide uppercase text-[11px] font-bold text-[#141416]">Tahun Ajaran 2026/2027</span>
                     <span>Semester Ganjil</span>
@@ -157,7 +134,7 @@ const submit = () => {
                             </div>
                         </div>
 
-                        <!-- Clean Program Tags (No generic floating pill dots) -->
+                        <!-- Program Tags -->
                         <div class="space-y-2 flex-1">
                             <div class="text-[11px] font-bold uppercase tracking-wider text-[#6E6E77]">Program Keahlian:</div>
                             <div class="flex flex-wrap gap-1.5">
@@ -187,13 +164,13 @@ const submit = () => {
             <!-- ============================================== -->
             <section class="flex-1 p-10 xl:p-14 flex flex-col justify-center bg-white">
                 <div class="w-full max-w-[440px] mx-auto">
-                    
-                    <!-- Clean Form Heading (No generic pill) -->
+
+                    <!-- Form Heading -->
                     <div class="mb-8">
                         <p class="text-xs font-bold uppercase tracking-wider text-[#6E6E77] mb-1.5">
                             Otentikasi Pengguna
                         </p>
-                        
+
                         <h2 class="text-[30px] font-extrabold text-[#141416] tracking-tight leading-tight">
                             Masuk ke Ruang Belajar
                         </h2>
@@ -215,7 +192,7 @@ const submit = () => {
 
                     <!-- Form -->
                     <form @submit.prevent="submit" class="space-y-4">
-                        
+
                         <!-- Input 1: NISN / NIP / Username -->
                         <div>
                             <label for="desktop-username" class="block text-xs font-bold text-[#141416] mb-1.5 ml-1">
@@ -305,7 +282,7 @@ const submit = () => {
                             </button>
                         </div>
 
-                        <!-- Submit Pill CTA Button -->
+                        <!-- Submit CTA Button -->
                         <div class="pt-3">
                             <button
                                 type="submit"
@@ -331,42 +308,13 @@ const submit = () => {
                             <span class="text-[11px] font-bold uppercase tracking-wider text-[#6E6E77]">Akun Uji Coba Cepat:</span>
                             <span class="text-[10px] text-[#A09E97]">Klik untuk isi otomatis</span>
                         </div>
-                        <div class="grid grid-cols-5 gap-1.5">
-                            <button
-                                type="button"
-                                @click="setQuickAccount('siswa')"
-                                class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#EBF2D5] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer"
-                            >
-                                Siswa
-                            </button>
-                            <button
-                                type="button"
-                                @click="setQuickAccount('guru')"
-                                class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#FBD2E0] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer"
-                            >
-                                Guru
-                            </button>
-                            <button
-                                type="button"
-                                @click="setQuickAccount('wali')"
-                                class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#D0E8F8] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer"
-                            >
-                                Wali
-                            </button>
-                            <button
-                                type="button"
-                                @click="setQuickAccount('kepsek')"
-                                class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#FDE4C3] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer"
-                            >
-                                Kepsek
-                            </button>
-                            <button
-                                type="button"
-                                @click="setQuickAccount('admin')"
-                                class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#E2D9F3] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer"
-                            >
-                                Admin
-                            </button>
+                        <div class="grid grid-cols-6 gap-1.5">
+                            <button type="button" @click="setQuickAccount('siswa')" class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#EBF2D5] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Siswa</button>
+                            <button type="button" @click="setQuickAccount('guru')" class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#FBD2E0] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Guru</button>
+                            <button type="button" @click="setQuickAccount('wali')" class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#D0E8F8] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Wali</button>
+                            <button type="button" @click="setQuickAccount('kepsek')" class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#FDE4C3] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Kepsek</button>
+                            <button type="button" @click="setQuickAccount('admin')" class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#E2D9F3] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Admin</button>
+                            <button type="button" @click="setQuickAccount('super_admin')" class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#D4E4D2] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Super</button>
                         </div>
                     </div>
 
@@ -380,12 +328,10 @@ const submit = () => {
         </main>
 
         <!-- ============================================================== -->
-        <!-- 2. MOBILE SIMULATOR / NATIVE MOBILE PHONE VIEW (< lg OR SIM)  -->
+        <!-- MOBILE LAYOUT — tampil di bawah lg (<1024px) secara otomatis   -->
         <!-- ============================================================== -->
-        <main
-            v-if="desktopViewMode === 'mobile_sim'"
-            class="relative z-10 w-full max-w-[420px] min-h-[100dvh] sm:min-h-[820px] bg-[#F9F8F6] sm:rounded-[44px] sm:shadow-[0_20px_60px_-15px_rgba(20,20,22,0.12)] sm:border-[8px] sm:border-white overflow-hidden flex flex-col justify-between"
-        >
+        <main class="relative z-10 w-full max-w-[420px] min-h-[100dvh] bg-[#F9F8F6] flex flex-col justify-between lg:hidden">
+
             <!-- ============================================== -->
             <!-- MOBILE SCREEN 1: ONBOARDING FLOW               -->
             <!-- ============================================== -->
@@ -398,17 +344,17 @@ const submit = () => {
                 leave-to-class="opacity-0 -translate-x-4"
             >
                 <div v-if="currentScreen === 'onboarding'" class="flex-1 flex flex-col justify-between">
-                    
+
                     <!-- Top Section: Concentric Pastel Rainbow Arcs & Student Illustration -->
                     <div class="relative flex-1 flex items-end justify-center pt-10 pb-0 px-6 overflow-hidden min-h-[380px]">
-                        
+
                         <!-- Concentric Soft Pastel Arcs -->
                         <div class="absolute bottom-[-110px] w-[360px] h-[360px] rounded-full border-[22px] border-[#D4E4D2]/80 pointer-events-none"></div>
                         <div class="absolute bottom-[-110px] w-[316px] h-[316px] rounded-full border-[20px] border-[#FDE4C3]/85 pointer-events-none"></div>
                         <div class="absolute bottom-[-110px] w-[276px] h-[276px] rounded-full border-[20px] border-[#FBD2E0]/80 pointer-events-none"></div>
                         <div class="absolute bottom-[-110px] w-[236px] h-[236px] rounded-full bg-[#F3EFFB]/60 pointer-events-none"></div>
 
-                        <!-- Top Title and Skip Button (No generic pill) -->
+                        <!-- Top Title and Skip Button -->
                         <div class="absolute top-6 inset-x-6 z-20 flex items-center justify-between">
                             <span class="text-xs font-extrabold text-[#141416] tracking-tight">SMK SRIWIJAYA 3</span>
                             <button
@@ -430,9 +376,9 @@ const submit = () => {
                         </div>
                     </div>
 
-                    <!-- Bottom Section: White Rounded Sheet (32px top radius, No AI badge) -->
-                    <div class="relative z-20 bg-white rounded-t-[32px] sm:rounded-t-[36px] px-7 pt-7 pb-8 shadow-[0_-12px_40px_rgba(20,20,22,0.06)] flex flex-col items-center text-center">
-                        
+                    <!-- Bottom Section: White Rounded Sheet -->
+                    <div class="relative z-20 bg-white rounded-t-[32px] px-7 pt-7 pb-8 shadow-[0_-12px_40px_rgba(20,20,22,0.06)] flex flex-col items-center text-center">
+
                         <div class="w-10 h-1 bg-[#ECEAE4] rounded-full mb-5"></div>
 
                         <h1 class="text-[26px] sm:text-[28px] font-extrabold text-[#141416] leading-[1.2] tracking-tight">
@@ -449,7 +395,7 @@ const submit = () => {
                             <span class="w-1.5 h-1.5 rounded-full bg-[#ECEAE4]"></span>
                         </div>
 
-                        <!-- Full-width Gray Capsule Slide Button (#F1EFEA) -->
+                        <!-- Full-width Capsule Slide Button -->
                         <button
                             type="button"
                             @click="goToLogin"
@@ -484,9 +430,9 @@ const submit = () => {
                 leave-to-class="opacity-0 -translate-x-4"
             >
                 <div v-if="currentScreen === 'login'" class="flex-1 flex flex-col justify-between px-6 sm:px-7 pt-5 pb-7 overflow-y-auto">
-                    
+
                     <div>
-                        <!-- Clean Header (No generic pill) -->
+                        <!-- Header -->
                         <div class="flex items-center justify-between mb-6">
                             <button
                                 type="button"
@@ -632,35 +578,13 @@ const submit = () => {
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-[10px] font-bold uppercase tracking-wider text-[#6E6E77]">Akun Uji Coba Cepat:</span>
                             </div>
-                            <div class="grid grid-cols-4 gap-1.5">
-                                <button
-                                    type="button"
-                                    @click="setQuickAccount('siswa')"
-                                    class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#EBF2D5] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer"
-                                >
-                                    Siswa
-                                </button>
-                                <button
-                                    type="button"
-                                    @click="setQuickAccount('guru')"
-                                    class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#FBD2E0] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer"
-                                >
-                                    Guru
-                                </button>
-                                <button
-                                    type="button"
-                                    @click="setQuickAccount('admin')"
-                                    class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#E2D9F3] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer"
-                                >
-                                    Admin
-                                </button>
-                                <button
-                                    type="button"
-                                    @click="setQuickAccount('kepsek')"
-                                    class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#FDE4C3] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer"
-                                >
-                                    Kepsek
-                                </button>
+                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                                <button type="button" @click="setQuickAccount('siswa')" class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#EBF2D5] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Siswa</button>
+                                <button type="button" @click="setQuickAccount('guru')" class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#FBD2E0] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Guru</button>
+                                <button type="button" @click="setQuickAccount('wali')" class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#D0E8F8] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Wali</button>
+                                <button type="button" @click="setQuickAccount('kepsek')" class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#FDE4C3] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Kepsek</button>
+                                <button type="button" @click="setQuickAccount('admin')" class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#E2D9F3] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Admin</button>
+                                <button type="button" @click="setQuickAccount('super_admin')" class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#D4E4D2] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Super Admin</button>
                             </div>
                         </div>
                     </div>
@@ -674,7 +598,7 @@ const submit = () => {
 
         </main>
 
-        <!-- Help / Password Reset Modal (Zero-Bloat operator support) -->
+        <!-- Help / Password Reset Modal -->
         <div
             v-if="showHelpModal"
             class="fixed inset-0 bg-[#141416]/40 backdrop-blur-xs flex items-center justify-center p-4 z-50"

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,70 +16,58 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => 'siswa@lms-swj.test'],
+        $accounts = [
             [
+                'email' => 'siswa@smk.sch.id',
                 'name' => 'Nadia Putri',
                 'username' => '008492104',
-                'password' => bcrypt('password'),
                 'role' => 'siswa',
-                'email_verified_at' => now(),
-            ]
-        );
-
-        User::updateOrCreate(
-            ['email' => 'teacher@lms-swj.test'],
+            ],
             [
+                'email' => 'guru@smk.sch.id',
                 'name' => 'Budi Santoso, S.Kom',
                 'username' => '198804122015041002',
-                'password' => bcrypt('password'),
                 'role' => 'guru',
-                'email_verified_at' => now(),
-            ]
-        );
-
-        User::updateOrCreate(
-            ['email' => 'wali@lms-swj.test'],
+            ],
             [
+                'email' => 'wali.xdkv1@smk.sch.id',
                 'name' => 'Siti Rahma, M.Pd',
                 'username' => 'wali.xdkv1@smk.sch.id',
-                'password' => bcrypt('password'),
                 'role' => 'wali_kelas',
-                'email_verified_at' => now(),
-            ]
-        );
-
-        User::updateOrCreate(
-            ['email' => 'kepsek@lms-swj.test'],
+            ],
             [
+                'email' => 'kepsek@smk.sch.id',
                 'name' => 'Drs. Hendra Wijaya',
                 'username' => 'kepsek@smk.sch.id',
-                'password' => bcrypt('password'),
                 'role' => 'kepsek',
-                'email_verified_at' => now(),
-            ]
-        );
-
-        User::updateOrCreate(
-            ['email' => 'admin@lms-swj.test'],
+            ],
             [
+                'email' => 'admin@smk.sch.id',
                 'name' => 'Rizky Pratama',
                 'username' => 'admin@smk.sch.id',
-                'password' => bcrypt('password'),
                 'role' => 'admin',
-                'email_verified_at' => now(),
-            ]
-        );
-
-        User::updateOrCreate(
-            ['email' => 'superadmin@lms-swj.test'],
+            ],
             [
+                'email' => 'superadmin@smk.sch.id',
                 'name' => 'Arif Darmawan',
                 'username' => 'superadmin@smk.sch.id',
-                'password' => bcrypt('password'),
                 'role' => 'super_admin',
+            ],
+        ];
+
+        foreach ($accounts as $account) {
+            User::where('email', $account['email'])
+                ->orWhere('username', $account['username'])
+                ->delete();
+
+            User::create([
+                'name' => $account['name'],
+                'email' => $account['email'],
+                'username' => $account['username'],
+                'password' => Hash::make('password'),
+                'role' => $account['role'],
                 'email_verified_at' => now(),
-            ]
-        );
+            ]);
+        }
     }
 }

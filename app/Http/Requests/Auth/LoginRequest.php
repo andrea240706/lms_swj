@@ -2,10 +2,12 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -52,16 +54,38 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $login = $this->string('username')->toString();
-        $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        $login = trim($this->string('username')->toString());
+        $password = $this->string('password')->toString();
+        $remember = $this->boolean('remember');
 
-        if (! Auth::attempt([$field => $login, 'password' => $this->string('password')->toString()], $this->boolean('remember'))) {
+        // 1. Direct match on username or email
+        $user = User::where('username', $login)
+            ->orWhere('email', $login)
+            ->first();
+
+        // 2. Convenience aliases for testing & quick access
+        if (! $user) {
+            $normalized = strtolower($login);
+            $user = match ($normalized) {
+                'siswa', 'student', '008492104' => User::whereIn('role', ['siswa', 'student'])->first(),
+                'guru', 'teacher', '198804122015041002' => User::whereIn('role', ['guru', 'teacher'])->first(),
+                'wali', 'wali_kelas', 'wali.xdkv1@smk.sch.id' => User::whereIn('role', ['wali', 'wali_kelas'])->first(),
+                'kepsek', 'principal', 'kepsek@smk.sch.id' => User::whereIn('role', ['kepsek', 'principal'])->first(),
+                'admin', 'admin@smk.sch.id' => User::where('role', 'admin')->first(),
+                'superadmin', 'super_admin', 'superadmin@smk.sch.id' => User::where('role', 'super_admin')->first(),
+                default => null,
+            };
+        }
+
+        if (! $user || ! Hash::check($password, $user->password)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
                 'username' => trans('auth.failed'),
             ]);
         }
+
+        Auth::login($user, $remember);
 
         RateLimiter::clear($this->throttleKey());
     }
