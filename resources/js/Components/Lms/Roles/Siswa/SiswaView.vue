@@ -69,25 +69,30 @@ const getDayLabel = (dayNum) => {
 </script>
 
 <template>
-    <div class="flex-1 flex flex-col overflow-hidden">
-        <!-- ========================================== -->
-        <!-- TAB 1: HOME (SESI AKTIF & TIMELINE)       -->
-        <!-- ========================================== -->
-        <template v-if="activeTab === 'home'">
+    <div class="flex-1 flex flex-col h-full overflow-hidden">
+        <Transition name="tab-view" mode="out-in">
+            <!-- ========================================== -->
+            <!-- TAB 1: HOME (SESI AKTIF & TIMELINE)       -->
+            <!-- ========================================== -->
+            <div
+                v-if="activeTab === 'home'"
+                key="home"
+                class="flex-1 flex flex-col h-full overflow-hidden"
+            >
             <LmsTopBar
                 :role="role"
                 @openMenu="$emit('openMenu')"
                 @openProfile="$emit('openProfile')"
             />
 
-            <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+            <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 pb-28">
                 <h2 class="text-[17px] font-extrabold text-charcoal mb-2.5">
                     Kelas Hari Ini
                 </h2>
 
                 <!-- Hero Card: Active Session -->
                 <div class="hero-sage rounded-[28px] p-5 relative overflow-hidden soft-shadow">
-                    <div class="relative z-10 max-w-[68%]">
+                    <div class="relative z-10 w-full">
                         <div class="flex items-center gap-1.5 text-[11px] font-bold text-sage-dark">
                             <span class="w-2 h-2 rounded-full bg-[#2E7D32] live-dot"></span>
                             <span>Sesi Aktif • Lab RPL 2</span>
@@ -111,47 +116,6 @@ const getDayLabel = (dayNum) => {
                                     ></span>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Action Play Button + Quick Presensi Pill -->
-                        <div class="mt-4 flex items-center gap-2.5">
-                            <button
-                                type="button"
-                                @click="$emit('selectTab', 'mapel')"
-                                class="w-11 h-11 rounded-full bg-charcoal text-white flex items-center justify-center shadow-md active:scale-95 transition-transform cursor-pointer"
-                                title="Buka Mapel"
-                            >
-                                <LmsIcon name="play" className="w-4 h-4 ml-0.5" />
-                            </button>
-                            <button
-                                type="button"
-                                @click="$emit('openAttendanceModal')"
-                                class="px-3.5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer shadow-xs"
-                                :class="
-                                    studentAttendanceDone
-                                        ? 'bg-white/90 text-[#2E7D32]'
-                                        : 'bg-charcoal text-white'
-                                "
-                            >
-                                {{ studentAttendanceDone ? '✓ Sudah Presensi' : 'Isi Presensi Sekarang' }}
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 3D Style Decorative Vector Cluster (Bottom Right) -->
-                    <div
-                        class="absolute -right-3 -bottom-3 w-32 h-32 rounded-full bg-white/35 flex items-center justify-center pointer-events-none"
-                    >
-                        <div
-                            class="w-20 h-20 rounded-2xl bg-white/80 backdrop-blur-xs shadow-sm rotate-6 flex flex-col items-center justify-center p-2 border border-white"
-                        >
-                            <span
-                                class="text-[10px] font-extrabold text-charcoal bg-sage px-2 py-0.5 rounded-full"
-                            >
-                                LARAVEL
-                            </span>
-                            <span class="text-lg font-extrabold text-charcoal mt-1">&lt;/&gt;</span>
-                            <span class="text-[9px] font-bold text-subtext">Bab 06 Aktif</span>
                         </div>
                     </div>
                 </div>
@@ -256,23 +220,31 @@ const getDayLabel = (dayNum) => {
                     </div>
                 </div>
             </div>
-        </template>
+            </div>
 
-        <!-- ========================================== -->
-        <!-- TAB 2: MAPEL (DAFTAR MAPEL & PERTEMUAN)    -->
-        <!-- ========================================== -->
-        <template v-else-if="activeTab === 'mapel' || activeTab === 'materi'">
-            <MapelSiswaView
-                :role="role"
-                @openMenu="$emit('openMenu')"
-                @openProfile="$emit('openProfile')"
-            />
-        </template>
+            <!-- ========================================== -->
+            <!-- TAB 2: MAPEL (DAFTAR MAPEL & PERTEMUAN)    -->
+            <!-- ========================================== -->
+            <div
+                v-else-if="activeTab === 'mapel' || activeTab === 'materi'"
+                key="mapel"
+                class="flex-1 flex flex-col h-full overflow-hidden"
+            >
+                <MapelSiswaView
+                    :role="role"
+                    @openMenu="$emit('openMenu')"
+                    @openProfile="$emit('openProfile')"
+                />
+            </div>
 
-        <!-- ========================================== -->
-        <!-- TAB 3: TUGAS & AKTIVITAS                  -->
-        <!-- ========================================== -->
-        <template v-else-if="activeTab === 'tugas'">
+            <!-- ========================================== -->
+            <!-- TAB 3: TUGAS & AKTIVITAS                  -->
+            <!-- ========================================== -->
+            <div
+                v-else-if="activeTab === 'tugas'"
+                key="tugas"
+                class="flex-1 flex flex-col h-full overflow-hidden"
+            >
             <LmsTopBar
                 :role="role"
                 title="Tugas & Aktivitas"
@@ -280,7 +252,7 @@ const getDayLabel = (dayNum) => {
                 @openProfile="$emit('openProfile')"
             />
 
-            <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+            <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 pb-28">
                 <div class="space-y-3 mt-1">
                     <div
                         v-for="a in assignments"
@@ -345,12 +317,16 @@ const getDayLabel = (dayNum) => {
                     </div>
                 </div>
             </div>
-        </template>
+            </div>
 
-        <!-- ========================================== -->
-        <!-- TAB 4: PRESENSI & REKAP NILAI             -->
-        <!-- ========================================== -->
-        <template v-else-if="activeTab === 'presensi'">
+            <!-- ========================================== -->
+            <!-- TAB 4: PRESENSI & REKAP NILAI             -->
+            <!-- ========================================== -->
+            <div
+                v-else-if="activeTab === 'presensi'"
+                key="presensi"
+                class="flex-1 flex flex-col h-full overflow-hidden"
+            >
             <LmsTopBar
                 :role="role"
                 title="Presensi & Transkrip"
@@ -358,7 +334,7 @@ const getDayLabel = (dayNum) => {
                 @openProfile="$emit('openProfile')"
             />
 
-            <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+            <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 pb-28">
                 <!-- Semester Attendance Macro -->
                 <div class="hero-sky rounded-[28px] p-5 soft-shadow">
                     <span
@@ -413,6 +389,24 @@ const getDayLabel = (dayNum) => {
                     </div>
                 </div>
             </div>
-        </template>
+            </div>
+        </Transition>
     </div>
 </template>
+
+<style scoped>
+.tab-view-enter-active,
+.tab-view-leave-active {
+    transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tab-view-enter-from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.995);
+}
+
+.tab-view-leave-to {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.995);
+}
+</style>

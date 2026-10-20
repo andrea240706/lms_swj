@@ -143,7 +143,7 @@ const submitHomework = () => {
 </script>
 
 <template>
-    <div class="flex-1 flex flex-col overflow-hidden relative">
+    <div class="flex-1 flex flex-col h-full overflow-hidden relative">
         <!-- Floating Toast Notification -->
         <transition
             enter-active-class="transform ease-out duration-200 transition"
@@ -166,83 +166,88 @@ const submitHomework = () => {
         <!-- LEVEL 1: DAFTAR MATA PELAJARAN (1 SEMESTER)              -->
         <!-- ======================================================== -->
         <template v-if="currentView === 'list'">
-            <LmsTopBar
-                :role="role"
-                title="Mata Pelajaran"
-                @openMenu="$emit('openMenu')"
-                @openProfile="$emit('openProfile')"
-            />
+            <div class="flex-1 flex flex-col h-full overflow-hidden">
+                <!-- Static Top Bar (Diam saja) -->
+                <LmsTopBar
+                    :role="role"
+                    title="Mata Pelajaran"
+                    @openMenu="$emit('openMenu')"
+                    @openProfile="$emit('openProfile')"
+                    class="shrink-0"
+                />
 
-            <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
-                <!-- Semester Header Banner -->
-                <div class="hero-sage rounded-[28px] p-5 relative overflow-hidden soft-shadow mb-4">
-                    <div class="relative z-10">
+                <!-- Bagian Tetap / Diam (Header Banner, Kategori & Pencarian) -->
+                <div class="px-4 sm:px-6 shrink-0">
+                    <!-- Semester Header Banner -->
+                    <div class="hero-sage rounded-[24px] sm:rounded-[28px] p-4 sm:p-5 relative overflow-hidden soft-shadow mb-3">
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="inline-block bg-white/90 text-charcoal px-3 py-1 rounded-full text-[11px] font-extrabold shadow-2xs"
+                                >
+                                    Semester Ganjil 2026/2027
+                                </span>
+                                <span class="text-[11px] font-bold text-sage-dark">
+                                    • 5 Mapel Terdaftar
+                                </span>
+                            </div>
+                            <h2 class="text-[18px] sm:text-[20px] font-extrabold text-charcoal mt-1.5 leading-tight">
+                                Kurikulum Merdeka Kejuruan
+                            </h2>
+                            <p class="text-xs font-medium text-charcoal/80 mt-1 max-w-[85%] line-clamp-2">
+                                Pilih mata pelajaran di bawah untuk melihat modul belajar, mengumpulkan tugas, nilai, dan video materi per pertemuan.
+                            </p>
+                        </div>
+
+                        <!-- Decorative Badge Cluster -->
+                        <div
+                            class="absolute -right-3 -bottom-3 w-20 h-20 rounded-full bg-white/30 flex items-center justify-center pointer-events-none"
+                        >
+                            <span class="text-xl font-black text-charcoal/20">XII</span>
+                        </div>
+                    </div>
+
+                    <!-- Category Pills Filter & Search -->
+                    <div class="mb-3 space-y-2">
+                        <!-- Category Pills -->
                         <div class="flex items-center gap-2">
-                            <span
-                                class="inline-block bg-white/90 text-charcoal px-3 py-1 rounded-full text-[11px] font-extrabold shadow-2xs"
+                            <button
+                                v-for="cat in ['Semua', 'Produktif', 'Umum']"
+                                :key="cat"
+                                type="button"
+                                @click="activeCategory = cat"
+                                class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border"
+                                :class="
+                                    activeCategory === cat
+                                        ? 'bg-charcoal text-white border-charcoal shadow-xs'
+                                        : 'bg-white text-subtext border-[#ECEAE4] hover:border-charcoal/30'
+                                "
                             >
-                                Semester Ganjil 2026/2027
-                            </span>
-                            <span class="text-[11px] font-bold text-sage-dark">
-                                • 5 Mapel Terdaftar
+                                {{ cat }}
+                            </button>
+                        </div>
+
+                        <!-- Search Input -->
+                        <div class="relative">
+                            <input
+                                v-model="searchQuery"
+                                type="text"
+                                placeholder="Cari mapel atau guru pengampu..."
+                                class="w-full bg-white rounded-2xl px-4 py-2 text-xs text-charcoal placeholder:text-subtext/70 border border-[#ECEAE4] soft-shadow focus:outline-none focus:border-charcoal/40 transition-colors"
+                            />
+                            <span
+                                v-if="searchQuery"
+                                @click="searchQuery = ''"
+                                class="absolute right-3.5 top-2 text-subtext text-xs cursor-pointer font-bold"
+                            >
+                                ✕
                             </span>
                         </div>
-                        <h2 class="text-[20px] font-extrabold text-charcoal mt-2 leading-tight">
-                            Kurikulum Merdeka Kejuruan
-                        </h2>
-                        <p class="text-xs font-medium text-charcoal/80 mt-1 max-w-[85%]">
-                            Pilih mata pelajaran di bawah untuk melihat modul belajar, mengumpulkan tugas, nilai, dan video materi per pertemuan.
-                        </p>
-                    </div>
-
-                    <!-- Decorative Badge Cluster -->
-                    <div
-                        class="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-white/30 flex items-center justify-center pointer-events-none"
-                    >
-                        <span class="text-2xl font-black text-charcoal/20">XII</span>
                     </div>
                 </div>
 
-                <!-- Category Pills Filter & Search -->
-                <div class="mb-4 space-y-2.5">
-                    <!-- Category Pills -->
-                    <div class="flex items-center gap-2">
-                        <button
-                            v-for="cat in ['Semua', 'Produktif', 'Umum']"
-                            :key="cat"
-                            type="button"
-                            @click="activeCategory = cat"
-                            class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border"
-                            :class="
-                                activeCategory === cat
-                                    ? 'bg-charcoal text-white border-charcoal shadow-xs'
-                                    : 'bg-white text-subtext border-[#ECEAE4] hover:border-charcoal/30'
-                            "
-                        >
-                            {{ cat }}
-                        </button>
-                    </div>
-
-                    <!-- Search Input -->
-                    <div class="relative">
-                        <input
-                            v-model="searchQuery"
-                            type="text"
-                            placeholder="Cari mapel atau guru pengampu..."
-                            class="w-full bg-white rounded-2xl px-4 py-2.5 text-xs text-charcoal placeholder:text-subtext/70 border border-[#ECEAE4] soft-shadow focus:outline-none focus:border-charcoal/40 transition-colors"
-                        />
-                        <span
-                            v-if="searchQuery"
-                            @click="searchQuery = ''"
-                            class="absolute right-3.5 top-2.5 text-subtext text-xs cursor-pointer font-bold"
-                        >
-                            ✕
-                        </span>
-                    </div>
-                </div>
-
-                <!-- List of 5 Mapel Cards -->
-                <div class="space-y-3">
+                <!-- CUMAN BAGIAN INI YANG DI SCROLL (List Mapel yang Tersedia) -->
+                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 pb-28 pt-1 space-y-3">
                     <div
                         v-for="mapel in filteredMapelList"
                         :key="mapel.id"
@@ -317,7 +322,7 @@ const submitHomework = () => {
         <!-- ======================================================== -->
         <template v-else-if="currentView === 'mapel_detail' && selectedMapel">
             <!-- Header Bar with Back Button -->
-            <header class="px-6 pt-2 pb-3 flex items-center justify-between shrink-0">
+            <header class="px-4 sm:px-6 pt-3 pb-3 flex items-center justify-between shrink-0">
                 <button
                     type="button"
                     @click="backToMapelList"
@@ -331,7 +336,7 @@ const submitHomework = () => {
                 </span>
             </header>
 
-            <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
+            <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 pb-28">
                 <!-- CARD UI DENGAN JUDUL DARI SETIAP MAPEL (Di Bagian Atas) -->
                 <div
                     class="rounded-[28px] p-5 relative overflow-hidden soft-shadow mb-5"
@@ -467,7 +472,7 @@ const submitHomework = () => {
         <!-- ======================================================== -->
         <template v-else-if="currentView === 'meeting_detail' && selectedMapel && selectedMeeting">
             <!-- Header Bar with Back Button -->
-            <header class="px-6 pt-2 pb-3 flex items-center justify-between shrink-0">
+            <header class="px-4 sm:px-6 pt-3 pb-3 flex items-center justify-between shrink-0">
                 <button
                     type="button"
                     @click="backToMeetingList"
@@ -481,7 +486,7 @@ const submitHomework = () => {
                 </span>
             </header>
 
-            <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28 space-y-4">
+            <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 pb-28 space-y-4">
                 <!-- TOP CARD UI: Pertemuan Info Header -->
                 <div
                     class="rounded-[28px] p-5 relative overflow-hidden soft-shadow"

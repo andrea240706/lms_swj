@@ -47,7 +47,7 @@ class DashboardController extends Controller
                 'focusNote' => 'Buka presensi dengan timer, kunci/buka bab materi, & nilai tugas cepat.',
                 'tabs' => [
                     ['id' => 'home', 'label' => 'Home', 'icon' => 'home'],
-                    ['id' => 'materi', 'label' => 'Materi', 'icon' => 'book'],
+                    ['id' => 'mapel', 'label' => 'Mapel', 'icon' => 'book'],
                     ['id' => 'tugas', 'label' => 'Nilai', 'icon' => 'task'],
                     ['id' => 'presensi', 'label' => 'Sesi', 'icon' => 'clock'],
                 ],

@@ -68,10 +68,15 @@ const setAttendanceStatus = (item, status) => {
 
 <template>
     <div class="flex-1 flex flex-col overflow-hidden">
-        <!-- ========================================== -->
-        <!-- TAB 1: HOME (SESI MENGAJAR & JADWAL)      -->
-        <!-- ========================================== -->
-        <template v-if="activeTab === 'home'">
+        <Transition name="tab-view" mode="out-in">
+            <!-- ========================================== -->
+            <!-- TAB 1: HOME (SESI MENGAJAR & JADWAL)      -->
+            <!-- ========================================== -->
+            <div
+                v-if="activeTab === 'home'"
+                key="home"
+                class="flex-1 flex flex-col h-full overflow-hidden"
+            >
             <LmsTopBar
                 :role="role"
                 @openMenu="$emit('openMenu')"
@@ -153,15 +158,19 @@ const setAttendanceStatus = (item, status) => {
                     </div>
                 </div>
             </div>
-        </template>
+            </div>
 
-        <!-- ========================================== -->
-        <!-- TAB 2: MATERI (KELOLA & KUNCI BAB)        -->
-        <!-- ========================================== -->
-        <template v-else-if="activeTab === 'materi'">
+            <!-- ========================================== -->
+            <!-- TAB 2: MAPEL (KELOLA & KUNCI BAB)         -->
+            <!-- ========================================== -->
+            <div
+                v-else-if="activeTab === 'mapel' || activeTab === 'materi'"
+                key="mapel"
+                class="flex-1 flex flex-col h-full overflow-hidden"
+            >
             <LmsTopBar
                 :role="role"
-                title="Kelola &amp; Kunci Materi"
+                title="Kelola &amp; Kunci Mapel"
                 @openMenu="$emit('openMenu')"
                 @openProfile="$emit('openProfile')"
             />
@@ -209,12 +218,16 @@ const setAttendanceStatus = (item, status) => {
                     </div>
                 </div>
             </div>
-        </template>
+            </div>
 
-        <!-- ========================================== -->
-        <!-- TAB 3: TUGAS (PENILAIAN TUGAS SISWA)      -->
-        <!-- ========================================== -->
-        <template v-else-if="activeTab === 'tugas'">
+            <!-- ========================================== -->
+            <!-- TAB 3: TUGAS (PENILAIAN TUGAS SISWA)      -->
+            <!-- ========================================== -->
+            <div
+                v-else-if="activeTab === 'tugas'"
+                key="tugas"
+                class="flex-1 flex flex-col h-full overflow-hidden"
+            >
             <LmsTopBar
                 :role="role"
                 title="Penilaian Tugas Siswa"
@@ -255,12 +268,16 @@ const setAttendanceStatus = (item, status) => {
                     </div>
                 </div>
             </div>
-        </template>
+            </div>
 
-        <!-- ========================================== -->
-        <!-- TAB 4: PRESENSI KELAS (MANUAL CHECKLIST)   -->
-        <!-- ========================================== -->
-        <template v-else-if="activeTab === 'presensi'">
+            <!-- ========================================== -->
+            <!-- TAB 4: PRESENSI KELAS (MANUAL CHECKLIST)   -->
+            <!-- ========================================== -->
+            <div
+                v-else-if="activeTab === 'presensi'"
+                key="presensi"
+                class="flex-1 flex flex-col h-full overflow-hidden"
+            >
             <LmsTopBar
                 :role="role"
                 title="Kontrol Presensi Kelas"
@@ -295,6 +312,24 @@ const setAttendanceStatus = (item, status) => {
                     </div>
                 </div>
             </div>
-        </template>
+            </div>
+        </Transition>
     </div>
 </template>
+
+<style scoped>
+.tab-view-enter-active,
+.tab-view-leave-active {
+    transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tab-view-enter-from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.995);
+}
+
+.tab-view-leave-to {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.995);
+}
+</style>
