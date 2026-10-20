@@ -4,12 +4,12 @@ import { Head, router } from '@inertiajs/vue3';
 import LmsActionSheet from '@/Components/Lms/LmsActionSheet.vue';
 import LmsBottomNav from '@/Components/Lms/LmsBottomNav.vue';
 import LmsRoleStudio from '@/Components/Lms/LmsRoleStudio.vue';
-import SiswaView from '@/Components/Lms/Roles/SiswaView.vue';
-import GuruView from '@/Components/Lms/Roles/GuruView.vue';
-import WaliKelasView from '@/Components/Lms/Roles/WaliKelasView.vue';
-import KepsekView from '@/Components/Lms/Roles/KepsekView.vue';
-import AdminView from '@/Components/Lms/Roles/AdminView.vue';
-import SuperAdminView from '@/Components/Lms/Roles/SuperAdminView.vue';
+import SiswaView from '@/Components/Lms/Roles/Siswa/SiswaView.vue';
+import GuruView from '@/Components/Lms/Roles/Guru/GuruView.vue';
+import WaliKelasView from '@/Components/Lms/Roles/WaliKelas/WaliKelasView.vue';
+import KepsekView from '@/Components/Lms/Roles/Kepsek/KepsekView.vue';
+import AdminView from '@/Components/Lms/Roles/Admin/AdminView.vue';
+import SuperAdminView from '@/Components/Lms/Roles/SuperAdmin/SuperAdminView.vue';
 
 const props = defineProps({
     roles: {
