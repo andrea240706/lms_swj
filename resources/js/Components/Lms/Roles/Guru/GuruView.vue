@@ -15,7 +15,7 @@ const props = defineProps({
     },
     selectedDay: {
         type: Number,
-        default: 17,
+        default: 18,
     },
     days: {
         type: Array,

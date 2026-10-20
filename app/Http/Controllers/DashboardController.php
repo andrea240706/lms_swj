@@ -31,7 +31,7 @@ class DashboardController extends Controller
                 'focusNote' => 'Akses sesi aktif, unduh modul belajar, kumpul tugas, & isi presensi mandiri.',
                 'tabs' => [
                     ['id' => 'home', 'label' => 'Home', 'icon' => 'home'],
-                    ['id' => 'materi', 'label' => 'Materi', 'icon' => 'book'],
+                    ['id' => 'mapel', 'label' => 'Mapel', 'icon' => 'book'],
                     ['id' => 'tugas', 'label' => 'Tugas', 'icon' => 'task'],
                     ['id' => 'presensi', 'label' => 'Rekap', 'icon' => 'chart'],
                 ],
@@ -119,13 +119,12 @@ class DashboardController extends Controller
         ];
 
         $days = [
-            ['d' => 'Sun', 'n' => 17],
-            ['d' => 'Mon', 'n' => 18],
-            ['d' => 'Tue', 'n' => 19],
-            ['d' => 'Wed', 'n' => 20],
-            ['d' => 'Thu', 'n' => 21],
-            ['d' => 'Fri', 'n' => 22],
-            ['d' => 'Sat', 'n' => 23],
+            ['d' => 'Sen', 'n' => 18, 'full' => 'Senin'],
+            ['d' => 'Sel', 'n' => 19, 'full' => 'Selasa'],
+            ['d' => 'Rab', 'n' => 20, 'full' => 'Rabu'],
+            ['d' => 'Kam', 'n' => 21, 'full' => 'Kamis'],
+            ['d' => 'Jum', 'n' => 22, 'full' => 'Jumat'],
+            ['d' => 'Sab', 'n' => 23, 'full' => 'Sabtu'],
         ];
 
         $assignments = [

@@ -1,28 +1,37 @@
 <script setup>
-defineProps({
+import { computed } from 'vue';
+
+const props = defineProps({
     title: {
         type: String,
-        default: 'Class Schedule',
+        default: 'Jadwal Pelajaran',
     },
     days: {
         type: Array,
         default: () => [
-            { d: 'Sun', n: 17 },
-            { d: 'Mon', n: 18 },
-            { d: 'Tue', n: 19 },
-            { d: 'Wed', n: 20 },
-            { d: 'Thu', n: 21 },
-            { d: 'Fri', n: 22 },
-            { d: 'Sat', n: 23 },
+            { d: 'Sen', n: 18, full: 'Senin' },
+            { d: 'Sel', n: 19, full: 'Selasa' },
+            { d: 'Rab', n: 20, full: 'Rabu' },
+            { d: 'Kam', n: 21, full: 'Kamis' },
+            { d: 'Jum', n: 22, full: 'Jumat' },
+            { d: 'Sab', n: 23, full: 'Sabtu' },
         ],
     },
     selectedDay: {
         type: Number,
-        default: 17,
+        default: 18,
     },
 });
 
 defineEmits(['selectDay']);
+
+const gridColsClass = computed(() => {
+    const len = props.days?.length || 6;
+    if (len === 6) return 'grid-cols-6';
+    if (len === 7) return 'grid-cols-7';
+    if (len === 5) return 'grid-cols-5';
+    return 'grid-cols-6';
+});
 </script>
 
 <template>
@@ -45,7 +54,7 @@ defineEmits(['selectDay']);
             </span>
         </div>
 
-        <div class="grid grid-cols-7 gap-1.5">
+        <div :class="['grid gap-1.5', gridColsClass]">
             <button
                 v-for="item in days"
                 :key="item.n"

@@ -2,6 +2,7 @@
 import LmsCapsuleCalendar from '@/Components/Lms/LmsCapsuleCalendar.vue';
 import LmsIcon from '@/Components/Lms/LmsIcon.vue';
 import LmsTopBar from '@/Components/Lms/LmsTopBar.vue';
+import MapelSiswaView from './MapelSiswaView.vue';
 
 const props = defineProps({
     role: {
@@ -14,7 +15,7 @@ const props = defineProps({
     },
     selectedDay: {
         type: Number,
-        default: 17,
+        default: 18,
     },
     days: {
         type: Array,
@@ -44,40 +45,6 @@ const emit = defineEmits([
     'openProfile',
 ]);
 
-const lessons = [
-    {
-        id: 1,
-        title: 'Arsitektur MVC & Routing',
-        subject: 'Pemrograman Web',
-        date: '16 Okt',
-        time: '08:00–09:30',
-        color: 'bg-sky-light text-sky-dark',
-    },
-    {
-        id: 2,
-        title: 'Eloquent ORM & Migration',
-        subject: 'Pemrograman Web',
-        date: '17 Okt',
-        time: '08:00–09:30',
-        color: 'bg-sage-light text-sage-dark',
-    },
-    {
-        id: 3,
-        title: 'Middleware & Autentikasi Role',
-        subject: 'Pemrograman Web',
-        date: '20 Okt',
-        time: '08:00–09:30',
-        color: 'bg-lavender-light text-lavender-dark',
-    },
-    {
-        id: 4,
-        title: 'Deployment Server Produksi',
-        subject: 'Pemrograman Web',
-        date: '24 Okt',
-        time: '08:00–09:30',
-        color: 'bg-blossom-light text-blossom-dark',
-    },
-];
 
 const subjectGrades = [
     { mapel: 'Pemrograman Web & Perangkat Bergerak', avg: 91, kkm: 78 },
@@ -85,6 +52,20 @@ const subjectGrades = [
     { mapel: 'Infrastruktur Jaringan', avg: 84, kkm: 75 },
     { mapel: 'Bahasa Inggris Vokasi', avg: 89, kkm: 75 },
 ];
+
+const dayNamesMap = {
+    18: 'Senin',
+    19: 'Selasa',
+    20: 'Rabu',
+    21: 'Kamis',
+    22: 'Jumat',
+    23: 'Sabtu',
+};
+
+const getDayLabel = (dayNum) => {
+    const found = props.days?.find((d) => d.n === dayNum);
+    return found?.full || dayNamesMap[dayNum] || 'Senin';
+};
 </script>
 
 <template>
@@ -101,7 +82,7 @@ const subjectGrades = [
 
             <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
                 <h2 class="text-[17px] font-extrabold text-charcoal mb-2.5">
-                    Today Class
+                    Kelas Hari Ini
                 </h2>
 
                 <!-- Hero Card: Active Session -->
@@ -136,9 +117,9 @@ const subjectGrades = [
                         <div class="mt-4 flex items-center gap-2.5">
                             <button
                                 type="button"
-                                @click="$emit('selectTab', 'materi')"
+                                @click="$emit('selectTab', 'mapel')"
                                 class="w-11 h-11 rounded-full bg-charcoal text-white flex items-center justify-center shadow-md active:scale-95 transition-transform cursor-pointer"
-                                title="Buka Materi"
+                                title="Buka Mapel"
                             >
                                 <LmsIcon name="play" className="w-4 h-4 ml-0.5" />
                             </button>
@@ -177,7 +158,7 @@ const subjectGrades = [
 
                 <!-- Capsule Weekly Schedule -->
                 <LmsCapsuleCalendar
-                    title="Class Schedule"
+                    title="Jadwal Pelajaran"
                     :days="days"
                     :selectedDay="selectedDay"
                     @selectDay="(d) => $emit('selectDay', d)"
@@ -186,9 +167,9 @@ const subjectGrades = [
                 <!-- Daily Timeline -->
                 <div class="mt-5">
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-[16px] font-extrabold text-charcoal">Timeline</h3>
+                        <h3 class="text-[16px] font-extrabold text-charcoal">Agenda Harian</h3>
                         <span class="text-xs font-bold text-subtext">
-                            Selasa, {{ selectedDay }} Okt
+                            {{ getDayLabel(selectedDay) }}, {{ selectedDay }} Okt
                         </span>
                     </div>
 
@@ -197,7 +178,7 @@ const subjectGrades = [
                             <span class="text-xs font-bold text-subtext w-11 pt-2.5">08:00</span>
                             <div class="flex-1 grid grid-cols-2 gap-2">
                                 <div
-                                    @click="$emit('selectTab', 'materi')"
+                                    @click="$emit('selectTab', 'mapel')"
                                     class="cursor-pointer bg-white rounded-2xl p-2.5 border border-[#ECEAE4] soft-shadow flex items-center justify-between hover:border-charcoal/30 transition-all"
                                 >
                                     <div class="flex items-center gap-2">
@@ -219,7 +200,7 @@ const subjectGrades = [
                                 </div>
 
                                 <div
-                                    @click="$emit('selectTab', 'materi')"
+                                    @click="$emit('selectTab', 'mapel')"
                                     class="cursor-pointer bg-white rounded-2xl p-2.5 border border-[#ECEAE4] soft-shadow flex items-center justify-between hover:border-charcoal/30 transition-all"
                                 >
                                     <div class="flex items-center gap-2">
@@ -278,110 +259,14 @@ const subjectGrades = [
         </template>
 
         <!-- ========================================== -->
-        <!-- TAB 2: MATERI (SPOTLIGHT & DAFTAR BAB)    -->
+        <!-- TAB 2: MAPEL (DAFTAR MAPEL & PERTEMUAN)    -->
         <!-- ========================================== -->
-        <template v-else-if="activeTab === 'materi'">
-            <LmsTopBar
+        <template v-else-if="activeTab === 'mapel' || activeTab === 'materi'">
+            <MapelSiswaView
                 :role="role"
-                title="Today's Class"
                 @openMenu="$emit('openMenu')"
                 @openProfile="$emit('openProfile')"
             />
-
-            <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
-                <!-- Pastel Pink Spotlight Card -->
-                <div class="hero-blossom rounded-[28px] p-5 relative overflow-hidden soft-shadow">
-                    <div
-                        class="inline-flex items-center gap-2 bg-white rounded-full px-3 py-1.5 shadow-2xs"
-                    >
-                        <span
-                            class="w-5 h-5 rounded-full bg-blossom flex items-center justify-center text-charcoal"
-                        >
-                            <LmsIcon name="check" className="w-3 h-3" />
-                        </span>
-                        <span class="text-xs font-extrabold text-charcoal">08:00 - 10:30 WIB</span>
-                    </div>
-
-                    <h3 class="text-[21px] font-extrabold text-charcoal mt-3.5 leading-tight max-w-[70%]">
-                        Rekayasa Web Modern
-                    </h3>
-
-                    <div class="flex items-center gap-3 mt-2 text-xs font-semibold text-charcoal/80">
-                        <span>📅 20 Okt</span>
-                        <span>•</span>
-                        <span>🏷️ Praktik Intensif</span>
-                    </div>
-
-                    <div class="flex items-center gap-2.5 mt-4">
-                        <img
-                            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
-                            class="w-8 h-8 rounded-full object-cover border border-white"
-                            alt="Guru"
-                        />
-                        <div>
-                            <div class="text-xs font-extrabold text-charcoal leading-none">
-                                Budi Santoso, S.Kom
-                            </div>
-                            <div class="text-[10px] font-medium text-charcoal/70 mt-0.5">
-                                Guru Pengampu RPL
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Last Lessons Capsule List -->
-                <div class="flex items-center justify-between mt-6 mb-3">
-                    <h3 class="text-[16px] font-extrabold text-charcoal">Daftar Bab &amp; Modul</h3>
-                    <span class="text-xs font-bold text-subtext">4 Bab</span>
-                </div>
-
-                <div class="space-y-2.5">
-                    <div
-                        v-for="l in lessons"
-                        :key="l.id"
-                        @click="!materialsLock[l.id] && $emit('openLessonSheet', l.title, l.subject)"
-                        class="bg-white rounded-[24px] p-3.5 border border-[#ECEAE4] soft-shadow flex items-center justify-between transition-all"
-                        :class="
-                            materialsLock[l.id]
-                                ? 'opacity-60 cursor-not-allowed'
-                                : 'cursor-pointer active:scale-[0.99] hover:border-charcoal/30'
-                        "
-                    >
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
-                                :class="l.color"
-                            >
-                                <LmsIcon
-                                    :name="materialsLock[l.id] ? 'lock' : 'book'"
-                                    className="w-5 h-5"
-                                />
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-extrabold text-charcoal leading-snug">
-                                    {{ l.title }}
-                                </h4>
-                                <div class="text-[11px] font-medium text-subtext mt-0.5">
-                                    {{ l.subject }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-right shrink-0 ml-2">
-                            <span
-                                class="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full"
-                                :class="
-                                    materialsLock[l.id]
-                                        ? 'bg-muted text-subtext'
-                                        : 'bg-canvas text-charcoal border border-[#E6E4DF]'
-                                "
-                            >
-                                {{ materialsLock[l.id] ? 'Terkunci' : 'PDF • Video' }}
-                            </span>
-                            <div class="text-[10px] text-subtext mt-1">{{ l.date }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </template>
 
         <!-- ========================================== -->

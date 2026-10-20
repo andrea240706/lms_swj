@@ -37,7 +37,7 @@ const props = defineProps({
 // Active Role & Tab state
 const currentRoleKey = ref(props.initialRole);
 const activeTab = ref(props.roles[props.initialRole]?.tabs[0]?.id || 'home');
-const selectedDay = ref(17);
+const selectedDay = ref(18);
 
 // Interactive features state
 const studentAttendanceDone = ref(false);
