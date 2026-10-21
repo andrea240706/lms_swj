@@ -11,9 +11,13 @@ defineProps({
         type: String,
         default: 'home',
     },
+    isSidebarCollapsed: {
+        type: Boolean,
+        default: false,
+    },
 });
 
-defineEmits(['openMenu', 'openProfile', 'showToast']);
+defineEmits(['openMenu', 'openProfile', 'showToast', 'toggleSidebar']);
 
 const majors = [
     { jur: 'Rekayasa Perangkat Lunak (RPL)', hadir: '97.1%', avg: '87.5' },
@@ -27,9 +31,11 @@ const majors = [
     <div class="flex-1 flex flex-col overflow-hidden">
         <LmsTopBar
             :role="role"
+            :isSidebarCollapsed="isSidebarCollapsed"
             title="Pantauan Eksekutif Sekolah"
             @openMenu="$emit('openMenu')"
             @openProfile="$emit('openProfile')"
+            @toggleSidebar="$emit('toggleSidebar')"
         />
 
         <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">

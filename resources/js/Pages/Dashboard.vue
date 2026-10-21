@@ -39,16 +39,11 @@ const currentRoleKey = ref(props.initialRole);
 const activeTab = ref(props.roles[props.initialRole]?.tabs[0]?.id || 'home');
 const selectedDay = ref(18);
 
-// Desktop & Mobile Sidebar state
+// Desktop Sidebar state (Desktop only, hidden on mobile)
 const isSidebarCollapsed = ref(false);
-const isMobileSidebarOpen = ref(false);
 
 const toggleSidebar = () => {
-    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
-        isSidebarCollapsed.value = !isSidebarCollapsed.value;
-    } else {
-        isMobileSidebarOpen.value = !isMobileSidebarOpen.value;
-    }
+    isSidebarCollapsed.value = !isSidebarCollapsed.value;
 };
 
 // Keyboard shortcut: Cmd+B / Ctrl+B to toggle sidebar
@@ -197,39 +192,6 @@ const handleLogout = () => {
             @logout="handleLogout"
         />
 
-        <!-- Mobile Drawer Sidebar (Sliding overlay when hamburger is clicked on mobile) -->
-        <Transition
-            enter-active-class="transition-opacity duration-300"
-            enter-from-class="opacity-0"
-            enter-to-class="opacity-100"
-            leave-active-class="transition-opacity duration-200"
-            leave-from-class="opacity-100"
-            leave-to-class="opacity-0"
-        >
-            <div
-                v-if="isMobileSidebarOpen"
-                class="fixed inset-0 bg-charcoal/50 backdrop-blur-xs z-50 lg:hidden flex"
-                @click="isMobileSidebarOpen = false"
-            >
-                <div
-                    class="h-full w-72 max-w-[85vw] bg-white shadow-2xl relative flex"
-                    @click.stop
-                >
-                    <LmsSidebar
-                        class="w-full h-full"
-                        :role="currentRole"
-                        :activeTab="activeTab"
-                        :isCollapsed="false"
-                        @selectTab="(t) => { selectTab(t); isMobileSidebarOpen = false; }"
-                        @toggleCollapse="isMobileSidebarOpen = false"
-                        @openProfile="() => { openActionSheet('profile', currentRole); isMobileSidebarOpen = false; }"
-                        @openMenu="() => { openActionSheet('role_switcher'); isMobileSidebarOpen = false; }"
-                        @logout="handleLogout"
-                    />
-                </div>
-            </div>
-        </Transition>
-
         <!-- Main Responsive Application Container: Expands across desktop screen -->
         <main class="flex-1 flex flex-col h-full overflow-hidden min-w-0 relative z-10 w-full">
             <!-- Dynamic Role Viewport -->
@@ -280,6 +242,8 @@ const handleLogout = () => {
                     v-else-if="currentRoleKey === 'wali_kelas'"
                     :role="currentRole"
                     :activeTab="activeTab"
+                    :isSidebarCollapsed="isSidebarCollapsed"
+                    @toggleSidebar="toggleSidebar"
                     @openMenu="openActionSheet('role_switcher')"
                     @openProfile="openActionSheet('profile', currentRole)"
                     @showToast="handleShowToast"
@@ -290,6 +254,8 @@ const handleLogout = () => {
                     v-else-if="currentRoleKey === 'kepsek'"
                     :role="currentRole"
                     :activeTab="activeTab"
+                    :isSidebarCollapsed="isSidebarCollapsed"
+                    @toggleSidebar="toggleSidebar"
                     @openMenu="openActionSheet('role_switcher')"
                     @openProfile="openActionSheet('profile', currentRole)"
                     @showToast="handleShowToast"
@@ -300,6 +266,8 @@ const handleLogout = () => {
                     v-else-if="currentRoleKey === 'admin'"
                     :role="currentRole"
                     :activeTab="activeTab"
+                    :isSidebarCollapsed="isSidebarCollapsed"
+                    @toggleSidebar="toggleSidebar"
                     @openMenu="openActionSheet('role_switcher')"
                     @openProfile="openActionSheet('profile', currentRole)"
                     @showToast="handleShowToast"
@@ -310,6 +278,8 @@ const handleLogout = () => {
                     v-else-if="currentRoleKey === 'super_admin'"
                     :role="currentRole"
                     :activeTab="activeTab"
+                    :isSidebarCollapsed="isSidebarCollapsed"
+                    @toggleSidebar="toggleSidebar"
                     @openMenu="openActionSheet('role_switcher')"
                     @openProfile="openActionSheet('profile', currentRole)"
                     @showToast="handleShowToast"

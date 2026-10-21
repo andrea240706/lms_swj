@@ -10,18 +10,24 @@ defineProps({
         type: String,
         default: 'home',
     },
+    isSidebarCollapsed: {
+        type: Boolean,
+        default: false,
+    },
 });
 
-defineEmits(['openMenu', 'openProfile', 'showToast']);
+defineEmits(['openMenu', 'openProfile', 'showToast', 'toggleSidebar']);
 </script>
 
 <template>
     <div class="flex-1 flex flex-col overflow-hidden">
         <LmsTopBar
             :role="role"
+            :isSidebarCollapsed="isSidebarCollapsed"
             title="Panel Operator Sekolah"
             @openMenu="$emit('openMenu')"
             @openProfile="$emit('openProfile')"
+            @toggleSidebar="$emit('toggleSidebar')"
         />
 
         <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">

@@ -23,11 +23,11 @@ defineEmits(['openMenu', 'openProfile', 'openNotification', 'toggleSidebar']);
     <header class="flex items-center justify-between px-4 sm:px-6 lg:px-8 pt-4 pb-3">
         <!-- Left: Hamburger Button + Profile Avatar + Info / Title -->
         <div class="flex items-center gap-3">
-            <!-- Hamburger Bar Toggle Button -->
+            <!-- Hamburger Bar Toggle Button (Desktop Only) -->
             <button
                 type="button"
                 @click="$emit('toggleSidebar')"
-                class="w-10 h-10 rounded-2xl bg-white border border-[#ECEAE4] flex items-center justify-center text-charcoal soft-shadow hover:bg-canvas active:scale-95 transition-all cursor-pointer shrink-0"
+                class="hidden lg:flex w-10 h-10 rounded-2xl bg-white border border-[#ECEAE4] items-center justify-center text-charcoal soft-shadow hover:bg-canvas active:scale-95 transition-all cursor-pointer shrink-0"
                 title="Buka / Tutup Sidebar (⌘B)"
             >
                 <LmsIcon name="menu" className="w-5 h-5 text-charcoal" />
