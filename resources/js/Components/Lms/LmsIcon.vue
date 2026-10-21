@@ -134,6 +134,50 @@ defineProps({
         <path d="M4 17h14" />
     </svg>
 
+    <!-- Chevron Left -->
+    <svg
+        v-else-if="name === 'chevronLeft'"
+        :class="className"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <path d="M15 18l-6-6 6-6" />
+    </svg>
+
+    <!-- Chevron Right -->
+    <svg
+        v-else-if="name === 'chevronRight'"
+        :class="className"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <path d="M9 18l6-6-6-6" />
+    </svg>
+
+    <!-- Sidebar Panel Toggle -->
+    <svg
+        v-else-if="name === 'panelLeft'"
+        :class="className"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M9 3v18" />
+        <path d="M14 9l-3 3 3 3" />
+    </svg>
+
     <!-- Back Arrow -->
     <svg
         v-else-if="name === 'back'"

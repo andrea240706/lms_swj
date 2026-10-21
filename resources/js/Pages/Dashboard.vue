@@ -1,8 +1,9 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import LmsActionSheet from '@/Components/Lms/LmsActionSheet.vue';
 import LmsBottomNav from '@/Components/Lms/LmsBottomNav.vue';
+import LmsSidebar from '@/Components/Lms/LmsSidebar.vue';
 import SiswaView from '@/Components/Lms/Roles/Siswa/SiswaView.vue';
 import GuruView from '@/Components/Lms/Roles/Guru/GuruView.vue';
 import WaliKelasView from '@/Components/Lms/Roles/WaliKelas/WaliKelasView.vue';
@@ -38,6 +39,32 @@ const currentRoleKey = ref(props.initialRole);
 const activeTab = ref(props.roles[props.initialRole]?.tabs[0]?.id || 'home');
 const selectedDay = ref(18);
 
+// Desktop & Mobile Sidebar state
+const isSidebarCollapsed = ref(false);
+const isMobileSidebarOpen = ref(false);
+
+const toggleSidebar = () => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+        isSidebarCollapsed.value = !isSidebarCollapsed.value;
+    } else {
+        isMobileSidebarOpen.value = !isMobileSidebarOpen.value;
+    }
+};
+
+// Keyboard shortcut: Cmd+B / Ctrl+B to toggle sidebar
+onMounted(() => {
+    const handleKeydown = (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
+            e.preventDefault();
+            toggleSidebar();
+        }
+    };
+    window.addEventListener('keydown', handleKeydown);
+    onUnmounted(() => {
+        window.removeEventListener('keydown', handleKeydown);
+    });
+});
+
 // Interactive features state
 const studentAttendanceDone = ref(false);
 const teacherGateOpen = ref(true);
@@ -50,7 +77,6 @@ const actionSheet = ref({
     type: '',
     data: {},
 });
-
 
 // Watch role change to reset activeTab
 watch(currentRoleKey, (newRole) => {
@@ -149,104 +175,153 @@ const handleLogout = () => {
 <template>
     <Head :title="`LMS SMK — ${currentRole.label} (${currentRole.userName})`" />
 
-    <!-- Outer Page Container: Auto Responsive -->
+    <!-- Outer Page Container: Horizontal Shell on Desktop -->
     <div
-        class="h-screen h-dvh max-h-screen bg-canvas flex flex-col items-center relative font-sans text-charcoal select-none overflow-hidden"
+        class="h-screen h-dvh max-h-screen bg-canvas flex flex-row relative font-sans text-charcoal select-none overflow-hidden"
     >
         <!-- Warm Ambient Top-Right Radial Glow -->
         <div
             class="pointer-events-none fixed -top-24 -right-24 w-96 h-96 rounded-full bg-[#FFE8D6] opacity-60 blur-3xl z-0"
         ></div>
 
-        <!-- Main Responsive Application Container (No fake phone frame, auto responsive) -->
-        <main class="relative z-10 w-full max-w-2xl lg:max-w-4xl h-full flex flex-col overflow-hidden">
-            <!-- Dynamic Role Viewport -->
-            <div class="flex-1 flex flex-col h-full overflow-hidden">
-                    <!-- 1. SISWA -->
-                    <SiswaView
-                        v-if="currentRoleKey === 'siswa'"
+        <!-- Desktop Sidebar (Hidden on mobile, visible on lg screens) -->
+        <LmsSidebar
+            class="hidden lg:flex"
+            :role="currentRole"
+            :activeTab="activeTab"
+            :isCollapsed="isSidebarCollapsed"
+            @selectTab="selectTab"
+            @toggleCollapse="toggleSidebar"
+            @openProfile="openActionSheet('profile', currentRole)"
+            @openMenu="openActionSheet('role_switcher')"
+            @logout="handleLogout"
+        />
+
+        <!-- Mobile Drawer Sidebar (Sliding overlay when hamburger is clicked on mobile) -->
+        <Transition
+            enter-active-class="transition-opacity duration-300"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-200"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="isMobileSidebarOpen"
+                class="fixed inset-0 bg-charcoal/50 backdrop-blur-xs z-50 lg:hidden flex"
+                @click="isMobileSidebarOpen = false"
+            >
+                <div
+                    class="h-full w-72 max-w-[85vw] bg-white shadow-2xl relative flex"
+                    @click.stop
+                >
+                    <LmsSidebar
+                        class="w-full h-full"
                         :role="currentRole"
                         :activeTab="activeTab"
-                        :selectedDay="selectedDay"
-                        :days="days"
-                        :assignments="assignments"
-                        :studentAttendanceDone="studentAttendanceDone"
-                        :materialsLock="materialsLock"
-                        @selectTab="selectTab"
-                        @selectDay="selectDay"
-                        @openAttendanceModal="openActionSheet('student_attendance')"
-                        @openLessonSheet="handleLessonSheet"
-                        @openUploadModal="handleUploadModal"
-                        @openMenu="openActionSheet('role_switcher')"
-                        @openProfile="openActionSheet('profile', currentRole)"
-                    />
-
-                    <!-- 2. GURU -->
-                    <GuruView
-                        v-else-if="currentRoleKey === 'guru'"
-                        :role="currentRole"
-                        :activeTab="activeTab"
-                        :selectedDay="selectedDay"
-                        :days="days"
-                        :teacherGateOpen="teacherGateOpen"
-                        :materialsLock="materialsLock"
-                        @selectTab="selectTab"
-                        @selectDay="selectDay"
-                        @toggleGate="toggleTeacherGate"
-                        @toggleLock="toggleMaterialLock"
-                        @openGradeModal="handleGradeModal"
-                        @openMenu="openActionSheet('role_switcher')"
-                        @openProfile="openActionSheet('profile', currentRole)"
-                    />
-
-                    <!-- 3. WALI KELAS -->
-                    <WaliKelasView
-                        v-else-if="currentRoleKey === 'wali_kelas'"
-                        :role="currentRole"
-                        :activeTab="activeTab"
-                        @openMenu="openActionSheet('role_switcher')"
-                        @openProfile="openActionSheet('profile', currentRole)"
-                        @showToast="handleShowToast"
-                    />
-
-                    <!-- 4. KEPALA SEKOLAH -->
-                    <KepsekView
-                        v-else-if="currentRoleKey === 'kepsek'"
-                        :role="currentRole"
-                        :activeTab="activeTab"
-                        @openMenu="openActionSheet('role_switcher')"
-                        @openProfile="openActionSheet('profile', currentRole)"
-                        @showToast="handleShowToast"
-                    />
-
-                    <!-- 5. ADMIN OPERATOR -->
-                    <AdminView
-                        v-else-if="currentRoleKey === 'admin'"
-                        :role="currentRole"
-                        :activeTab="activeTab"
-                        @openMenu="openActionSheet('role_switcher')"
-                        @openProfile="openActionSheet('profile', currentRole)"
-                        @showToast="handleShowToast"
-                    />
-
-                    <!-- 6. SUPER ADMIN -->
-                    <SuperAdminView
-                        v-else-if="currentRoleKey === 'super_admin'"
-                        :role="currentRole"
-                        :activeTab="activeTab"
-                        @openMenu="openActionSheet('role_switcher')"
-                        @openProfile="openActionSheet('profile', currentRole)"
-                        @showToast="handleShowToast"
-                    />
-
-                    <!-- Floating Pill Bottom Navigation Bar -->
-                    <LmsBottomNav
-                        :tabs="currentRole.tabs"
-                        :activeTab="activeTab"
-                        @selectTab="selectTab"
+                        :isCollapsed="false"
+                        @selectTab="(t) => { selectTab(t); isMobileSidebarOpen = false; }"
+                        @toggleCollapse="isMobileSidebarOpen = false"
+                        @openProfile="() => { openActionSheet('profile', currentRole); isMobileSidebarOpen = false; }"
+                        @openMenu="() => { openActionSheet('role_switcher'); isMobileSidebarOpen = false; }"
+                        @logout="handleLogout"
                     />
                 </div>
-            </main>
+            </div>
+        </Transition>
+
+        <!-- Main Responsive Application Container: Expands across desktop screen -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden min-w-0 relative z-10 w-full">
+            <!-- Dynamic Role Viewport -->
+            <div class="flex-1 flex flex-col h-full overflow-hidden w-full">
+                <!-- 1. SISWA -->
+                <SiswaView
+                    v-if="currentRoleKey === 'siswa'"
+                    :role="currentRole"
+                    :activeTab="activeTab"
+                    :selectedDay="selectedDay"
+                    :days="days"
+                    :assignments="assignments"
+                    :studentAttendanceDone="studentAttendanceDone"
+                    :materialsLock="materialsLock"
+                    :isSidebarCollapsed="isSidebarCollapsed"
+                    @selectTab="selectTab"
+                    @selectDay="selectDay"
+                    @toggleSidebar="toggleSidebar"
+                    @openAttendanceModal="openActionSheet('student_attendance')"
+                    @openLessonSheet="handleLessonSheet"
+                    @openUploadModal="handleUploadModal"
+                    @openMenu="openActionSheet('role_switcher')"
+                    @openProfile="openActionSheet('profile', currentRole)"
+                />
+
+                <!-- 2. GURU -->
+                <GuruView
+                    v-else-if="currentRoleKey === 'guru'"
+                    :role="currentRole"
+                    :activeTab="activeTab"
+                    :selectedDay="selectedDay"
+                    :days="days"
+                    :teacherGateOpen="teacherGateOpen"
+                    :materialsLock="materialsLock"
+                    @selectTab="selectTab"
+                    @selectDay="selectDay"
+                    @toggleGate="toggleTeacherGate"
+                    @toggleLock="toggleMaterialLock"
+                    @openGradeModal="handleGradeModal"
+                    @openMenu="openActionSheet('role_switcher')"
+                    @openProfile="openActionSheet('profile', currentRole)"
+                />
+
+                <!-- 3. WALI KELAS -->
+                <WaliKelasView
+                    v-else-if="currentRoleKey === 'wali_kelas'"
+                    :role="currentRole"
+                    :activeTab="activeTab"
+                    @openMenu="openActionSheet('role_switcher')"
+                    @openProfile="openActionSheet('profile', currentRole)"
+                    @showToast="handleShowToast"
+                />
+
+                <!-- 4. KEPALA SEKOLAH -->
+                <KepsekView
+                    v-else-if="currentRoleKey === 'kepsek'"
+                    :role="currentRole"
+                    :activeTab="activeTab"
+                    @openMenu="openActionSheet('role_switcher')"
+                    @openProfile="openActionSheet('profile', currentRole)"
+                    @showToast="handleShowToast"
+                />
+
+                <!-- 5. ADMIN OPERATOR -->
+                <AdminView
+                    v-else-if="currentRoleKey === 'admin'"
+                    :role="currentRole"
+                    :activeTab="activeTab"
+                    @openMenu="openActionSheet('role_switcher')"
+                    @openProfile="openActionSheet('profile', currentRole)"
+                    @showToast="handleShowToast"
+                />
+
+                <!-- 6. SUPER ADMIN -->
+                <SuperAdminView
+                    v-else-if="currentRoleKey === 'super_admin'"
+                    :role="currentRole"
+                    :activeTab="activeTab"
+                    @openMenu="openActionSheet('role_switcher')"
+                    @openProfile="openActionSheet('profile', currentRole)"
+                    @showToast="handleShowToast"
+                />
+
+                <!-- Floating Pill Bottom Navigation Bar (Mobile / Tablet only, hidden on lg screens where Sidebar is active) -->
+                <LmsBottomNav
+                    class="lg:hidden"
+                    :tabs="currentRole.tabs"
+                    :activeTab="activeTab"
+                    @selectTab="selectTab"
+                />
+            </div>
+        </main>
 
         <!-- Dynamic Action Sheet / Bottom Modal -->
         <LmsActionSheet
