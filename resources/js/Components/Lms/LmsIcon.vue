@@ -277,6 +277,21 @@ defineProps({
         <path d="M13.73 21a2 2 0 0 1-3.46 0" />
     </svg>
 
+    <!-- Video Camera -->
+    <svg
+        v-else-if="name === 'video'"
+        :class="className"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <polygon points="23 7 16 12 23 17 23 7" />
+        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+    </svg>
+
     <!-- Fallback Check/Circle -->
     <svg
         v-else

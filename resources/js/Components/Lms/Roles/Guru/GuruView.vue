@@ -3,6 +3,8 @@ import { ref } from 'vue';
 import LmsCapsuleCalendar from '@/Components/Lms/LmsCapsuleCalendar.vue';
 import LmsIcon from '@/Components/Lms/LmsIcon.vue';
 import LmsTopBar from '@/Components/Lms/LmsTopBar.vue';
+import MapelGuruView from '@/Components/Lms/Roles/Guru/MapelGuruView.vue';
+import { guruMapelList } from './mapelGuruData';
 
 const props = defineProps({
     role: {
@@ -29,6 +31,10 @@ const props = defineProps({
         type: Object,
         default: () => ({ 1: false, 2: false, 3: true, 4: true }),
     },
+    isSidebarCollapsed: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const emit = defineEmits([
@@ -39,6 +45,7 @@ const emit = defineEmits([
     'openGradeModal',
     'openMenu',
     'openProfile',
+    'toggleSidebar',
 ]);
 
 const chapters = [
@@ -79,8 +86,10 @@ const setAttendanceStatus = (item, status) => {
             >
             <LmsTopBar
                 :role="role"
+                :isSidebarCollapsed="isSidebarCollapsed"
                 @openMenu="$emit('openMenu')"
                 @openProfile="$emit('openProfile')"
+                @toggleSidebar="$emit('toggleSidebar')"
             />
 
             <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
@@ -157,68 +166,69 @@ const setAttendanceStatus = (item, status) => {
                         </span>
                     </div>
                 </div>
-            </div>
-            </div>
 
-            <!-- ========================================== -->
-            <!-- TAB 2: MAPEL (KELOLA & KUNCI BAB)         -->
-            <!-- ========================================== -->
-            <div
-                v-else-if="activeTab === 'mapel' || activeTab === 'materi'"
-                key="mapel"
-                class="flex-1 flex flex-col h-full overflow-hidden"
-            >
-            <LmsTopBar
-                :role="role"
-                title="Kelola &amp; Kunci Mapel"
-                @openMenu="$emit('openMenu')"
-                @openProfile="$emit('openProfile')"
-            />
-
-            <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
-                <p class="text-xs text-subtext mb-3">
-                    Ketuk tombol kunci untuk membuka atau mengunci akses materi pada layar HP siswa secara instan.
-                </p>
-                <div class="space-y-2.5">
-                    <div
-                        v-for="c in chapters"
-                        :key="c.id"
-                        class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex items-center justify-between"
-                    >
-                        <div>
-                            <span
-                                class="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
-                                :class="
-                                    materialsLock[c.id]
-                                        ? 'bg-muted text-subtext'
-                                        : 'bg-sage-light text-sage-dark'
-                                "
-                            >
-                                {{ materialsLock[c.id] ? 'Terkunci bagi Siswa' : 'Terbuka • Siswa Dapat Akses' }}
-                            </span>
-                            <h4 class="text-sm font-extrabold text-charcoal mt-1.5">
-                                {{ c.title }}
-                            </h4>
-                            <div class="text-[11px] text-subtext mt-0.5">
-                                Kelas: {{ c.rombel }}
-                            </div>
-                        </div>
+                <!-- Mata Pelajaran yang Diampu -->
+                <div class="mt-6">
+                    <div class="flex items-center justify-between mb-2.5">
+                        <h3 class="text-[15px] font-extrabold text-charcoal">
+                            Mata Pelajaran yang Diampu
+                        </h3>
                         <button
                             type="button"
-                            @click="$emit('toggleLock', c.id)"
-                            class="w-11 h-11 rounded-full flex items-center justify-center shrink-0 ml-3 cursor-pointer transition-transform active:scale-95"
-                            :class="materialsLock[c.id] ? 'bg-muted text-charcoal' : 'bg-charcoal text-white'"
-                            :title="materialsLock[c.id] ? 'Buka Akses' : 'Kunci Akses'"
+                            @click="$emit('selectTab', 'mapel')"
+                            class="text-xs font-bold text-blossom-dark hover:underline cursor-pointer"
                         >
-                            <LmsIcon
-                                :name="materialsLock[c.id] ? 'lock' : 'unlock'"
-                                className="w-4 h-4"
-                            />
+                            Buka Semua
                         </button>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        <div
+                            v-for="m in guruMapelList"
+                            :key="m.id"
+                            @click="$emit('selectTab', 'mapel')"
+                            class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex items-center justify-between hover:border-charcoal/30 cursor-pointer transition-all group"
+                        >
+                            <div class="flex items-center gap-3.5">
+                                <div
+                                    class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 font-bold text-xs"
+                                    :class="m.badgeColor"
+                                >
+                                    <LmsIcon name="book" className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <div class="text-[11px] font-bold text-subtext">
+                                        {{ m.code }} • {{ m.rombel.join(', ') }}
+                                    </div>
+                                    <h4 class="text-sm font-extrabold text-charcoal group-hover:text-blossom-dark transition-colors">
+                                        {{ m.name }}
+                                    </h4>
+                                    <div class="text-[11px] text-subtext mt-0.5">
+                                        {{ m.completedMeetings }}/{{ m.totalMeetings }} Pertemuan • {{ m.totalStudents }} Siswa
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-charcoal group-hover:bg-charcoal group-hover:text-white transition-all shrink-0">
+                                <LmsIcon name="arrow-right" className="w-4 h-4" />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             </div>
+
+            <!-- ========================================== -->
+            <!-- TAB 2: MAPEL (KELOLA & PENILAIAN PENUH)   -->
+            <!-- ========================================== -->
+            <MapelGuruView
+                v-else-if="activeTab === 'mapel' || activeTab === 'materi'"
+                key="mapel"
+                :role="role"
+                :isSidebarCollapsed="isSidebarCollapsed"
+                @openMenu="$emit('openMenu')"
+                @openProfile="$emit('openProfile')"
+                @toggleSidebar="$emit('toggleSidebar')"
+            />
 
             <!-- ========================================== -->
             <!-- TAB 3: TUGAS (PENILAIAN TUGAS SISWA)      -->
@@ -230,9 +240,11 @@ const setAttendanceStatus = (item, status) => {
             >
             <LmsTopBar
                 :role="role"
+                :isSidebarCollapsed="isSidebarCollapsed"
                 title="Penilaian Tugas Siswa"
                 @openMenu="$emit('openMenu')"
                 @openProfile="$emit('openProfile')"
+                @toggleSidebar="$emit('toggleSidebar')"
             />
 
             <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
@@ -280,9 +292,11 @@ const setAttendanceStatus = (item, status) => {
             >
             <LmsTopBar
                 :role="role"
+                :isSidebarCollapsed="isSidebarCollapsed"
                 title="Kontrol Presensi Kelas"
                 @openMenu="$emit('openMenu')"
                 @openProfile="$emit('openProfile')"
+                @toggleSidebar="$emit('toggleSidebar')"
             />
 
             <div class="flex-1 overflow-y-auto no-scrollbar px-6 pb-28">
