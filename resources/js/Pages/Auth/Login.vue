@@ -72,20 +72,6 @@ const submit = () => {
         <div class="pointer-events-none absolute -top-32 -right-32 w-[520px] h-[520px] rounded-full bg-[#FFE8D6] opacity-70 blur-3xl z-0"></div>
         <div class="pointer-events-none absolute -bottom-32 -left-32 w-[480px] h-[480px] rounded-full bg-[#EBF2D5] opacity-50 blur-3xl z-0"></div>
 
-        <!-- TOP BAR: Brand header (Desktop only) -->
-        <header class="relative z-20 w-full max-w-[1140px] hidden lg:flex items-center justify-between mb-4 px-2">
-            <!-- Authentic School Brand Lockup -->
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-[#141416] text-white flex items-center justify-center font-bold text-xs shadow-xs tracking-wider">
-                    SMK
-                </div>
-                <div class="leading-tight">
-                    <span class="text-sm font-extrabold text-[#141416] tracking-tight">SMK SRIWIJAYA 3</span>
-                    <span class="text-[11px] text-[#6E6E77] block font-medium">Sistem Pembelajaran &amp; Akademik Terpadu</span>
-                </div>
-            </div>
-        </header>
-
         <!-- ============================================================== -->
         <!-- DESKTOP DUAL-PANEL LAYOUT — tampil di lg+ (≥1024px)            -->
         <!-- ============================================================== -->
@@ -102,11 +88,17 @@ const submit = () => {
                 <div class="absolute -right-24 -bottom-24 w-[360px] h-[360px] rounded-full border-[28px] border-[#FBD2E0]/75 pointer-events-none"></div>
                 <div class="absolute -right-24 -bottom-24 w-[304px] h-[304px] rounded-full bg-[#F3EFFB]/60 pointer-events-none"></div>
 
-                <!-- Clean Top Metadata -->
-                <div class="relative z-10 flex items-center justify-between text-xs font-semibold text-[#6E6E77]">
-                    <span class="tracking-wide uppercase text-[11px] font-bold text-[#141416]">Tahun Ajaran 2026/2027</span>
-                    <span>Semester Ganjil</span>
+                <!-- Authentic School Brand Lockup -->
+                <div class="relative z-10 flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-[#141416] text-white flex items-center justify-center font-bold text-xs shadow-xs tracking-wider">
+                        SMK
+                    </div>
+                    <div class="leading-tight">
+                        <span class="text-sm font-extrabold text-[#141416] tracking-tight">SMK SRIWIJAYA 3</span>
+                        <span class="text-[11px] text-[#6E6E77] block font-medium">Sistem Pembelajaran &amp; Akademik Terpadu</span>
+                    </div>
                 </div>
+
 
                 <!-- Middle Content: Slogan & Student Illustration -->
                 <div class="relative z-10 my-auto py-6">
