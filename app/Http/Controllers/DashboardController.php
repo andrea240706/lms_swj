@@ -93,10 +93,11 @@ class DashboardController extends Controller
                 'heroStyle' => 'hero-lavender',
                 'focusNote' => 'Kelola siswa, reset sandi instan, plotting guru/wali kelas, & koreksi absen.',
                 'tabs' => [
-                    ['id' => 'home', 'label' => 'Home', 'icon' => 'home'],
-                    ['id' => 'pengguna', 'label' => 'Siswa', 'icon' => 'user'],
-                    ['id' => 'plotting', 'label' => 'Plotting', 'icon' => 'book'],
-                    ['id' => 'moderasi', 'label' => 'Koreksi', 'icon' => 'clock'],
+                    ['id' => 'home', 'label' => 'Operasional', 'icon' => 'home'],
+                    ['id' => 'pengguna', 'label' => 'Pengguna', 'icon' => 'user'],
+                    ['id' => 'master', 'label' => 'Data Master', 'icon' => 'book'],
+                    ['id' => 'penugasan', 'label' => 'Penugasan & Jadwal', 'icon' => 'clock'],
+                    ['id' => 'pengumuman', 'label' => 'Pengumuman', 'icon' => 'task'],
                 ],
             ],
             'super_admin' => [

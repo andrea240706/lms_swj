@@ -52,6 +52,9 @@ const getTabBadge = (tabId) => {
     if (tabId === 'presensi') return '96%';
     if (tabId === 'presensiPagi') return 'Hari Ini';
     if (tabId === 'siswaPerwalian') return '36 Siswa';
+    if (tabId === 'pengguna') return '1.3K';
+    if (tabId === 'penugasan') return '100%';
+    if (tabId === 'pengumuman') return '4 Aktif';
     return null;
 };
 </script>
