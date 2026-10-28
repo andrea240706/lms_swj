@@ -238,206 +238,122 @@ const activeDaySubject = computed(() => {
                     @openProfile="$emit('openProfile')"
                 />
 
-                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 pb-28 lg:pb-8">
-                    <!-- Responsive Multi-Column Desktop Grid -->
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        <!-- Left Primary Column (7 cols lg, 8 cols xl): Hero Card, Weekly Schedule & Agenda -->
-                        <div class="lg:col-span-7 xl:col-span-8 space-y-5">
-                            <div>
-                                <div class="flex items-center justify-between mb-2.5">
-                                    <h2 class="text-[17px] font-extrabold text-charcoal">
-                                        Kelas Hari Ini
-                                    </h2>
-                                    <span class="hidden sm:inline-block text-xs font-bold text-subtext">
-                                        {{ getDayLabel(selectedDay) }}, {{ selectedDay }} Oktober 2026
-                                    </span>
-                                </div>
-
-                                <!-- Hero Card: Active Session (Berubah dinamis sesuai hari yang dipilih) -->
-                                <div
-                                    class="rounded-[28px] p-5 relative overflow-hidden soft-shadow transition-all duration-300"
-                                    :class="activeDaySubject.heroBg"
-                                >
-                                    <div class="relative z-10 w-full">
-                                        <div class="flex items-center justify-between">
-                                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-charcoal/80">
-                                                <span class="w-2 h-2 rounded-full bg-[#2E7D32] live-dot"></span>
-                                                <span>Sesi Aktif • {{ activeDaySubject.room }}</span>
-                                            </div>
-                                            <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-white/90 text-charcoal border border-white/60 shadow-2xs">
-                                                {{ getDayLabel(selectedDay) }}
-                                            </span>
-                                        </div>
-                                        <h3 class="text-[21px] font-extrabold text-charcoal mt-1.5 leading-tight">
-                                            {{ activeDaySubject.name }}
-                                        </h3>
-                                        <p class="text-xs font-semibold text-charcoal/75 mt-1">
-                                            Pengampu: {{ activeDaySubject.teacher }} • Kode: {{ activeDaySubject.code }}
-                                        </p>
-
-                                        <!-- Step Progress Bar -->
-                                        <div class="mt-3.5">
-                                            <div class="flex items-center justify-between text-[11px] font-bold text-charcoal mb-1">
-                                                <span>Progres Belajar: Pertemuan {{ activeDaySubject.completedMeetings }}/{{ activeDaySubject.totalMeetings }}</span>
-                                                <span>{{ activeDaySubject.progress }}%</span>
-                                            </div>
-                                            <div class="w-full h-1.5 bg-white/70 rounded-full flex items-center">
-                                                <div
-                                                    class="h-1.5 bg-charcoal rounded-full relative transition-all duration-500"
-                                                    :style="{ width: `${activeDaySubject.progress}%` }"
-                                                >
-                                                    <span
-                                                        class="absolute -right-1.5 -top-1 w-3.5 h-3.5 rounded-full bg-charcoal border-2 border-white"
-                                                    ></span>
-                                                </div>
-                                            </div>
-                                        </div>
+                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
+                    <div class="space-y-6 w-full max-w-[1800px] mx-auto">
+                        <!-- 1. Hero Card: Active Session (Berubah dinamis sesuai hari yang dipilih) -->
+                        <div
+                            class="rounded-[28px] p-5 relative overflow-hidden soft-shadow transition-all duration-300"
+                            :class="activeDaySubject.heroBg"
+                        >
+                            <div class="relative z-10 w-full">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-1.5 text-[11px] font-bold text-charcoal/80">
+                                        <span class="w-2 h-2 rounded-full bg-[#2E7D32] live-dot"></span>
+                                        <span>Sesi Aktif • {{ activeDaySubject.room }}</span>
                                     </div>
-                                </div>
-                            </div>
-
-                            <!-- Capsule Weekly Schedule -->
-                            <LmsCapsuleCalendar
-                                title="Jadwal Pelajaran"
-                                :days="days"
-                                :selectedDay="selectedDay"
-                                @selectDay="(d) => $emit('selectDay', d)"
-                            />
-
-                            <!-- Daily Timeline (Berubah otomatis sesuai mapel pada hari yang dipilih) -->
-                            <div class="mt-5">
-                                <div class="flex items-center justify-between mb-3">
-                                    <div class="flex items-center gap-2">
-                                        <h3 class="text-[16px] font-extrabold text-charcoal">Agenda Harian</h3>
-                                        <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-charcoal text-white">
-                                            {{ currentAgendaList.length }} Sesi
-                                        </span>
-                                    </div>
-                                    <span class="text-xs font-bold text-subtext">
+                                    <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-white/90 text-charcoal border border-white/60 shadow-2xs">
                                         {{ getDayLabel(selectedDay) }}, {{ selectedDay }} Okt
                                     </span>
                                 </div>
+                                <h3 class="text-[21px] font-extrabold text-charcoal mt-1.5 leading-tight">
+                                    {{ activeDaySubject.name }}
+                                </h3>
+                                <p class="text-xs font-semibold text-charcoal/75 mt-1">
+                                    Pengampu: {{ activeDaySubject.teacher }} • Kode: {{ activeDaySubject.code }}
+                                </p>
 
-                                <TransitionGroup
-                                    name="agenda-item"
-                                    tag="div"
-                                    class="space-y-3"
+
+                            </div>
+                        </div>
+
+                        <!-- 2. Capsule Weekly Schedule -->
+                        <LmsCapsuleCalendar
+                            title="Jadwal Pelajaran"
+                            :days="days"
+                            :selectedDay="selectedDay"
+                            @selectDay="(d) => $emit('selectDay', d)"
+                        />
+
+                        <!-- 3. Daily Timeline (Berubah otomatis sesuai mapel pada hari yang dipilih) -->
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-[16px] font-extrabold text-charcoal">Agenda Harian</h3>
+                                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-charcoal text-white">
+                                        {{ currentAgendaList.length }} Sesi
+                                    </span>
+                                </div>
+                                <span class="text-xs font-bold text-subtext">
+                                    {{ getDayLabel(selectedDay) }}, {{ selectedDay }} Okt
+                                </span>
+                            </div>
+
+                            <TransitionGroup
+                                name="agenda-item"
+                                tag="div"
+                                class="space-y-3"
+                            >
+                                <div
+                                    v-for="item in currentAgendaList"
+                                    :key="item.mapel.id + '-' + item.time"
+                                    class="flex items-start gap-3 border-t first:border-t-0 border-dashed border-[#E2DFD7] pt-3 first:pt-0"
                                 >
-                                    <div
-                                        v-for="item in currentAgendaList"
-                                        :key="item.mapel.id + '-' + item.time"
-                                        class="flex items-start gap-3 border-t first:border-t-0 border-dashed border-[#E2DFD7] pt-3 first:pt-0"
-                                    >
-                                        <div class="w-12 pt-1 flex flex-col shrink-0">
-                                            <span class="text-xs font-extrabold text-charcoal">{{ item.time }}</span>
-                                            <span class="text-[9px] font-bold text-subtext">WIB</span>
-                                        </div>
+                                    <div class="w-12 pt-1 flex flex-col shrink-0">
+                                        <span class="text-xs font-extrabold text-charcoal">{{ item.time }}</span>
+                                        <span class="text-[9px] font-bold text-subtext">WIB</span>
+                                    </div>
 
-                                        <div class="flex-1 min-w-0">
-                                            <div
-                                                @click="$emit('selectTab', 'mapel')"
-                                                class="cursor-pointer bg-white rounded-2xl p-3 border border-[#ECEAE4] soft-shadow flex items-center justify-between hover:border-charcoal/30 hover:shadow-md transition-all group"
-                                            >
-                                                <div class="flex items-center gap-2.5 min-w-0">
-                                                    <span
-                                                        class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-transform group-hover:scale-105"
-                                                        :class="item.mapel.iconBg"
-                                                    >
-                                                        {{ item.mapel.shortName.charAt(0) }}
-                                                    </span>
-                                                    <div class="min-w-0">
-                                                        <div class="flex items-center gap-1.5 flex-wrap">
-                                                            <div class="text-xs font-extrabold text-charcoal truncate">
-                                                                {{ item.mapel.name }}
-                                                            </div>
-                                                            <span
-                                                                class="text-[9px] font-bold px-1.5 py-0.2 rounded-full border shrink-0"
-                                                                :class="item.mapel.badgeColor"
-                                                            >
-                                                                {{ item.mapel.code }}
-                                                            </span>
+                                    <div class="flex-1 min-w-0">
+                                        <div
+                                            @click="$emit('selectTab', 'mapel')"
+                                            class="cursor-pointer bg-white rounded-2xl p-3 border border-[#ECEAE4] soft-shadow flex items-center justify-between hover:border-charcoal/30 hover:shadow-md transition-all group"
+                                        >
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <span
+                                                    class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-transform group-hover:scale-105"
+                                                    :class="item.mapel.iconBg"
+                                                >
+                                                    {{ item.mapel.shortName.charAt(0) }}
+                                                </span>
+                                                <div class="min-w-0">
+                                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                                        <div class="text-xs font-extrabold text-charcoal truncate">
+                                                            {{ item.mapel.name }}
                                                         </div>
-                                                        <div class="text-[10px] text-subtext mt-0.5 truncate">
-                                                            {{ item.timeRange }} • {{ item.room }} • {{ item.topic }}
-                                                        </div>
+                                                        <span
+                                                            class="text-[9px] font-bold px-1.5 py-0.2 rounded-full border shrink-0"
+                                                            :class="item.mapel.badgeColor"
+                                                        >
+                                                            {{ item.mapel.code }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="text-[10px] text-subtext mt-0.5 truncate">
+                                                        {{ item.timeRange }} • {{ item.room }} • {{ item.topic }}
                                                     </div>
                                                 </div>
+                                            </div>
 
-                                                <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                                                    <span
-                                                        v-if="item.taskCount > 0"
-                                                        class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-blossom-light text-blossom-dark"
-                                                    >
-                                                        {{ item.taskCount }} Tugas
-                                                    </span>
-                                                    <div class="w-7 h-7 rounded-full bg-canvas flex items-center justify-center text-charcoal group-hover:bg-charcoal group-hover:text-white transition-colors">
-                                                        <LmsIcon name="arrowUpRight" className="w-3.5 h-3.5" />
-                                                    </div>
+                                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                                <span
+                                                    v-if="item.taskCount > 0"
+                                                    class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-blossom-light text-blossom-dark"
+                                                >
+                                                    {{ item.taskCount }} Tugas
+                                                </span>
+                                                <div class="w-7 h-7 rounded-full bg-canvas flex items-center justify-center text-charcoal group-hover:bg-charcoal group-hover:text-white transition-colors">
+                                                    <LmsIcon name="arrowUpRight" className="w-3.5 h-3.5" />
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </TransitionGroup>
-                            </div>
+                                </div>
+                            </TransitionGroup>
                         </div>
 
-                        <!-- Right Secondary Column (5 cols lg, 4 cols xl): Desktop Academic Widgets -->
-                        <div class="hidden lg:flex lg:col-span-5 xl:col-span-4 flex-col space-y-5">
-                            <!-- 1. Semester Attendance Macro Card -->
-                            <div class="hero-sky rounded-[28px] p-5 soft-shadow border border-sky-light/50">
-                                <div class="flex items-center justify-between">
-                                    <span class="bg-white/95 px-3 py-1 rounded-full text-[10px] font-extrabold text-charcoal shadow-2xs">
-                                        Semester Ganjil 2026/2027
-                                    </span>
-                                    <span class="text-xs font-extrabold text-[#2E7D32] flex items-center gap-1">
-                                        <span class="w-2 h-2 rounded-full bg-[#2E7D32] animate-pulse"></span>
-                                        Aktif
-                                    </span>
-                                </div>
-                                <h3 class="text-xl font-black text-charcoal mt-3">
-                                    Kehadiran: 96.4%
-                                </h3>
-                                <p class="text-xs text-charcoal/70 mt-0.5">
-                                    Total 56 Hari Efektif KBM Terjadwal
-                                </p>
-
-                                <div class="grid grid-cols-4 gap-2 mt-4">
-                                    <div class="bg-white/95 rounded-2xl p-2.5 text-center shadow-xs">
-                                        <div class="text-base font-extrabold text-charcoal">54</div>
-                                        <div class="text-[10px] font-bold text-subtext">Hadir</div>
-                                    </div>
-                                    <div class="bg-white/95 rounded-2xl p-2.5 text-center shadow-xs">
-                                        <div class="text-base font-extrabold text-charcoal">1</div>
-                                        <div class="text-[10px] font-bold text-subtext">Sakit</div>
-                                    </div>
-                                    <div class="bg-white/95 rounded-2xl p-2.5 text-center shadow-xs">
-                                        <div class="text-base font-extrabold text-charcoal">1</div>
-                                        <div class="text-[10px] font-bold text-subtext">Izin</div>
-                                    </div>
-                                    <div class="bg-white/95 rounded-2xl p-2.5 text-center shadow-xs">
-                                        <div class="text-base font-extrabold text-charcoal">0</div>
-                                        <div class="text-[10px] font-bold text-subtext">Alpa</div>
-                                    </div>
-                                </div>
-
-                                <!-- Quick Action: Presensi Hari Ini -->
-                                <button
-                                    type="button"
-                                    @click="$emit('openAttendanceModal')"
-                                    class="mt-4 w-full py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer flex items-center justify-center gap-2"
-                                    :class="
-                                        studentAttendanceDone
-                                            ? 'bg-white/90 text-[#2E7D32] border border-[#2E7D32]/30'
-                                            : 'bg-charcoal text-white hover:bg-black active:scale-95 shadow-sm'
-                                    "
-                                >
-                                    <LmsIcon :name="studentAttendanceDone ? 'check' : 'clock'" className="w-4 h-4" />
-                                    <span>{{ studentAttendanceDone ? '✓ Sudah Presensi Mandiri' : 'Isi Presensi Masuk' }}</span>
-                                </button>
-                            </div>
-
-                            <!-- 2. Ringkasan Tugas Menanti Card -->
-                            <div class="bg-white rounded-[26px] p-5 border border-[#ECEAE4] soft-shadow">
+                        <!-- 4. Bottom Cards: Tugas Terdekat & Rata-Rata Nilai (Sejajar Berdampingan) -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
+                            <!-- Ringkasan Tugas Menanti Card -->
+                            <div class="bg-white rounded-[28px] p-5 border border-[#ECEAE4] soft-shadow">
                                 <div class="flex items-center justify-between mb-3">
                                     <div class="flex items-center gap-2">
                                         <span class="w-7 h-7 rounded-full bg-blossom-light text-blossom-dark flex items-center justify-center">
@@ -475,8 +391,8 @@ const activeDaySubject = computed(() => {
                                 </div>
                             </div>
 
-                            <!-- 3. Mini Transkrip Akademik Preview -->
-                            <div class="bg-white rounded-[26px] p-5 border border-[#ECEAE4] soft-shadow">
+                            <!-- Mini Transkrip Akademik Preview -->
+                            <div class="bg-white rounded-[28px] p-5 border border-[#ECEAE4] soft-shadow">
                                 <div class="flex items-center justify-between mb-3">
                                     <div class="flex items-center gap-2">
                                         <span class="w-7 h-7 rounded-full bg-sage-light text-sage-dark flex items-center justify-center">
@@ -548,9 +464,10 @@ const activeDaySubject = computed(() => {
                     @openProfile="$emit('openProfile')"
                 />
 
-                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 pb-28 lg:pb-8">
-                    <!-- Responsive Multi-Column Grid for Desktop -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
+                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
+                    <div class="w-full max-w-[1800px] mx-auto">
+                        <!-- Responsive Multi-Column Grid for Desktop -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
                         <div
                             v-for="a in assignments"
                             :key="a.id"
@@ -617,6 +534,7 @@ const activeDaySubject = computed(() => {
                     </div>
                 </div>
             </div>
+            </div>
 
             <!-- ========================================== -->
             <!-- TAB 4: PRESENSI & REKAP NILAI             -->
@@ -635,9 +553,10 @@ const activeDaySubject = computed(() => {
                     @openProfile="$emit('openProfile')"
                 />
 
-                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 pb-28 lg:pb-8">
-                    <!-- Responsive Multi-Column Layout on Desktop -->
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start mt-1">
+                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
+                    <div class="w-full max-w-[1800px] mx-auto">
+                        <!-- Responsive Multi-Column Layout on Desktop -->
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start mt-1">
                         <!-- Left Column (5 cols): Attendance Macro Card -->
                         <div class="lg:col-span-5 space-y-4">
                             <div class="hero-sky rounded-[28px] p-5 soft-shadow border border-sky-light/40">
@@ -703,6 +622,7 @@ const activeDaySubject = computed(() => {
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
         </Transition>
     </div>

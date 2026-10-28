@@ -183,8 +183,9 @@ const submitHomework = () => {
                 />
 
                 <!-- Header Banner, Kategori & Pencarian -->
-                <div class="px-4 sm:px-6 lg:px-8 shrink-0">
-                    <!-- Semester Header Banner -->
+                <div class="px-4 sm:px-6 lg:px-8 xl:px-10 shrink-0">
+                    <div class="w-full max-w-[1800px] mx-auto">
+                        <!-- Semester Header Banner -->
                     <div class="hero-sage rounded-[24px] sm:rounded-[28px] p-4 sm:p-5 relative overflow-hidden soft-shadow mb-3">
                         <div class="relative z-10">
                             <div class="flex items-center gap-2">
@@ -250,11 +251,13 @@ const submitHomework = () => {
                             </span>
                         </div>
                     </div>
+                    </div>
                 </div>
 
                 <!-- Scrollable Mapel List: Multi-Column Responsive Grid on Desktop -->
-                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 pb-28 lg:pb-8 pt-1">
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8 pt-1">
+                    <div class="w-full max-w-[1800px] mx-auto">
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
                         <div
                             v-for="mapel in filteredMapelList"
                             :key="mapel.id"
@@ -325,6 +328,7 @@ const submitHomework = () => {
                             Tidak ada mata pelajaran yang cocok dengan pencarian.
                         </p>
                     </div>
+                    </div>
                 </div>
             </div>
         </template>
@@ -334,22 +338,25 @@ const submitHomework = () => {
         <!-- ======================================================== -->
         <template v-else-if="currentView === 'mapel_detail' && selectedMapel">
             <!-- Header Bar with Back Button -->
-            <header class="px-4 sm:px-6 lg:px-8 pt-3 pb-3 flex items-center justify-between shrink-0">
-                <button
-                    type="button"
-                    @click="backToMapelList"
-                    class="flex items-center gap-1.5 text-xs font-bold text-charcoal px-3 py-1.5 rounded-full bg-white border border-[#ECEAE4] soft-shadow hover:bg-canvas transition-colors cursor-pointer"
-                >
-                    <LmsIcon name="back" className="w-3.5 h-3.5" />
-                    <span>Daftar Mapel</span>
-                </button>
-                <span class="text-xs font-extrabold text-subtext">
-                    {{ selectedMapel.code }}
-                </span>
+            <header class="px-4 sm:px-6 lg:px-8 xl:px-10 pt-3 pb-3 shrink-0">
+                <div class="w-full max-w-[1800px] mx-auto flex items-center justify-between">
+                    <button
+                        type="button"
+                        @click="backToMapelList"
+                        class="flex items-center gap-1.5 text-xs font-bold text-charcoal px-3 py-1.5 rounded-full bg-white border border-[#ECEAE4] soft-shadow hover:bg-canvas transition-colors cursor-pointer"
+                    >
+                        <LmsIcon name="back" className="w-3.5 h-3.5" />
+                        <span>Daftar Mapel</span>
+                    </button>
+                    <span class="text-xs font-extrabold text-subtext">
+                        {{ selectedMapel.code }}
+                    </span>
+                </div>
             </header>
 
-            <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 pb-28 lg:pb-8">
-                <!-- CARD UI DENGAN JUDUL DARI SETIAP MAPEL (Di Bagian Atas) -->
+            <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
+                <div class="w-full max-w-[1800px] mx-auto">
+                    <!-- CARD UI DENGAN JUDUL DARI SETIAP MAPEL (Di Bagian Atas) -->
                 <div
                     class="rounded-[28px] p-5 relative overflow-hidden soft-shadow mb-5"
                     :class="selectedMapel.heroBg"
@@ -479,6 +486,7 @@ const submitHomework = () => {
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
         </template>
 
@@ -487,22 +495,25 @@ const submitHomework = () => {
         <!-- ======================================================== -->
         <template v-else-if="currentView === 'meeting_detail' && selectedMapel && selectedMeeting">
             <!-- Header Bar with Back Button -->
-            <header class="px-4 sm:px-6 lg:px-8 pt-3 pb-3 flex items-center justify-between shrink-0">
-                <button
-                    type="button"
-                    @click="backToMeetingList"
-                    class="flex items-center gap-1.5 text-xs font-bold text-charcoal px-3 py-1.5 rounded-full bg-white border border-[#ECEAE4] soft-shadow hover:bg-canvas transition-colors cursor-pointer"
-                >
-                    <LmsIcon name="back" className="w-3.5 h-3.5" />
-                    <span>Pertemuan {{ selectedMapel.shortName }}</span>
-                </button>
-                <span class="text-xs font-extrabold text-subtext">
-                    {{ selectedMeeting.time }}
-                </span>
+            <header class="px-4 sm:px-6 lg:px-8 xl:px-10 pt-3 pb-3 shrink-0">
+                <div class="w-full max-w-[1800px] mx-auto flex items-center justify-between">
+                    <button
+                        type="button"
+                        @click="backToMeetingList"
+                        class="flex items-center gap-1.5 text-xs font-bold text-charcoal px-3 py-1.5 rounded-full bg-white border border-[#ECEAE4] soft-shadow hover:bg-canvas transition-colors cursor-pointer"
+                    >
+                        <LmsIcon name="back" className="w-3.5 h-3.5" />
+                        <span>Pertemuan {{ selectedMapel.shortName }}</span>
+                    </button>
+                    <span class="text-xs font-extrabold text-subtext">
+                        {{ selectedMeeting.time }}
+                    </span>
+                </div>
             </header>
 
-            <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 pb-28 lg:pb-8 space-y-4">
-                <!-- TOP CARD UI: Pertemuan Info Header -->
+            <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
+                <div class="w-full max-w-[1800px] mx-auto space-y-4">
+                    <!-- TOP CARD UI: Pertemuan Info Header -->
                 <div
                     class="rounded-[28px] p-5 relative overflow-hidden soft-shadow"
                     :class="selectedMapel.heroBg"
@@ -870,6 +881,7 @@ const submitHomework = () => {
                             </div>
                         </div>
                     </div>
+                </div>
                 </div>
             </div>
         </template>

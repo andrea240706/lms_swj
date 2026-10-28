@@ -60,12 +60,11 @@ const getTabBadge = (tabId) => {
     >
         <!-- Top Section: Brand + User Info + Navigation -->
         <div class="flex flex-col flex-1 overflow-hidden">
-            <!-- Brand & Sidebar Resize Toggle -->
+            <!-- Brand Monogram & Title -->
             <div
                 class="px-4 py-4 flex items-center border-b border-[#ECEAE4]/80"
-                :class="isCollapsed ? 'justify-center' : 'justify-between'"
+                :class="isCollapsed ? 'justify-center' : ''"
             >
-                <!-- Brand Monogram & Title -->
                 <div
                     class="flex items-center gap-3 overflow-hidden"
                     :class="isCollapsed ? 'cursor-pointer group' : ''"
@@ -89,63 +88,8 @@ const getTabBadge = (tabId) => {
                         </span>
                     </div>
                 </div>
-
-                <!-- Resize Button (Desktop Collapse / Expand Trigger) -->
-                <button
-                    v-if="!isCollapsed"
-                    type="button"
-                    @click="$emit('toggleCollapse')"
-                    class="w-8 h-8 rounded-xl bg-canvas border border-[#ECEAE4] text-charcoal/80 flex items-center justify-center hover:bg-muted hover:text-charcoal active:scale-95 transition-all cursor-pointer"
-                    title="Kecilkan Sidebar (⌘B)"
-                >
-                    <LmsIcon name="chevronLeft" className="w-4 h-4" />
-                </button>
             </div>
 
-            <!-- User Profile Summary Card -->
-            <div
-                class="p-3 border-b border-[#ECEAE4]/60"
-                :class="isCollapsed ? 'flex justify-center' : ''"
-            >
-                <div
-                    @click="$emit('openProfile')"
-                    class="rounded-2xl transition-all cursor-pointer border border-transparent hover:border-[#ECEAE4] hover:bg-canvas p-2 group"
-                    :class="isCollapsed ? 'flex justify-center' : 'flex items-center gap-3'"
-                    :title="isCollapsed ? `${role.userName} (${role.label})` : 'Klik untuk Buka Profil'"
-                >
-                    <!-- User Avatar with Online Dot -->
-                    <div class="relative shrink-0">
-                        <img
-                            :src="role.avatar"
-                            :alt="role.userName"
-                            class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-xs group-hover:scale-105 transition-transform"
-                        />
-                        <span
-                            class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#4CAF50] border-2 border-white ring-1 ring-black/5"
-                        ></span>
-                    </div>
-
-                    <!-- User Text Details (Expanded Only) -->
-                    <div
-                        v-if="!isCollapsed"
-                        class="flex-1 min-w-0 flex flex-col whitespace-nowrap overflow-hidden"
-                    >
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-xs font-black text-charcoal truncate">
-                                {{ role.userName }}
-                            </span>
-                            <span
-                                class="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-sage-light text-sage-dark border border-sage/20 shrink-0"
-                            >
-                                {{ role.badge }}
-                            </span>
-                        </div>
-                        <span class="text-[10px] font-semibold text-subtext truncate mt-0.5">
-                            {{ role.userSub || role.label }}
-                        </span>
-                    </div>
-                </div>
-            </div>
 
             <!-- Navigation Links List -->
             <div class="flex-1 overflow-y-auto no-scrollbar p-3 space-y-1.5">
@@ -229,30 +173,7 @@ const getTabBadge = (tabId) => {
                 </span>
             </button>
 
-            <!-- Resize Sidebar Button (Toggle Collapse / Expand) -->
-            <button
-                type="button"
-                @click="$emit('toggleCollapse')"
-                class="w-full flex items-center rounded-2xl transition-all cursor-pointer font-bold text-xs text-charcoal/75 hover:text-charcoal hover:bg-white border border-transparent hover:border-[#ECEAE4]"
-                :class="isCollapsed ? 'h-10 justify-center' : 'h-10 px-3 justify-between'"
-                :title="isCollapsed ? 'Perbesar Sidebar' : 'Kecilkan Sidebar'"
-            >
-                <div class="flex items-center gap-2.5 min-w-0">
-                    <LmsIcon
-                        :name="isCollapsed ? 'chevronRight' : 'panelLeft'"
-                        className="w-4 h-4 shrink-0 text-subtext"
-                    />
-                    <span v-if="!isCollapsed" class="truncate text-left">
-                        Kecilkan Sidebar
-                    </span>
-                </div>
-                <span
-                    v-if="!isCollapsed"
-                    class="text-[10px] font-bold text-subtext bg-canvas px-1.5 py-0.5 rounded-md border border-[#ECEAE4]"
-                >
-                    ⌘B
-                </span>
-            </button>
+
         </div>
     </aside>
 </template>
