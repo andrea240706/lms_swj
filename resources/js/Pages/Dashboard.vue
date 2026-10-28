@@ -243,6 +243,7 @@ const handleLogout = () => {
                     :role="currentRole"
                     :activeTab="activeTab"
                     :isSidebarCollapsed="isSidebarCollapsed"
+                    @selectTab="selectTab"
                     @toggleSidebar="toggleSidebar"
                     @openMenu="openActionSheet('role_switcher')"
                     @openProfile="openActionSheet('profile', currentRole)"

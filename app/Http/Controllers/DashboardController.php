@@ -61,10 +61,10 @@ class DashboardController extends Controller
                 'heroStyle' => 'hero-sky',
                 'focusNote' => 'Early warning siswa bermasalah, presensi perwalian, & leger nilai rombel.',
                 'tabs' => [
-                    ['id' => 'home', 'label' => 'Home', 'icon' => 'home'],
-                    ['id' => 'absensi', 'label' => 'Absensi', 'icon' => 'clock'],
-                    ['id' => 'leger', 'label' => 'Leger', 'icon' => 'book'],
-                    ['id' => 'laporan', 'label' => 'Rekap', 'icon' => 'chart'],
+                    ['id' => 'home', 'label' => 'Dashboard', 'icon' => 'home'],
+                    ['id' => 'presensiPagi', 'label' => 'Presensi Pagi', 'icon' => 'clock'],
+                    ['id' => 'siswaPerwalian', 'label' => 'Data Siswa', 'icon' => 'user'],
+                    ['id' => 'rekapNilai', 'label' => 'Rekap Nilai', 'icon' => 'chart'],
                 ],
             ],
             'kepsek' => [

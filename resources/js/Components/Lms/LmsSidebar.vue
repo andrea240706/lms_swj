@@ -47,9 +47,11 @@ const handleTabClick = (t) => {
 
 const getTabBadge = (tabId) => {
     if (tabId === 'mapel' || tabId === 'materi') return '2 Mapel';
-    if (tabId === 'rekapNilai') return 'Baru';
+    if (tabId === 'rekapNilai') return 'Leger';
     if (tabId === 'tugas') return '1 Baru';
     if (tabId === 'presensi') return '96%';
+    if (tabId === 'presensiPagi') return 'Hari Ini';
+    if (tabId === 'siswaPerwalian') return '36 Siswa';
     return null;
 };
 </script>
