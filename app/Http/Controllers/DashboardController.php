@@ -46,10 +46,9 @@ class DashboardController extends Controller
                 'heroStyle' => 'hero-blossom',
                 'focusNote' => 'Buka presensi dengan timer, kunci/buka bab materi, & nilai tugas cepat.',
                 'tabs' => [
-                    ['id' => 'home', 'label' => 'Home', 'icon' => 'home'],
-                    ['id' => 'mapel', 'label' => 'Mapel', 'icon' => 'book'],
-                    ['id' => 'tugas', 'label' => 'Nilai', 'icon' => 'task'],
-                    ['id' => 'presensi', 'label' => 'Sesi', 'icon' => 'clock'],
+                    ['id' => 'home', 'label' => 'Dashboard', 'icon' => 'home'],
+                    ['id' => 'mapel', 'label' => 'Kelas & Mapel', 'icon' => 'book'],
+                    ['id' => 'rekapNilai', 'label' => 'Rekap Nilai', 'icon' => 'chart'],
                 ],
             ],
             'wali_kelas' => [

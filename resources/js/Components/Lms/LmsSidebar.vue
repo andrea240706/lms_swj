@@ -46,7 +46,8 @@ const handleTabClick = (t) => {
 };
 
 const getTabBadge = (tabId) => {
-    if (tabId === 'mapel' || tabId === 'materi') return '5 Mapel';
+    if (tabId === 'mapel' || tabId === 'materi') return '2 Mapel';
+    if (tabId === 'rekapNilai') return 'Baru';
     if (tabId === 'tugas') return '1 Baru';
     if (tabId === 'presensi') return '96%';
     return null;

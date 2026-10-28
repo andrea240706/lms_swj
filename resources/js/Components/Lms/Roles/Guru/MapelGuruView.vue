@@ -19,8 +19,43 @@ const currentView = ref("list");
 const selectedMapelId = ref(null);
 const selectedMeetingId = ref(null);
 
-// Active sub-tab in meeting detail: 'tugas' | 'materi' | 'video'
+// Active sub-tab in meeting detail: 'tugas' | 'materi' | 'video' | 'kuis'
 const activeMeetingTab = ref("tugas");
+
+// Quiz state
+const kuisData = ref({
+    isPublished: false,
+    duration: 30,
+    startedAt: null,
+    questions: [
+        { id: 1, text: 'Apa kepanjangan dari MVC dalam pengembangan perangkat lunak?', options: ['Model-View-Controller', 'Model-Variable-Class', 'Module-View-Connect', 'Main-Variable-Controller'], correctIdx: 0 },
+        { id: 2, text: 'Perintah Artisan yang digunakan untuk membuat migration baru di Laravel adalah?', options: ['php artisan make:migrate', 'php artisan migration:create', 'php artisan make:migration', 'php artisan db:migrate'], correctIdx: 2 },
+        { id: 3, text: 'Dalam Eloquent ORM, method yang digunakan untuk mengambil semua data adalah?', options: ['Model::get()', 'Model::all()', 'Model::fetch()', 'Model::select()'], correctIdx: 1 },
+    ],
+    results: [
+        { name: 'Nadia Putri', score: 95, correct: 19, total: 20, finishedAt: '08:42 WIB' },
+        { name: 'Fajar Nugraha', score: 85, correct: 17, total: 20, finishedAt: '08:50 WIB' },
+        { name: 'Putri Maharani', score: 80, correct: 16, total: 20, finishedAt: '08:55 WIB' },
+        { name: 'Dimas Anggara', score: 70, correct: 14, total: 20, finishedAt: '09:05 WIB' },
+    ],
+});
+
+const toggleKuisPublish = () => {
+    kuisData.value.isPublished = !kuisData.value.isPublished;
+    showToast(kuisData.value.isPublished ? 'Kuis telah dipublikasikan ke siswa.' : 'Kuis ditarik dari siswa.');
+};
+
+const kuisAvgScore = computed(() => {
+    if (!kuisData.value.results.length) return null;
+    return Math.round(kuisData.value.results.reduce((a, s) => a + s.score, 0) / kuisData.value.results.length);
+});
+
+const gradeRingColor = (score) => {
+    if (score >= 90) return 'bg-sage-light text-sage-dark';
+    if (score >= 80) return 'bg-sky-light text-sky-dark';
+    if (score >= 70) return 'bg-[#FFF3E0] text-[#E65100]';
+    return 'bg-blossom-light text-blossom-dark';
+};
 
 // Grading modal state
 const isGradingOpen = ref(false);
@@ -179,7 +214,8 @@ const gradeFromScore = (score) => {
                     @openProfile="$emit('openProfile')"
                     class="shrink-0"
                 />
-                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 pb-28 lg:pb-8">
+                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
+                    <div class="w-full max-w-[1800px] mx-auto">
                     <!-- Header Banner -->
                     <div class="hero-blossom rounded-[26px] p-5 soft-shadow mb-4 relative overflow-hidden">
                         <div class="relative z-10">
@@ -249,6 +285,7 @@ const gradeFromScore = (score) => {
                             </div>
                         </div>
                     </div>
+                    </div>
                 </div>
             </div>
         </template>
@@ -258,7 +295,8 @@ const gradeFromScore = (score) => {
         <!-- ============================================ -->
         <template v-else-if="currentView === 'mapel_detail'">
             <div class="flex-1 flex flex-col h-full overflow-hidden">
-                <header class="flex items-center justify-between px-4 sm:px-6 lg:px-8 pt-4 pb-3 shrink-0">
+                <header class="px-4 sm:px-6 lg:px-8 xl:px-10 pt-4 pb-3 shrink-0">
+                <div class="w-full max-w-[1800px] mx-auto flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <button
                             type="button"
@@ -284,9 +322,11 @@ const gradeFromScore = (score) => {
                             {{ selectedMapel?.totalStudents }} Siswa
                         </span>
                     </div>
+                </div>
                 </header>
 
-                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 pb-28 lg:pb-8">
+                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
+                <div class="w-full max-w-[1800px] mx-auto">
                     <!-- Pending Alert -->
                     <div
                         v-if="selectedMapel?.meetings.some(m => m.tugas.ungradedCount > 0)"
@@ -335,6 +375,7 @@ const gradeFromScore = (score) => {
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
         </template>
 
@@ -343,7 +384,8 @@ const gradeFromScore = (score) => {
         <!-- ============================================ -->
         <template v-else-if="currentView === 'meeting_detail'">
             <div class="flex-1 flex flex-col h-full overflow-hidden">
-                <header class="flex items-center gap-3 px-4 sm:px-6 lg:px-8 pt-4 pb-3 shrink-0">
+                <header class="px-4 sm:px-6 lg:px-8 xl:px-10 pt-4 pb-3 shrink-0">
+                <div class="w-full max-w-[1800px] mx-auto flex items-center gap-3">
                     <button
                         type="button"
                         @click="backToMapelDetail"
@@ -366,15 +408,18 @@ const gradeFromScore = (score) => {
                     >
                         <LmsIcon :name="selectedMeeting?.isLocked ? 'lock' : 'unlock'" className="w-4 h-4" />
                     </button>
+                </div>
                 </header>
 
                 <!-- Sub-Tab Nav -->
-                <div class="px-4 sm:px-6 lg:px-8 pb-3 shrink-0">
+                <div class="px-4 sm:px-6 lg:px-8 xl:px-10 pb-3 shrink-0">
+                <div class="w-full max-w-[1800px] mx-auto">
                     <div class="flex items-center gap-1 bg-muted/80 rounded-2xl p-1">
                         <button
                             v-for="tab in [
                                 { id: 'tugas', label: 'Penilaian Tugas', icon: 'task' },
                                 { id: 'materi', label: 'Materi', icon: 'book' },
+                                { id: 'kuis', label: 'Kuis Online', icon: 'chart' },
                                 { id: 'video', label: 'Video', icon: 'video' },
                             ]"
                             :key="tab.id"
@@ -385,13 +430,15 @@ const gradeFromScore = (score) => {
                         >
                             <LmsIcon :name="tab.icon" className="w-3.5 h-3.5 shrink-0" />
                             <span class="hidden sm:inline">{{ tab.label }}</span>
-                            <span class="sm:hidden">{{ tab.id === 'tugas' ? 'Nilai' : tab.id === 'materi' ? 'Materi' : 'Video' }}</span>
+                            <span class="sm:hidden">{{ tab.id === 'tugas' ? 'Nilai' : tab.id === 'materi' ? 'Materi' : tab.id === 'kuis' ? 'Kuis' : 'Video' }}</span>
                         </button>
                     </div>
                 </div>
+                </div>
 
                 <!-- Tab Content -->
-                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 pb-28 lg:pb-8">
+                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
+                <div class="w-full max-w-[1800px] mx-auto">
 
                     <!-- ==== PENILAIAN TUGAS ==== -->
                     <template v-if="activeMeetingTab === 'tugas'">
@@ -645,6 +692,152 @@ const gradeFromScore = (score) => {
                             Ganti Referensi Video
                         </button>
                     </template>
+
+                    <!-- ==== KUIS ONLINE ==== -->
+                    <template v-else-if="activeMeetingTab === 'kuis'">
+                        <!-- Kuis Status & Controls -->
+                        <div class="bg-white rounded-[26px] p-5 border border-[#ECEAE4] soft-shadow mb-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-7 h-7 rounded-full bg-sage-light text-sage-dark flex items-center justify-center">
+                                        <LmsIcon name="chart" className="w-3.5 h-3.5" />
+                                    </span>
+                                    <h3 class="text-[15px] font-extrabold text-charcoal">Kuis Online</h3>
+                                </div>
+                                <span
+                                    class="px-2.5 py-1 rounded-full text-[10px] font-extrabold"
+                                    :class="kuisData.isPublished ? 'bg-[#E8F5E9] text-[#2E7D32]' : 'bg-muted text-subtext'"
+                                >
+                                    {{ kuisData.isPublished ? '● Aktif (Siswa Dapat Mengerjakan)' : '○ Belum Dipublikasikan' }}
+                                </span>
+                            </div>
+
+                            <!-- Kuis Meta -->  
+                            <div class="grid grid-cols-3 gap-3 mb-4">
+                                <div class="bg-canvas rounded-2xl p-3 text-center border border-[#ECEAE4]">
+                                    <div class="text-xl font-extrabold text-charcoal">{{ kuisData.questions.length }}</div>
+                                    <div class="text-[10px] font-bold text-subtext mt-0.5">Soal</div>
+                                </div>
+                                <div class="bg-canvas rounded-2xl p-3 text-center border border-[#ECEAE4]">
+                                    <div class="text-xl font-extrabold text-charcoal">{{ kuisData.duration }}</div>
+                                    <div class="text-[10px] font-bold text-subtext mt-0.5">Menit</div>
+                                </div>
+                                <div class="bg-canvas rounded-2xl p-3 text-center border border-[#ECEAE4]">
+                                    <div class="text-xl font-extrabold text-charcoal">{{ kuisData.results.length }}</div>
+                                    <div class="text-[10px] font-bold text-subtext mt-0.5">Selesai</div>
+                                </div>
+                            </div>
+
+                            <!-- Publish / Unpublish Button -->
+                            <button
+                                type="button"
+                                @click="toggleKuisPublish"
+                                class="w-full py-3 rounded-2xl text-sm font-extrabold transition-all active:scale-95 cursor-pointer"
+                                :class="kuisData.isPublished ? 'bg-muted text-charcoal hover:bg-canvas border border-[#ECEAE4]' : 'bg-charcoal text-white hover:opacity-90'"
+                            >
+                                {{ kuisData.isPublished ? '🔴 Tutup Akses Kuis' : '🟢 Publikasikan Kuis ke Siswa' }}
+                            </button>
+                        </div>
+
+                        <!-- Questions List -->
+                        <div class="mb-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-[13px] font-extrabold text-charcoal">Daftar Soal</h4>
+                                <button
+                                    type="button"
+                                    @click="showToast('Fitur tambah soal akan segera tersedia.')"
+                                    class="text-xs font-bold text-charcoal px-3 py-1.5 rounded-full bg-white border border-[#ECEAE4] hover:bg-canvas active:scale-95 transition-all cursor-pointer"
+                                >
+                                    + Tambah Soal
+                                </button>
+                            </div>
+                            <div class="space-y-3">
+                                <div
+                                    v-for="(q, idx) in kuisData.questions"
+                                    :key="q.id"
+                                    class="bg-white rounded-[22px] p-4 border border-[#ECEAE4] soft-shadow"
+                                >
+                                    <div class="flex items-start gap-3">
+                                        <span class="w-7 h-7 rounded-full bg-charcoal text-white font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                                            {{ idx + 1 }}
+                                        </span>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-xs font-bold text-charcoal leading-relaxed mb-3">{{ q.text }}</p>
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                <div
+                                                    v-for="(opt, oi) in q.options"
+                                                    :key="oi"
+                                                    class="flex items-center gap-2 px-3 py-2 rounded-xl border text-[11px] font-semibold transition-all"
+                                                    :class="oi === q.correctIdx ? 'bg-[#E8F5E9] border-[#C8DFCD] text-[#2E7D32] font-extrabold' : 'bg-canvas border-[#ECEAE4] text-charcoal/70'"
+                                                >
+                                                    <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0" :class="oi === q.correctIdx ? 'border-[#2E7D32] bg-[#2E7D32]' : 'border-subtext'">
+                                                        <span v-if="oi === q.correctIdx" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                                    </span>
+                                                    {{ opt }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            @click="showToast('Fitur edit soal akan segera tersedia.')"
+                                            class="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-charcoal hover:bg-canvas cursor-pointer shrink-0"
+                                            title="Edit Soal"
+                                        >
+                                            <LmsIcon name="task" className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Results Section -->
+                        <div v-if="kuisData.results.length > 0">
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-[13px] font-extrabold text-charcoal">Hasil Pengerjaan Siswa</h4>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-[11px] font-bold text-subtext">Rata-rata:</span>
+                                    <span class="text-[11px] font-extrabold text-charcoal">{{ kuisAvgScore }}</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                                <div
+                                    v-for="result in kuisData.results"
+                                    :key="result.name"
+                                    class="bg-white rounded-[22px] p-3.5 border border-[#ECEAE4] soft-shadow flex items-center gap-3"
+                                >
+                                    <div
+                                        class="w-11 h-11 rounded-full flex items-center justify-center font-extrabold text-sm shrink-0"
+                                        :class="gradeRingColor(result.score)"
+                                    >
+                                        {{ result.score }}
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-xs font-extrabold text-charcoal truncate">{{ result.name }}</div>
+                                        <div class="text-[10px] text-subtext mt-0.5">
+                                            {{ result.correct }}/{{ result.total }} Benar • Selesai {{ result.finishedAt }}
+                                        </div>
+                                        <!-- Mini score bar -->
+                                        <div class="mt-1.5 w-full h-1 bg-muted rounded-full overflow-hidden">
+                                            <div
+                                                class="h-full rounded-full transition-all"
+                                                :class="result.score >= 75 ? 'bg-[#4CAF50]' : 'bg-[#E65100]'"
+                                                :style="`width:${result.score}%`"
+                                            ></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="text-center py-10 text-subtext">
+                            <div class="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                                <LmsIcon name="chart" className="w-5 h-5 text-subtext" />
+                            </div>
+                            <p class="text-sm font-bold text-charcoal">Belum Ada Jawaban Masuk</p>
+                            <p class="text-xs mt-1">Publikasikan kuis agar siswa dapat mulai mengerjakan.</p>
+                        </div>
+                    </template>
+
+                </div>
                 </div>
             </div>
         </template>
