@@ -55,6 +55,8 @@ const getTabBadge = (tabId) => {
     if (tabId === 'pengguna') return '1.3K';
     if (tabId === 'penugasan') return '100%';
     if (tabId === 'pengumuman') return '4 Aktif';
+    if (tabId === 'admin_mgmt') return '4 Akun';
+    if (tabId === 'system_config') return 'Global';
     return null;
 };
 </script>

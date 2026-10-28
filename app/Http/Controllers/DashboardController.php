@@ -108,12 +108,10 @@ class DashboardController extends Controller
                 'userSub' => 'Kepala Pusdatin & Infrastruktur IT',
                 'avatar' => 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
                 'heroStyle' => 'hero-sage',
-                'focusNote' => 'Konfigurasi tahun ajaran aktif, data master jurusan/mapel, & audit log.',
+                'focusNote' => 'Kelola akun operator/admin dan konfigurasi global menu admin.',
                 'tabs' => [
-                    ['id' => 'home', 'label' => 'Home', 'icon' => 'home'],
-                    ['id' => 'master', 'label' => 'Master', 'icon' => 'book'],
-                    ['id' => 'akses', 'label' => 'Pejabat', 'icon' => 'user'],
-                    ['id' => 'log', 'label' => 'Audit', 'icon' => 'chart'],
+                    ['id' => 'admin_mgmt', 'label' => 'Manajemen Admin', 'icon' => 'user'],
+                    ['id' => 'system_config', 'label' => 'Pengaturan Sistem', 'icon' => 'lock'],
                 ],
             ],
         ];
