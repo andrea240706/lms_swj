@@ -1,7 +1,8 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import LmsCapsuleCalendar from '@/Components/Lms/LmsCapsuleCalendar.vue';
 import LmsIcon from '@/Components/Lms/LmsIcon.vue';
+import LmsSkeletonLoader from '@/Components/Lms/LmsSkeletonLoader.vue';
 import LmsTopBar from '@/Components/Lms/LmsTopBar.vue';
 import MapelGuruView from '@/Components/Lms/Roles/Guru/MapelGuruView.vue';
 import RekapNilaiGuruView from '@/Components/Lms/Roles/Guru/RekapNilaiGuruView.vue';
@@ -21,6 +22,21 @@ const emit = defineEmits([
     'selectTab', 'selectDay', 'toggleGate', 'toggleLock',
     'openGradeModal', 'openMenu', 'openProfile', 'toggleSidebar',
 ]);
+
+// ===== SKELETON LOADER =====
+const isLoading = ref(true);
+const triggerLoading = (ms = 450) => {
+    isLoading.value = true;
+    setTimeout(() => {
+        isLoading.value = false;
+    }, ms);
+};
+onMounted(() => {
+    triggerLoading(600);
+});
+watch(() => props.activeTab, () => {
+    triggerLoading(450);
+});
 
 // ===== JADWAL MENGAJAR PER HARI =====
 const jadwalPerHari = {
@@ -148,6 +164,12 @@ const statusSesiLabel = (status) => {
 
                 <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
                     <div class="w-full max-w-[1800px] mx-auto space-y-5">
+
+                        <!-- SKELETON -->
+                        <LmsSkeletonLoader v-if="isLoading" type="dashboard" />
+
+                        <!-- CONTENT -->
+                        <template v-else>
 
                         <!-- 1. HERO: Sesi Aktif / Sesi Terdekat -->
                         <div v-if="sesiAktif" class="rounded-[28px] p-5 relative overflow-hidden soft-shadow" :class="sesiAktif.heroBg">
@@ -335,6 +357,7 @@ const statusSesiLabel = (status) => {
                                 </div>
                             </div>
                         </div>
+                        </template>
 
                     </div>
                 </div>

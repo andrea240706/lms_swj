@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import LmsIcon from "@/Components/Lms/LmsIcon.vue";
+import LmsSkeletonLoader from "@/Components/Lms/LmsSkeletonLoader.vue";
 import LmsTopBar from "@/Components/Lms/LmsTopBar.vue";
 import { guruMapelList } from "./mapelGuruData";
 
@@ -11,11 +12,26 @@ const props = defineProps({
 
 const emit = defineEmits(["openMenu", "openProfile", "toggleSidebar"]);
 
+// ===== SKELETON LOADER =====
+const isLoading = ref(true);
+const triggerLoading = (ms = 400) => {
+    isLoading.value = true;
+    setTimeout(() => {
+        isLoading.value = false;
+    }, ms);
+};
+onMounted(() => {
+    triggerLoading(500);
+});
+
 // Reactive clone of data
 const mapelList = ref(JSON.parse(JSON.stringify(guruMapelList)));
 
 // Navigation state: 'list' | 'mapel_detail' | 'meeting_detail'
 const currentView = ref("list");
+watch(currentView, () => {
+    triggerLoading(350);
+});
 const selectedMapelId = ref(null);
 const selectedMeetingId = ref(null);
 
@@ -216,6 +232,8 @@ const gradeFromScore = (score) => {
                 />
                 <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
                     <div class="w-full max-w-[1800px] mx-auto">
+                    <LmsSkeletonLoader v-if="isLoading" type="mapel-list" :cards="4" />
+                    <template v-else>
                     <!-- Header Banner -->
                     <div class="hero-blossom rounded-[26px] p-5 soft-shadow mb-4 relative overflow-hidden">
                         <div class="relative z-10">
@@ -285,6 +303,7 @@ const gradeFromScore = (score) => {
                             </div>
                         </div>
                     </div>
+                    </template>
                     </div>
                 </div>
             </div>
@@ -327,6 +346,8 @@ const gradeFromScore = (score) => {
 
                 <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
                 <div class="w-full max-w-[1800px] mx-auto">
+                    <LmsSkeletonLoader v-if="isLoading" type="meeting-list" :rows="5" />
+                    <template v-else>
                     <!-- Pending Alert -->
                     <div
                         v-if="selectedMapel?.meetings.some(m => m.tugas.ungradedCount > 0)"
@@ -374,6 +395,7 @@ const gradeFromScore = (score) => {
                             <LmsIcon name="chevronRight" className="w-4 h-4 text-subtext shrink-0" />
                         </div>
                     </div>
+                    </template>
                 </div>
                 </div>
             </div>
@@ -439,6 +461,8 @@ const gradeFromScore = (score) => {
                 <!-- Tab Content -->
                 <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
                 <div class="w-full max-w-[1800px] mx-auto">
+                    <LmsSkeletonLoader v-if="isLoading" type="meeting-detail" />
+                    <template v-else>
 
                     <!-- ==== PENILAIAN TUGAS ==== -->
                     <template v-if="activeMeetingTab === 'tugas'">
@@ -837,6 +861,7 @@ const gradeFromScore = (score) => {
                         </div>
                     </template>
 
+                    </template>
                 </div>
                 </div>
             </div>

@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import LmsIcon from '@/Components/Lms/LmsIcon.vue';
+import LmsSkeletonLoader from '@/Components/Lms/LmsSkeletonLoader.vue';
 import LmsTopBar from '@/Components/Lms/LmsTopBar.vue';
 import { guruMapelList } from './mapelGuruData';
 
@@ -11,8 +12,23 @@ const props = defineProps({
 
 defineEmits(['openMenu', 'openProfile', 'toggleSidebar']);
 
+// ===== SKELETON LOADER =====
+const isLoading = ref(true);
+const triggerLoading = (ms = 400) => {
+    isLoading.value = true;
+    setTimeout(() => {
+        isLoading.value = false;
+    }, ms);
+};
+onMounted(() => {
+    triggerLoading(500);
+});
+
 // ========= STATE =========
 const selectedMapelId = ref(null);
+watch(selectedMapelId, () => {
+    triggerLoading(350);
+});
 const searchQuery = ref('');
 const activeFilter = ref('semua'); // 'semua' | 'tuntas' | 'belum' | 'terlambat'
 
@@ -150,6 +166,8 @@ const showToast = (msg) => {
         <template v-if="!selectedMapelId">
             <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
                 <div class="w-full max-w-[1800px] mx-auto">
+                    <LmsSkeletonLoader v-if="isLoading" type="mapel-list" :cards="3" />
+                    <template v-else>
 
                     <!-- Header Banner -->
                     <div class="hero-blossom rounded-[28px] p-5 soft-shadow mb-5 relative overflow-hidden">
@@ -237,6 +255,7 @@ const showToast = (msg) => {
                             </div>
                         </div>
                     </div>
+                    </template>
                 </div>
             </div>
         </template>
@@ -337,6 +356,8 @@ const showToast = (msg) => {
             <!-- Student Rekap List -->
             <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
                 <div class="w-full max-w-[1800px] mx-auto">
+                    <LmsSkeletonLoader v-if="isLoading" type="rekap-list" :rows="6" />
+                    <template v-else>
 
                     <!-- Column Headers (Desktop) -->
                     <div class="hidden lg:grid lg:grid-cols-12 gap-3 px-4 py-2 mb-2">
@@ -513,6 +534,7 @@ const showToast = (msg) => {
                             </div>
                         </div>
                     </div>
+                    </template>
                 </div>
             </div>
         </template>

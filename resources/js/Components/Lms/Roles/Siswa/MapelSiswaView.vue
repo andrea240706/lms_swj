@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import LmsIcon from '@/Components/Lms/LmsIcon.vue';
+import LmsSkeletonLoader from '@/Components/Lms/LmsSkeletonLoader.vue';
 import LmsTopBar from '@/Components/Lms/LmsTopBar.vue';
 import { initialMapelList } from './mapelData';
 
@@ -17,11 +18,26 @@ const props = defineProps({
 
 const emit = defineEmits(['openMenu', 'openProfile', 'toggleSidebar']);
 
+// ===== SKELETON LOADER =====
+const isLoading = ref(true);
+const triggerLoading = (ms = 400) => {
+    isLoading.value = true;
+    setTimeout(() => {
+        isLoading.value = false;
+    }, ms);
+};
+onMounted(() => {
+    triggerLoading(500);
+});
+
 // State mapel data (reactive clone so students can submit homework and see immediate updates)
 const mapelList = ref(JSON.parse(JSON.stringify(initialMapelList)));
 
 // Navigation views: 'list' (Daftar Mapel) | 'mapel_detail' (Daftar Pertemuan) | 'meeting_detail' (Detail Pertemuan)
 const currentView = ref('list');
+watch(currentView, () => {
+    triggerLoading(350);
+});
 const selectedMapelId = ref(null);
 const selectedMeetingId = ref(null);
 
@@ -257,6 +273,8 @@ const submitHomework = () => {
                 <!-- Scrollable Mapel List: Multi-Column Responsive Grid on Desktop -->
                 <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8 pt-1">
                     <div class="w-full max-w-[1800px] mx-auto">
+                        <LmsSkeletonLoader v-if="isLoading" type="mapel-list" :cards="6" />
+                        <template v-else>
                         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
                         <div
                             v-for="mapel in filteredMapelList"
@@ -328,6 +346,7 @@ const submitHomework = () => {
                             Tidak ada mata pelajaran yang cocok dengan pencarian.
                         </p>
                     </div>
+                        </template>
                     </div>
                 </div>
             </div>
@@ -356,6 +375,8 @@ const submitHomework = () => {
 
             <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
                 <div class="w-full max-w-[1800px] mx-auto">
+                    <LmsSkeletonLoader v-if="isLoading" type="meeting-list" :rows="5" />
+                    <template v-else>
                     <!-- CARD UI DENGAN JUDUL DARI SETIAP MAPEL (Di Bagian Atas) -->
                 <div
                     class="rounded-[28px] p-5 relative overflow-hidden soft-shadow mb-5"
@@ -486,6 +507,7 @@ const submitHomework = () => {
                         </div>
                     </div>
                 </div>
+                    </template>
                 </div>
             </div>
         </template>
@@ -513,6 +535,8 @@ const submitHomework = () => {
 
             <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
                 <div class="w-full max-w-[1800px] mx-auto space-y-4">
+                    <LmsSkeletonLoader v-if="isLoading" type="meeting-detail" />
+                    <template v-else>
                     <!-- TOP CARD UI: Pertemuan Info Header -->
                 <div
                     class="rounded-[28px] p-5 relative overflow-hidden soft-shadow"
@@ -882,6 +906,7 @@ const submitHomework = () => {
                         </div>
                     </div>
                 </div>
+                    </template>
                 </div>
             </div>
         </template>
