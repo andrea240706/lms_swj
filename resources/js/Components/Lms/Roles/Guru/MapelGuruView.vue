@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
+import { router, useForm, usePage } from "@inertiajs/vue3";
 import LmsIcon from "@/Components/Lms/LmsIcon.vue";
 import LmsSkeletonLoader from "@/Components/Lms/LmsSkeletonLoader.vue";
 import LmsTopBar from "@/Components/Lms/LmsTopBar.vue";
@@ -11,6 +12,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["openMenu", "openProfile", "toggleSidebar"]);
+
+const page = usePage();
 
 // ===== SKELETON LOADER =====
 const isLoading = ref(true);
@@ -96,6 +99,306 @@ const selectedMeeting = computed(() => {
     if (!selectedMapel.value) return null;
     return selectedMapel.value.meetings.find((mt) => mt.id === selectedMeetingId.value) || null;
 });
+
+// ===== MATERIALS =====
+const materials = computed(() => {
+    const value = page.props.materials;
+    return Array.isArray(value) ? value : value?.data ?? [];
+});
+
+const canManageMaterials = computed(() => Boolean(page.props.canManageMaterials));
+
+const materialConfig = computed(() => page.props.materialConfig ?? {
+    max_files: 10,
+    max_file_size_kb: 51200,
+    max_total_size_kb: 204800,
+    allowed_extensions: [],
+});
+
+const meetingMaterials = computed(() => {
+    if (!selectedMapel.value || !selectedMeeting.value) return [];
+
+    return materials.value
+        .filter((material) =>
+            material.mapel_key === selectedMapel.value.id
+            && Number(material.meeting_number) === Number(selectedMeeting.value.number)
+        )
+        .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+});
+
+const materialFileCount = computed(() =>
+    meetingMaterials.value.reduce((total, material) => total + (material.files?.length ?? 0), 0)
+);
+
+const materialAccept = computed(() =>
+    (materialConfig.value.allowed_extensions ?? []).map((extension) => `.${extension}`).join(",")
+);
+
+const isMaterialModalOpen = ref(false);
+const editingMaterial = ref(null);
+const fileSelectionError = ref("");
+const addFileInput = ref(null);
+const addFileTarget = ref(null);
+const materialForm = useForm({
+    mapel_key: "",
+    meeting_number: null,
+    title: "",
+    description: "",
+    is_published: true,
+    files: [],
+});
+const fileUploadForm = useForm({ files: [] });
+
+const confirmState = ref({
+    open: false,
+    title: "",
+    message: "",
+    action: null,
+});
+
+watch(
+    () => page.props.flash,
+    (flash) => {
+        if (flash?.success) showToast(flash.success);
+        if (flash?.error) showToast(flash.error);
+    },
+    { deep: true }
+);
+
+const formatBytes = (bytes) => {
+    const value = Number(bytes ?? 0);
+    if (! Number.isFinite(value) || value <= 0) return "0 KB";
+    if (value >= 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+    return `${Math.max(1, Math.round(value / 1024))} KB`;
+};
+
+const formatMaterialDate = (value) => {
+    if (! value) return "-";
+    return new Date(value).toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+    });
+};
+
+const fileTone = (extension) => {
+    const value = String(extension ?? "").toLowerCase();
+
+    if (value === "pdf") return "bg-[#FF4444]/10 text-[#FF4444]";
+    if (["doc", "docx", "odt", "rtf", "txt", "md"].includes(value)) return "bg-sky-light text-sky-dark";
+    if (["xls", "xlsx", "csv", "ods"].includes(value)) return "bg-sage-light text-sage-dark";
+    if (["ppt", "pptx", "odp"].includes(value)) return "bg-[#FFF3E0] text-[#E65100]";
+    if (["jpg", "jpeg", "png", "webp", "gif"].includes(value)) return "bg-blossom-light text-blossom-dark";
+    if (["mp3", "wav", "ogg", "mp4", "webm", "mov"].includes(value)) return "bg-[#EDE7F6] text-[#5E35B1]";
+
+    return "bg-muted text-charcoal";
+};
+
+const fileExtensionOf = (file) => {
+    const parts = String(file.name ?? "").split(".");
+    return parts.length > 1 ? parts.pop().toLowerCase() : "";
+};
+
+const validateSelectedFiles = (files, material = null) => {
+    const allowedExtensions = materialConfig.value.allowed_extensions ?? [];
+    const maxFiles = Number(materialConfig.value.max_files ?? 10);
+    const maxFileSize = Number(materialConfig.value.max_file_size_kb ?? 51200) * 1024;
+    const maxTotalSize = Number(materialConfig.value.max_total_size_kb ?? 204800) * 1024;
+    const existingCount = material?.files?.length ?? 0;
+    const existingSize = (material?.files ?? []).reduce((total, file) => total + Number(file.size ?? 0), 0);
+
+    if (existingCount + files.length > maxFiles) {
+        return `Maksimal ${maxFiles} file per materi. Saat ini sudah ada ${existingCount} file.`;
+    }
+
+    const invalidFile = files.find((file) => ! allowedExtensions.includes(fileExtensionOf(file)));
+
+    if (invalidFile) {
+        return `Format .${fileExtensionOf(invalidFile) || "tidak dikenal"} tidak diizinkan.`;
+    }
+
+    const oversizedFile = files.find((file) => file.size > maxFileSize);
+
+    if (oversizedFile) {
+        return `Ukuran ${oversizedFile.name} melebihi batas ${formatBytes(maxFileSize)}.`;
+    }
+
+    const totalSize = existingSize + files.reduce((total, file) => total + Number(file.size ?? 0), 0);
+
+    if (totalSize > maxTotalSize) {
+        return `Total ukuran file melebihi batas ${formatBytes(maxTotalSize)}.`;
+    }
+
+    return "";
+};
+
+const openCreateMaterial = () => {
+    editingMaterial.value = null;
+    materialForm.reset();
+    materialForm.clearErrors();
+    materialForm.mapel_key = selectedMapel.value?.id ?? "";
+    materialForm.meeting_number = selectedMeeting.value?.number ?? null;
+    materialForm.is_published = true;
+    materialForm.files = [];
+    fileSelectionError.value = "";
+    isMaterialModalOpen.value = true;
+};
+
+const openEditMaterial = (material) => {
+    editingMaterial.value = material;
+    materialForm.clearErrors();
+    materialForm.mapel_key = material.mapel_key;
+    materialForm.meeting_number = material.meeting_number;
+    materialForm.title = material.title;
+    materialForm.description = material.description ?? "";
+    materialForm.is_published = Boolean(material.is_published);
+    materialForm.files = [];
+    fileSelectionError.value = "";
+    isMaterialModalOpen.value = true;
+};
+
+const closeMaterialModal = () => {
+    if (materialForm.processing) return;
+    isMaterialModalOpen.value = false;
+};
+
+const handleMaterialFiles = (event) => {
+    const files = Array.from(event.target.files ?? []);
+    const error = validateSelectedFiles(files);
+
+    if (error) {
+        fileSelectionError.value = error;
+        materialForm.files = [];
+        event.target.value = "";
+        return;
+    }
+
+    fileSelectionError.value = "";
+    materialForm.files = files;
+};
+
+const removeSelectedMaterialFile = (index) => {
+    materialForm.files = materialForm.files.filter((_, fileIndex) => fileIndex !== index);
+};
+
+const submitMaterial = () => {
+    if (materialForm.processing) return;
+
+    const options = {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => {
+            isMaterialModalOpen.value = false;
+            materialForm.reset();
+        },
+        onError: (errors) => {
+            const firstError = Object.values(errors)[0];
+            if (firstError) showToast(firstError);
+        },
+    };
+
+    if (editingMaterial.value) {
+        materialForm.patch(route("guru.materi.update", editingMaterial.value.id), options);
+        return;
+    }
+
+    materialForm.post(route("guru.materi.store"), {
+        ...options,
+        forceFormData: true,
+    });
+};
+
+const askConfirm = (title, message, action) => {
+    confirmState.value = {
+        open: true,
+        title,
+        message,
+        action,
+    };
+};
+
+const closeConfirm = () => {
+    confirmState.value.open = false;
+};
+
+const confirmAction = () => {
+    const action = confirmState.value.action;
+    closeConfirm();
+    if (action) action();
+};
+
+const requestDeleteMaterial = (material) => {
+    askConfirm(
+        "Hapus materi?",
+        `Materi "${material.title}" beserta semua filenya akan dihapus.`,
+        () => {
+            router.delete(route("guru.materi.destroy", material.id), {
+                preserveScroll: true,
+                preserveState: true,
+                onError: () => showToast("Materi gagal dihapus."),
+            });
+        }
+    );
+};
+
+const requestDeleteFile = (material, file) => {
+    askConfirm(
+        "Hapus file?",
+        `File "${file.original_name}" akan dihapus dari materi.`,
+        () => {
+            router.delete(route("guru.materi.files.destroy", [material.id, file.id]), {
+                preserveScroll: true,
+                preserveState: true,
+                onError: (errors) => {
+                    const firstError = Object.values(errors)[0];
+                    showToast(firstError ?? "File gagal dihapus.");
+                },
+            });
+        }
+    );
+};
+
+const triggerAddFile = (material) => {
+    addFileTarget.value = material;
+    addFileInput.value?.click();
+};
+
+const handleAddFiles = (event) => {
+    const files = Array.from(event.target.files ?? []);
+    const material = addFileTarget.value;
+
+    if (! material || files.length === 0) {
+        event.target.value = "";
+        addFileTarget.value = null;
+        return;
+    }
+
+    const error = validateSelectedFiles(files, material);
+
+    if (error) {
+        showToast(error);
+        event.target.value = "";
+        addFileTarget.value = null;
+        return;
+    }
+
+    fileUploadForm.clearErrors();
+    fileUploadForm.files = files;
+    fileUploadForm.post(route("guru.materi.files.store", material.id), {
+        forceFormData: true,
+        preserveScroll: true,
+        preserveState: true,
+        onError: (errors) => {
+            const firstError = Object.values(errors)[0];
+            showToast(firstError ?? "File gagal diunggah.");
+        },
+        onFinish: () => {
+            fileUploadForm.reset();
+            event.target.value = "";
+            addFileTarget.value = null;
+        },
+    });
+};
 
 const ungradedStudents = computed(() => {
     if (!selectedMeeting.value) return [];
@@ -608,42 +911,151 @@ const gradeFromScore = (score) => {
                         </div>
 
                         <div class="bg-white rounded-[26px] p-5 border border-[#ECEAE4] soft-shadow mb-4">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-7 h-7 rounded-full bg-blossom-light text-blossom-dark flex items-center justify-center">
-                                        <LmsIcon name="book" className="w-4 h-4" />
+                            <div class="flex items-center justify-between gap-3 mb-4">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <span class="w-7 h-7 rounded-full bg-blossom-light text-blossom-dark flex items-center justify-center shrink-0">
+                                        <LmsIcon name="folder" className="w-4 h-4" />
                                     </span>
-                                    <h3 class="text-[15px] font-extrabold text-charcoal">File Materi</h3>
+                                    <div class="min-w-0">
+                                        <h3 class="text-[15px] font-extrabold text-charcoal">Materi Pembelajaran</h3>
+                                        <p class="text-[10px] font-semibold text-subtext mt-0.5">
+                                            {{ meetingMaterials.length }} materi &middot; {{ materialFileCount }} file
+                                        </p>
+                                    </div>
                                 </div>
-                                <span
-                                    class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full"
-                                    :class="selectedMeeting?.isLocked ? 'bg-muted text-subtext' : 'bg-sage-light text-sage-dark'"
-                                >
-                                    {{ selectedMeeting?.isLocked ? 'Dikunci 🔒' : 'Terbuka untuk Siswa ✓' }}
-                                </span>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <span
+                                        class="hidden sm:inline text-[10px] font-extrabold px-2.5 py-0.5 rounded-full"
+                                        :class="selectedMeeting?.isLocked ? 'bg-muted text-subtext' : 'bg-sage-light text-sage-dark'"
+                                    >
+                                        {{ selectedMeeting?.isLocked ? 'Dikunci' : 'Terbuka' }}
+                                    </span>
+                                    <button
+                                        v-if="canManageMaterials"
+                                        type="button"
+                                        @click="openCreateMaterial"
+                                        class="px-3 py-2 rounded-full bg-charcoal text-white text-[11px] font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                                    >
+                                        <LmsIcon name="plus" className="w-3.5 h-3.5" />
+                                        Tambah
+                                    </button>
+                                </div>
                             </div>
-                            <div class="bg-canvas rounded-2xl p-4 border border-[#ECEAE4] flex items-center gap-3">
-                                <div class="w-11 h-11 rounded-xl bg-[#FF4444]/10 text-[#FF4444] flex items-center justify-center font-black text-xs shrink-0">PDF</div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="text-xs font-extrabold text-charcoal truncate">{{ selectedMeeting?.materi.title }}</div>
-                                    <div class="text-[11px] text-subtext mt-0.5">{{ selectedMeeting?.materi.pages }} • {{ selectedMeeting?.materi.size }}</div>
+
+                            <div
+                                v-if="meetingMaterials.length === 0"
+                                class="rounded-2xl border-2 border-dashed border-[#ECEAE4] bg-canvas/60 px-4 py-8 text-center"
+                            >
+                                <div class="w-11 h-11 rounded-full bg-muted text-subtext flex items-center justify-center mx-auto mb-2">
+                                    <LmsIcon name="folder" className="w-5 h-5" />
                                 </div>
+                                <p class="text-xs font-extrabold text-charcoal">Belum ada materi</p>
+                                <p class="text-[11px] text-subtext mt-1">Unggah modul, slide, video, atau file pendukung untuk pertemuan ini.</p>
                                 <button
+                                    v-if="canManageMaterials"
                                     type="button"
-                                    @click="handleDownload(selectedMeeting?.materi.title)"
-                                    class="w-9 h-9 rounded-full bg-charcoal text-white flex items-center justify-center hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0"
+                                    @click="openCreateMaterial"
+                                    class="mt-3 px-4 py-2 rounded-full bg-charcoal text-white text-[11px] font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer inline-flex items-center gap-1.5"
                                 >
-                                    <LmsIcon name="download" className="w-4 h-4" />
+                                    <LmsIcon name="upload" className="w-3.5 h-3.5" />
+                                    Unggah Materi Pertama
                                 </button>
                             </div>
-                            <button
-                                type="button"
-                                @click="showToast('Fitur unggah materi akan segera tersedia.')"
-                                class="mt-3 w-full py-2.5 rounded-2xl border-2 border-dashed border-[#ECEAE4] text-xs font-bold text-subtext hover:border-charcoal/30 hover:text-charcoal transition-all cursor-pointer flex items-center justify-center gap-2"
-                            >
-                                <LmsIcon name="download" className="w-3.5 h-3.5 rotate-180" />
-                                Ganti / Unggah File Materi Baru
-                            </button>
+
+                            <div v-else class="space-y-3">
+                                <div
+                                    v-for="material in meetingMaterials"
+                                    :key="material.id"
+                                    class="rounded-2xl border border-[#ECEAE4] bg-canvas/60 p-3.5"
+                                >
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <h4 class="text-xs font-extrabold text-charcoal leading-snug">{{ material.title }}</h4>
+                                                <span
+                                                    class="text-[9px] font-extrabold px-2 py-0.5 rounded-full"
+                                                    :class="material.is_published ? 'bg-sage-light text-sage-dark' : 'bg-muted text-subtext'"
+                                                >
+                                                    {{ material.is_published ? 'Publik' : 'Draft' }}
+                                                </span>
+                                            </div>
+                                            <p v-if="material.description" class="text-[11px] text-subtext mt-1 line-clamp-2">
+                                                {{ material.description }}
+                                            </p>
+                                            <div class="text-[10px] font-semibold text-subtext mt-1">
+                                                {{ material.files?.length ?? 0 }} file &middot; {{ material.human_total_size || '0 KB' }}
+                                                <span class="mx-1">&middot;</span>
+                                                Diperbarui {{ formatMaterialDate(material.updated_at) }}
+                                            </div>
+                                        </div>
+                                        <div v-if="canManageMaterials" class="flex items-center gap-1 shrink-0">
+                                            <button
+                                                type="button"
+                                                @click="openEditMaterial(material)"
+                                                class="w-8 h-8 rounded-full bg-white text-charcoal border border-[#ECEAE4] flex items-center justify-center hover:bg-muted active:scale-95 transition-all cursor-pointer"
+                                                title="Edit materi"
+                                            >
+                                                <LmsIcon name="edit" className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                @click="triggerAddFile(material)"
+                                                class="w-8 h-8 rounded-full bg-white text-charcoal border border-[#ECEAE4] flex items-center justify-center hover:bg-muted active:scale-95 transition-all cursor-pointer"
+                                                title="Tambah file"
+                                            >
+                                                <LmsIcon name="upload" className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                @click="requestDeleteMaterial(material)"
+                                                class="w-8 h-8 rounded-full bg-white text-[#C62828] border border-[#ECEAE4] flex items-center justify-center hover:bg-[#FFEBEE] active:scale-95 transition-all cursor-pointer"
+                                                title="Hapus materi"
+                                            >
+                                                <LmsIcon name="trash" className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div v-if="material.files?.length" class="mt-3 space-y-1.5">
+                                        <div
+                                            v-for="file in material.files"
+                                            :key="file.id"
+                                            class="flex items-center gap-2 rounded-xl bg-white border border-[#ECEAE4] px-2.5 py-2"
+                                        >
+                                            <span
+                                                class="w-9 h-9 rounded-lg flex items-center justify-center font-black text-[9px] shrink-0"
+                                                :class="fileTone(file.extension)"
+                                            >
+                                                {{ file.extension }}
+                                            </span>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="text-[11px] font-bold text-charcoal truncate">{{ file.original_name }}</div>
+                                                <div class="text-[10px] text-subtext">{{ file.human_size }}</div>
+                                            </div>
+                                            <a
+                                                :href="file.download_url"
+                                                class="w-8 h-8 rounded-full bg-muted text-charcoal flex items-center justify-center hover:bg-canvas active:scale-95 transition-all cursor-pointer shrink-0"
+                                                title="Unduh file"
+                                            >
+                                                <LmsIcon name="download" className="w-3.5 h-3.5" />
+                                            </a>
+                                            <button
+                                                v-if="canManageMaterials"
+                                                type="button"
+                                                @click="requestDeleteFile(material, file)"
+                                                class="w-8 h-8 rounded-full bg-white text-[#C62828] border border-[#ECEAE4] flex items-center justify-center hover:bg-[#FFEBEE] active:scale-95 transition-all cursor-pointer shrink-0"
+                                                title="Hapus file"
+                                            >
+                                                <LmsIcon name="trash" className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p v-if="canManageMaterials && meetingMaterials.length > 0" class="text-[10px] text-subtext mt-3">
+                                Format didukung: {{ (materialConfig.allowed_extensions ?? []).join(', ') }}. Maksimal {{ materialConfig.max_files }} file per materi.
+                            </p>
                         </div>
 
                         <div class="bg-white rounded-[26px] p-5 border border-[#ECEAE4] soft-shadow">
@@ -669,7 +1081,6 @@ const gradeFromScore = (score) => {
                             </div>
                         </div>
                     </template>
-
                     <!-- ==== VIDEO ==== -->
                     <template v-else-if="activeMeetingTab === 'video'">
                         <div class="bg-white rounded-[26px] overflow-hidden border border-[#ECEAE4] soft-shadow">
@@ -866,6 +1277,223 @@ const gradeFromScore = (score) => {
                 </div>
             </div>
         </template>
+
+        <input
+            ref="addFileInput"
+            type="file"
+            multiple
+            :accept="materialAccept"
+            class="hidden"
+            @change="handleAddFiles"
+        />
+
+        <!-- ============================================ -->
+        <!-- MATERIAL FORM MODAL                         -->
+        <!-- ============================================ -->
+        <Transition
+            enter-active-class="transition-opacity duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-150"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="isMaterialModalOpen"
+                class="fixed inset-0 bg-charcoal/50 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-4"
+                @click.self="closeMaterialModal"
+            >
+                <div class="bg-white rounded-[28px] w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
+                    <div class="flex items-start justify-between gap-4 mb-5">
+                        <div>
+                            <div class="text-[11px] font-bold text-subtext uppercase tracking-wider">
+                                {{ editingMaterial ? 'Edit Materi' : 'Materi Baru' }}
+                            </div>
+                            <h3 class="text-[17px] font-extrabold text-charcoal mt-0.5">
+                                {{ editingMaterial ? editingMaterial.title : 'Unggah Materi Pembelajaran' }}
+                            </h3>
+                            <p class="text-[11px] text-subtext mt-1">
+                                {{ selectedMapel?.name }} &middot; Pertemuan {{ selectedMeeting?.number }}
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            @click="closeMaterialModal"
+                            class="w-8 h-8 rounded-full bg-muted text-charcoal flex items-center justify-center hover:bg-canvas active:scale-95 transition-all cursor-pointer shrink-0"
+                            title="Tutup"
+                        >
+                            <LmsIcon name="x" className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-extrabold text-charcoal mb-2">Judul Materi</label>
+                            <input
+                                v-model="materialForm.title"
+                                type="text"
+                                maxlength="150"
+                                placeholder="Contoh: Modul Routing & Controller Laravel"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-3 text-xs font-medium text-charcoal placeholder:text-subtext/70 focus:outline-none focus:border-charcoal/50 transition-colors"
+                            />
+                            <p v-if="materialForm.errors.title" class="text-[10px] font-semibold text-[#C62828] mt-1">
+                                {{ materialForm.errors.title }}
+                            </p>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-extrabold text-charcoal mb-2">Deskripsi (Opsional)</label>
+                            <textarea
+                                v-model="materialForm.description"
+                                rows="3"
+                                maxlength="2000"
+                                placeholder="Ringkasan singkat isi materi..."
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-3 text-xs font-medium text-charcoal placeholder:text-subtext/70 focus:outline-none focus:border-charcoal/50 transition-colors resize-none"
+                            ></textarea>
+                            <p v-if="materialForm.errors.description" class="text-[10px] font-semibold text-[#C62828] mt-1">
+                                {{ materialForm.errors.description }}
+                            </p>
+                        </div>
+
+                        <label class="flex items-center justify-between gap-3 bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-3 cursor-pointer">
+                            <span>
+                                <span class="block text-xs font-extrabold text-charcoal">Publikasikan ke siswa</span>
+                                <span class="block text-[10px] text-subtext mt-0.5">Materi draft hanya terlihat oleh guru.</span>
+                            </span>
+                            <input v-model="materialForm.is_published" type="checkbox" class="w-4 h-4 rounded border-[#D7D4CD] text-charcoal focus:ring-charcoal" />
+                        </label>
+
+                        <div v-if="!editingMaterial">
+                            <label class="block text-xs font-extrabold text-charcoal mb-2">File Materi</label>
+                            <label class="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[#ECEAE4] bg-canvas/60 px-4 py-7 text-center cursor-pointer hover:border-charcoal/30 transition-colors">
+                                <span class="w-10 h-10 rounded-full bg-white text-charcoal border border-[#ECEAE4] flex items-center justify-center">
+                                    <LmsIcon name="upload" className="w-4 h-4" />
+                                </span>
+                                <span class="text-xs font-extrabold text-charcoal">Pilih file materi</span>
+                                <span class="text-[10px] text-subtext">Bisa pilih beberapa file sekaligus</span>
+                                <input
+                                    type="file"
+                                    multiple
+                                    :accept="materialAccept"
+                                    class="hidden"
+                                    @change="handleMaterialFiles"
+                                />
+                            </label>
+                            <p class="text-[10px] text-subtext mt-2">
+                                Maksimal {{ materialConfig.max_files }} file, {{ formatBytes((materialConfig.max_file_size_kb ?? 51200) * 1024) }} per file.
+                            </p>
+                            <p v-if="fileSelectionError" class="text-[10px] font-semibold text-[#C62828] mt-1">
+                                {{ fileSelectionError }}
+                            </p>
+                            <p v-if="materialForm.errors.files" class="text-[10px] font-semibold text-[#C62828] mt-1">
+                                {{ materialForm.errors.files }}
+                            </p>
+                            <p v-if="materialForm.errors['files.0']" class="text-[10px] font-semibold text-[#C62828] mt-1">
+                                {{ materialForm.errors['files.0'] }}
+                            </p>
+
+                            <div v-if="materialForm.files.length" class="mt-3 space-y-1.5">
+                                <div
+                                    v-for="(file, index) in materialForm.files"
+                                    :key="`${file.name}-${index}`"
+                                    class="flex items-center gap-2 rounded-xl bg-white border border-[#ECEAE4] px-2.5 py-2"
+                                >
+                                    <span class="w-8 h-8 rounded-lg bg-muted text-charcoal flex items-center justify-center shrink-0">
+                                        <LmsIcon name="file" className="w-4 h-4" />
+                                    </span>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-[11px] font-bold text-charcoal truncate">{{ file.name }}</div>
+                                        <div class="text-[10px] text-subtext">{{ formatBytes(file.size) }}</div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        @click="removeSelectedMaterialFile(index)"
+                                        class="w-7 h-7 rounded-full bg-muted text-charcoal flex items-center justify-center hover:bg-canvas active:scale-95 transition-all cursor-pointer shrink-0"
+                                        title="Hapus dari pilihan"
+                                    >
+                                        <LmsIcon name="x" className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-else class="rounded-2xl bg-canvas border border-[#ECEAE4] px-4 py-3 text-[11px] text-subtext">
+                            Untuk menambah file, gunakan tombol unggah pada kartu materi setelah menyimpan perubahan.
+                        </div>
+
+                        <div v-if="materialForm.progress" class="space-y-1">
+                            <div class="flex items-center justify-between text-[10px] font-bold text-subtext">
+                                <span>Mengunggah...</span>
+                                <span>{{ materialForm.progress.percentage }}%</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                                <div class="h-full bg-charcoal rounded-full transition-all" :style="{ width: `${materialForm.progress.percentage}%` }"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 mt-6">
+                        <button
+                            type="button"
+                            @click="closeMaterialModal"
+                            class="flex-1 py-3 rounded-2xl bg-muted text-charcoal text-sm font-bold hover:bg-canvas active:scale-95 transition-all cursor-pointer"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            @click="submitMaterial"
+                            :disabled="materialForm.processing"
+                            class="flex-1 py-3 rounded-2xl bg-charcoal text-white text-sm font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                            {{ materialForm.processing ? 'Menyimpan...' : (editingMaterial ? 'Simpan Perubahan' : 'Unggah Materi') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+
+        <!-- ============================================ -->
+        <!-- CONFIRM MODAL                               -->
+        <!-- ============================================ -->
+        <Transition
+            enter-active-class="transition-opacity duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-150"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="confirmState.open"
+                class="fixed inset-0 bg-charcoal/50 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-4"
+                @click.self="closeConfirm"
+            >
+                <div class="bg-white rounded-[28px] w-full max-w-sm p-6 shadow-2xl">
+                    <div class="w-11 h-11 rounded-full bg-[#FFEBEE] text-[#C62828] flex items-center justify-center mb-4">
+                        <LmsIcon name="trash" className="w-5 h-5" />
+                    </div>
+                    <h3 class="text-[17px] font-extrabold text-charcoal">{{ confirmState.title }}</h3>
+                    <p class="text-xs text-subtext mt-2 leading-relaxed">{{ confirmState.message }}</p>
+                    <div class="flex gap-2 mt-6">
+                        <button
+                            type="button"
+                            @click="closeConfirm"
+                            class="flex-1 py-3 rounded-2xl bg-muted text-charcoal text-sm font-bold hover:bg-canvas active:scale-95 transition-all cursor-pointer"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            @click="confirmAction"
+                            class="flex-1 py-3 rounded-2xl bg-[#C62828] text-white text-sm font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+                        >
+                            Hapus
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
 
         <!-- ============================================ -->
         <!-- GRADING MODAL                               -->

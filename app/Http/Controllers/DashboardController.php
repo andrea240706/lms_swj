@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\MaterialResource;
+use App\Models\Material;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -158,12 +160,30 @@ class DashboardController extends Controller
             ],
         ];
 
+        $canManageMaterials = $user !== null && ($user->isTeacher() || $user->isAdmin());
+
+        $materials = Material::query()
+            ->with(['files' => fn ($query) => $query->orderBy('sort_order')->orderBy('id')])
+            ->when(! $canManageMaterials, fn ($query) => $query->where('is_published', true))
+            ->latest()
+            ->latest('id')
+            ->get();
+
         return Inertia::render('Dashboard', [
             'roles' => $roles,
             'initialRole' => isset($roles[$simulatedRole]) ? $simulatedRole : 'siswa',
             'days' => $days,
             'initialAssignments' => $assignments,
             'currentUser' => $user,
+            'materials' => MaterialResource::collection($materials)->resolve($request),
+            'canManageMaterials' => $canManageMaterials,
+            'materialConfig' => [
+                'disk' => config('materials.disk'),
+                'max_files' => config('materials.max_files_per_material'),
+                'max_file_size_kb' => config('materials.max_file_size_kb'),
+                'max_total_size_kb' => config('materials.max_total_size_kb'),
+                'allowed_extensions' => config('materials.allowed_extensions'),
+            ],
         ]);
     }
 }

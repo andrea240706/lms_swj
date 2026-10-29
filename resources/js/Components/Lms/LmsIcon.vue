@@ -292,6 +292,114 @@ defineProps({
         <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
     </svg>
 
+    <!-- Plus -->
+    <svg
+        v-else-if="name === 'plus'"
+        :class="className"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <path d="M12 5v14" />
+        <path d="M5 12h14" />
+    </svg>
+
+    <!-- Close -->
+    <svg
+        v-else-if="name === 'x'"
+        :class="className"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <path d="M18 6L6 18" />
+        <path d="M6 6l12 12" />
+    </svg>
+
+    <!-- Upload -->
+    <svg
+        v-else-if="name === 'upload'"
+        :class="className"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <path d="M12 21V9" />
+        <path d="M7 14l5-5 5 5" />
+        <path d="M5 3h14" />
+    </svg>
+
+    <!-- File -->
+    <svg
+        v-else-if="name === 'file'"
+        :class="className"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <path d="M14 2v6h6" />
+    </svg>
+
+    <!-- Trash -->
+    <svg
+        v-else-if="name === 'trash'"
+        :class="className"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <path d="M3 6h18" />
+        <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+        <path d="M10 11v6" />
+        <path d="M14 11v6" />
+    </svg>
+
+    <!-- Edit -->
+    <svg
+        v-else-if="name === 'edit'"
+        :class="className"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" />
+    </svg>
+
+    <!-- Folder -->
+    <svg
+        v-else-if="name === 'folder'"
+        :class="className"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    </svg>
+
     <!-- Fallback Check/Circle -->
     <svg
         v-else

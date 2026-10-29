@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import LmsIcon from '@/Components/Lms/LmsIcon.vue';
 import LmsSkeletonLoader from '@/Components/Lms/LmsSkeletonLoader.vue';
 import LmsTopBar from '@/Components/Lms/LmsTopBar.vue';
@@ -17,6 +18,8 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['openMenu', 'openProfile', 'toggleSidebar']);
+
+const page = usePage();
 
 // ===== SKELETON LOADER =====
 const isLoading = ref(true);
@@ -69,6 +72,44 @@ const selectedMeeting = computed(() => {
     if (!selectedMapel.value) return null;
     return selectedMapel.value.meetings.find((mt) => mt.id === selectedMeetingId.value) || null;
 });
+
+const materials = computed(() => {
+    const value = page.props.materials;
+    return Array.isArray(value) ? value : value?.data ?? [];
+});
+
+const meetingMaterials = computed(() => {
+    if (!selectedMapel.value || !selectedMeeting.value) return [];
+
+    return materials.value.filter((material) =>
+        material.is_published
+        && material.mapel_key === selectedMapel.value.id
+        && Number(material.meeting_number) === Number(selectedMeeting.value.number)
+    );
+});
+
+const studentMaterialFileCount = computed(() =>
+    meetingMaterials.value.reduce((total, material) => total + (material.files?.length ?? 0), 0)
+);
+
+const openMaterialFile = (file) => {
+    if (file?.download_url) {
+        window.location.href = file.download_url;
+    }
+};
+
+const fileTone = (extension) => {
+    const value = String(extension ?? '').toLowerCase();
+
+    if (value === 'pdf') return 'bg-red-100 text-red-600';
+    if (['doc', 'docx', 'odt', 'rtf', 'txt', 'md'].includes(value)) return 'bg-sky-light text-sky-dark';
+    if (['xls', 'xlsx', 'csv', 'ods'].includes(value)) return 'bg-sage-light text-sage-dark';
+    if (['ppt', 'pptx', 'odp'].includes(value)) return 'bg-[#FFF3E0] text-[#E65100]';
+    if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(value)) return 'bg-blossom-light text-blossom-dark';
+    if (['mp3', 'wav', 'ogg', 'mp4', 'webm', 'mov'].includes(value)) return 'bg-[#EDE7F6] text-[#5E35B1]';
+
+    return 'bg-muted text-charcoal';
+};
 
 // Filtered Mapel list
 const filteredMapelList = computed(() => {
@@ -515,40 +556,71 @@ const submitHomework = () => {
                                     </h3>
                                 </div>
                                 <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-canvas text-subtext border border-[#ECEAE4]">
-                                    {{ selectedMeeting.materi.pages }}
+                                    {{ meetingMaterials.length ? `${studentMaterialFileCount} file` : selectedMeeting.materi.pages }}
                                 </span>
                             </div>
 
                             <div class="p-3.5 rounded-2xl bg-canvas border border-[#ECEAE4] flex-1 flex flex-col lg:min-h-0 lg:overflow-y-auto no-scrollbar">
-                                <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center font-extrabold text-xs shrink-0">
-                                        PDF
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <h4 class="text-xs font-extrabold text-charcoal truncate leading-snug">
-                                            {{ selectedMeeting.materi.title }}
-                                        </h4>
-                                        <div class="text-[10px] text-subtext mt-0.5 font-medium">
-                                            Ukuran: {{ selectedMeeting.materi.size }} • Format Dokumen Resmi
+                                <template v-if="meetingMaterials.length">
+                                    <div v-for="material in meetingMaterials" :key="material.id" class="mb-3 last:mb-0">
+                                        <h4 class="text-xs font-extrabold text-charcoal leading-snug">{{ material.title }}</h4>
+                                        <p v-if="material.description" class="text-[10px] text-subtext mt-1 leading-relaxed">
+                                            {{ material.description }}
+                                        </p>
+                                        <div v-if="material.files?.length" class="mt-2 space-y-1.5">
+                                            <button
+                                                v-for="file in material.files"
+                                                :key="file.id"
+                                                type="button"
+                                                @click="openMaterialFile(file)"
+                                                class="w-full flex items-center gap-2 rounded-xl bg-white border border-[#ECEAE4] px-2.5 py-2 text-left hover:border-charcoal/30 active:scale-[0.99] transition-all cursor-pointer"
+                                            >
+                                                <span
+                                                    class="w-9 h-9 rounded-lg flex items-center justify-center font-black text-[9px] shrink-0"
+                                                    :class="fileTone(file.extension)"
+                                                >
+                                                    {{ file.extension }}
+                                                </span>
+                                                <span class="flex-1 min-w-0">
+                                                    <span class="block text-[11px] font-bold text-charcoal truncate">{{ file.original_name }}</span>
+                                                    <span class="block text-[10px] text-subtext">{{ file.human_size }}</span>
+                                                </span>
+                                                <LmsIcon name="download" className="w-3.5 h-3.5 text-charcoal shrink-0" />
+                                            </button>
                                         </div>
                                     </div>
-                                </div>
+                                </template>
 
-                                <p class="text-xs text-charcoal/80 mt-2.5 font-normal leading-relaxed flex-1">
-                                    {{ selectedMeeting.materi.description }}
-                                </p>
+                                <template v-else>
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center font-extrabold text-xs shrink-0">
+                                            PDF
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <h4 class="text-xs font-extrabold text-charcoal truncate leading-snug">
+                                                {{ selectedMeeting.materi.title }}
+                                            </h4>
+                                            <div class="text-[10px] text-subtext mt-0.5 font-medium">
+                                                Ukuran: {{ selectedMeeting.materi.size }} &middot; Format Dokumen Resmi
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                <!-- Download & Read Action -->
-                                <div class="mt-3.5 flex items-center gap-2 shrink-0">
-                                    <button
-                                        type="button"
-                                        @click="handleDownload(selectedMeeting.materi.title)"
-                                        class="flex-1 py-2.5 rounded-full bg-charcoal text-white text-xs font-bold hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-                                    >
-                                        <LmsIcon name="download" className="w-3.5 h-3.5" />
-                                        <span>Unduh Berkas Materi</span>
-                                    </button>
-                                </div>
+                                    <p class="text-xs text-charcoal/80 mt-2.5 font-normal leading-relaxed flex-1">
+                                        {{ selectedMeeting.materi.description }}
+                                    </p>
+
+                                    <div class="mt-3.5 flex items-center gap-2 shrink-0">
+                                        <button
+                                            type="button"
+                                            @click="handleDownload(selectedMeeting.materi.title)"
+                                            class="flex-1 py-2.5 rounded-full bg-charcoal text-white text-xs font-bold hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                                        >
+                                            <LmsIcon name="download" className="w-3.5 h-3.5" />
+                                            <span>Unduh Berkas Materi</span>
+                                        </button>
+                                    </div>
+                                </template>
                             </div>
                         </div>
 
