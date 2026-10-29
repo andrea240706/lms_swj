@@ -172,21 +172,6 @@ const attendanceStatusColor = (status) => {
                                     Pengampu: {{ activeDaySubject.teacher }} • Kode: {{ activeDaySubject.code }}
                                 </p>
 
-                                <!-- Step Progress Bar -->
-                                <div class="mt-3.5">
-                                    <div class="flex items-center justify-between text-[11px] font-bold text-charcoal mb-1">
-                                        <span>Progres Belajar: Pertemuan {{ activeDaySubject.completedMeetings }}/{{ activeDaySubject.totalMeetings }}</span>
-                                        <span>{{ activeDaySubject.progress }}%</span>
-                                    </div>
-                                    <div class="w-full h-1.5 bg-white/70 rounded-full flex items-center">
-                                        <div
-                                            class="h-1.5 bg-charcoal rounded-full relative transition-all duration-500"
-                                            :style="{ width: `${activeDaySubject.progress}%` }"
-                                        >
-                                            <span class="absolute -right-1.5 -top-1 w-3.5 h-3.5 rounded-full bg-charcoal border-2 border-white"></span>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
 

@@ -41,8 +41,7 @@ watch(currentView, () => {
 const selectedMapelId = ref(null);
 const selectedMeetingId = ref(null);
 
-// Category filter on Mapel list
-const activeCategory = ref('Semua');
+// Search filter on Mapel list
 const searchQuery = ref('');
 
 // Toast feedback
@@ -74,17 +73,12 @@ const selectedMeeting = computed(() => {
 // Filtered Mapel list
 const filteredMapelList = computed(() => {
     return mapelList.value.filter((m) => {
-        const matchCategory =
-            activeCategory.value === 'Semua' ||
-            (activeCategory.value === 'Produktif' && m.category.includes('Produktif')) ||
-            (activeCategory.value === 'Umum' && m.category.includes('Umum'));
         const query = searchQuery.value.trim().toLowerCase();
-        const matchQuery =
+        return (
             !query ||
             m.name.toLowerCase().includes(query) ||
-            m.teacher.toLowerCase().includes(query) ||
-            m.code.toLowerCase().includes(query);
-        return matchCategory && matchQuery;
+            m.teacher.toLowerCase().includes(query)
+        );
     });
 });
 
@@ -230,27 +224,8 @@ const submitHomework = () => {
                         </div>
                     </div>
 
-                    <!-- Category Pills Filter & Search (Responsive Row on Desktop) -->
-                    <div class="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-                        <!-- Category Pills -->
-                        <div class="flex items-center gap-2 shrink-0">
-                            <button
-                                v-for="cat in ['Semua', 'Produktif', 'Umum']"
-                                :key="cat"
-                                type="button"
-                                @click="activeCategory = cat"
-                                class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border"
-                                :class="
-                                    activeCategory === cat
-                                        ? 'bg-charcoal text-white border-charcoal shadow-xs'
-                                        : 'bg-white text-subtext border-[#ECEAE4] hover:border-charcoal/30'
-                                "
-                            >
-                                {{ cat }}
-                            </button>
-                        </div>
-
-                        <!-- Search Input -->
+                    <!-- Search Input -->
+                    <div class="mb-3 flex flex-col sm:flex-row sm:items-center">
                         <div class="relative w-full sm:max-w-xs">
                             <input
                                 v-model="searchQuery"
@@ -283,19 +258,6 @@ const submitHomework = () => {
                             class="bg-white rounded-[26px] p-4 sm:p-5 border border-[#ECEAE4] soft-shadow cursor-pointer hover:border-charcoal/30 active:scale-[0.99] transition-all relative overflow-hidden group flex flex-col justify-between"
                         >
                             <div>
-                                <!-- Top Row: Code & Category Pill -->
-                                <div class="flex items-center justify-between mb-2">
-                                    <span
-                                        class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border"
-                                        :class="mapel.badgeColor"
-                                    >
-                                        {{ mapel.code }} • {{ mapel.category }}
-                                    </span>
-                                    <span class="text-[11px] font-bold text-subtext">
-                                        {{ mapel.completedMeetings }}/{{ mapel.totalMeetings }} Selesai
-                                    </span>
-                                </div>
-
                                 <!-- Subject Title -->
                                 <h3 class="text-[16px] font-extrabold text-charcoal leading-snug group-hover:text-black">
                                     {{ mapel.name }}
@@ -322,16 +284,6 @@ const submitHomework = () => {
                                         class="w-7 h-7 rounded-full bg-canvas flex items-center justify-center text-charcoal group-hover:bg-charcoal group-hover:text-white transition-colors shrink-0"
                                     >
                                         <LmsIcon name="arrowUpRight" className="w-3.5 h-3.5" />
-                                    </div>
-                                </div>
-
-                                <!-- Progress Bar -->
-                                <div class="mt-3">
-                                    <div class="w-full h-1.5 bg-[#EFECE6] rounded-full overflow-hidden">
-                                        <div
-                                            class="h-full bg-charcoal rounded-full transition-all duration-300"
-                                            :style="{ width: `${mapel.progress}%` }"
-                                        ></div>
                                     </div>
                                 </div>
                             </div>
@@ -367,9 +319,6 @@ const submitHomework = () => {
                         <LmsIcon name="back" className="w-3.5 h-3.5" />
                         <span>Daftar Mapel</span>
                     </button>
-                    <span class="text-xs font-extrabold text-subtext">
-                        {{ selectedMapel.code }}
-                    </span>
                 </div>
             </header>
 
@@ -399,7 +348,7 @@ const submitHomework = () => {
                         {{ selectedMapel.name }}
                     </h2>
                     <p class="text-xs font-semibold text-charcoal/75 mt-1">
-                        {{ selectedMapel.category }} • {{ selectedMapel.room }}
+                        {{ selectedMapel.room }}
                     </p>
 
                     <!-- Teacher Pill -->
@@ -419,10 +368,9 @@ const submitHomework = () => {
                         </div>
                     </div>
 
-                    <!-- Jadwal & Progress Pill -->
-                    <div class="mt-3 flex items-center justify-between text-xs font-bold text-charcoal/80">
+                    <!-- Jadwal Pill -->
+                    <div class="mt-3 flex items-center text-xs font-bold text-charcoal/80">
                         <span>🕒 {{ selectedMapel.dayTime }}</span>
-                        <span>{{ selectedMapel.progress }}% Tuntas</span>
                     </div>
                 </div>
 
@@ -446,21 +394,9 @@ const submitHomework = () => {
                     >
                         <div>
                             <!-- Meeting Number & Date Badge (Contoh: Pertemuan 1 / Senin, 20 Juli 2026) -->
-                            <div class="flex items-center justify-between mb-2">
+                            <div class="mb-2">
                                 <span class="text-xs font-extrabold text-charcoal">
                                     Pertemuan {{ mt.number }} • {{ mt.date }}
-                                </span>
-                                <span
-                                    class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full"
-                                    :class="
-                                        mt.status === 'Selesai'
-                                            ? 'bg-sage-light text-sage-dark'
-                                            : mt.status === 'Sedang Berlangsung'
-                                              ? 'bg-amber-light text-amber-dark'
-                                              : 'bg-muted text-subtext'
-                                    "
-                                >
-                                    {{ mt.status }}
                                 </span>
                             </div>
 
@@ -548,18 +484,6 @@ const submitHomework = () => {
                         >
                             Pertemuan {{ selectedMeeting.number }} • {{ selectedMeeting.date }}
                         </span>
-                        <span
-                            class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full"
-                            :class="
-                                selectedMeeting.status === 'Selesai'
-                                    ? 'bg-[#2E7D32] text-white'
-                                    : selectedMeeting.status === 'Sedang Berlangsung'
-                                      ? 'bg-amber-600 text-white'
-                                      : 'bg-charcoal/70 text-white'
-                            "
-                        >
-                            {{ selectedMeeting.status }}
-                        </span>
                     </div>
 
                     <h2 class="text-[18px] font-extrabold text-charcoal mt-3 leading-tight">
@@ -575,14 +499,12 @@ const submitHomework = () => {
                     </div>
                 </div>
 
-                <!-- 2-Column Responsive Layout on Desktop: Left (Materi & Video), Right (Tugas & Nilai) -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
-                    <!-- Left Column: Modul Berkas Materi & Video Pembelajaran -->
-                    <div class="space-y-4">
+                <!-- Equal-height 2x2 Grid on Desktop: Left (Materi & Video), Right (Tugas & Nilai) -->
+                <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-stretch">
                         <!-- ============================================== -->
                         <!-- 1. KOLOM FILE MATERI                           -->
                         <!-- ============================================== -->
-                        <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow">
+                        <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow h-full flex flex-col lg:h-[380px] lg:col-start-1 lg:row-start-1">
                             <div class="flex items-center justify-between mb-3">
                                 <div class="flex items-center gap-2">
                                     <span class="w-7 h-7 rounded-full bg-sky-light text-sky-dark flex items-center justify-center">
@@ -597,7 +519,7 @@ const submitHomework = () => {
                                 </span>
                             </div>
 
-                            <div class="p-3.5 rounded-2xl bg-canvas border border-[#ECEAE4]">
+                            <div class="p-3.5 rounded-2xl bg-canvas border border-[#ECEAE4] flex-1 flex flex-col lg:min-h-0 lg:overflow-y-auto no-scrollbar">
                                 <div class="flex items-start gap-3">
                                     <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center font-extrabold text-xs shrink-0">
                                         PDF
@@ -612,12 +534,12 @@ const submitHomework = () => {
                                     </div>
                                 </div>
 
-                                <p class="text-xs text-charcoal/80 mt-2.5 font-normal leading-relaxed">
+                                <p class="text-xs text-charcoal/80 mt-2.5 font-normal leading-relaxed flex-1">
                                     {{ selectedMeeting.materi.description }}
                                 </p>
 
                                 <!-- Download & Read Action -->
-                                <div class="mt-3.5 flex items-center gap-2">
+                                <div class="mt-3.5 flex items-center gap-2 shrink-0">
                                     <button
                                         type="button"
                                         @click="handleDownload(selectedMeeting.materi.title)"
@@ -633,7 +555,7 @@ const submitHomework = () => {
                         <!-- ============================================== -->
                         <!-- 4. MATERI VIDEO (YOUTUBE PREVIEW & REDIRECT)   -->
                         <!-- ============================================== -->
-                        <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow">
+                        <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow h-full flex flex-col lg:h-[380px] lg:col-start-1 lg:row-start-2">
                             <div class="flex items-center justify-between mb-3">
                                 <div class="flex items-center gap-2">
                                     <span class="w-7 h-7 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-extrabold text-xs">
@@ -651,10 +573,10 @@ const submitHomework = () => {
                             <!-- YouTube Preview Card (Click redirects directly to YouTube) -->
                             <div
                                 @click="openVideo(selectedMeeting.video.url)"
-                                class="group cursor-pointer rounded-2xl overflow-hidden border border-[#ECEAE4] soft-shadow hover:border-charcoal/40 transition-all bg-black relative"
+                                class="group cursor-pointer rounded-2xl overflow-hidden border border-[#ECEAE4] soft-shadow hover:border-charcoal/40 transition-all bg-black relative lg:flex-1 lg:min-h-0 lg:flex lg:flex-col"
                             >
                                 <!-- Thumbnail Preview with 16:9 Aspect Ratio -->
-                                <div class="relative w-full aspect-video overflow-hidden">
+                                <div class="relative w-full aspect-video overflow-hidden lg:aspect-auto lg:flex-1 lg:min-h-0">
                                     <img
                                         :src="selectedMeeting.video.thumbnail"
                                         :alt="selectedMeeting.video.title"
@@ -687,7 +609,7 @@ const submitHomework = () => {
                                 </div>
 
                                 <!-- Video Title & Channel Info -->
-                                <div class="p-3 bg-white border-t border-[#ECEAE4]">
+                                <div class="p-3 bg-white border-t border-[#ECEAE4] shrink-0">
                                     <h4 class="text-xs font-extrabold text-charcoal leading-snug group-hover:text-black line-clamp-2">
                                         {{ selectedMeeting.video.title }}
                                     </h4>
@@ -702,18 +624,15 @@ const submitHomework = () => {
                                 </div>
                             </div>
 
-                            <p class="text-[10px] text-subtext text-center mt-2.5 font-medium">
+                            <p class="text-[10px] text-subtext text-center mt-auto pt-2.5 font-medium">
                                 Ketuk pratinjau di atas untuk membuka video secara otomatis di laman YouTube.
                             </p>
                         </div>
-                    </div>
 
-                    <!-- Right Column: Kolom Tugas & Pengumpulan + Kolom Nilai -->
-                    <div class="space-y-4">
                         <!-- ============================================== -->
                         <!-- 2. KOLOM FILE TUGAS & PENGUMPULAN TUGAS         -->
                         <!-- ============================================== -->
-                        <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow">
+                        <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow h-full flex flex-col lg:h-[380px] lg:col-start-2 lg:row-start-1">
                             <div class="flex items-center justify-between mb-3">
                                 <div class="flex items-center gap-2">
                                     <span class="w-7 h-7 rounded-full bg-blossom-light text-blossom-dark flex items-center justify-center">
@@ -736,7 +655,7 @@ const submitHomework = () => {
                             </div>
 
                             <!-- Tugas Description & Lembar Soal -->
-                            <div class="p-3.5 rounded-2xl bg-canvas border border-[#ECEAE4] space-y-3">
+                            <div class="p-3.5 rounded-2xl bg-canvas border border-[#ECEAE4] flex-1 flex flex-col gap-3 lg:min-h-0 lg:overflow-y-auto no-scrollbar">
                                 <div>
                                     <h4 class="text-xs font-extrabold text-charcoal leading-snug">
                                         {{ selectedMeeting.tugas.title }}
@@ -778,7 +697,7 @@ const submitHomework = () => {
                                 </div>
 
                                 <!-- Pengumpulan Tugas Status & Upload Action -->
-                                <div class="pt-1">
+                                <div class="pt-1 mt-auto">
                                     <!-- Sudah Dikumpulkan State -->
                                     <div
                                         v-if="selectedMeeting.tugas.isSubmitted"
@@ -831,7 +750,7 @@ const submitHomework = () => {
                         <!-- ============================================== -->
                         <!-- 3. KOLOM KHUSUS MELIHAT INFORMASI NILAI        -->
                         <!-- ============================================== -->
-                        <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow">
+                        <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow h-full flex flex-col lg:h-[380px] lg:col-start-2 lg:row-start-2">
                             <div class="flex items-center justify-between mb-3">
                                 <div class="flex items-center gap-2">
                                     <span class="w-7 h-7 rounded-full bg-sage-light text-sage-dark flex items-center justify-center">
@@ -849,7 +768,7 @@ const submitHomework = () => {
                             <!-- Graded State -->
                             <div
                                 v-if="selectedMeeting.nilai.hasScore"
-                                class="p-4 rounded-2xl bg-canvas border border-[#ECEAE4] space-y-3"
+                                class="p-4 rounded-2xl bg-canvas border border-[#ECEAE4] flex-1 flex flex-col gap-3 lg:min-h-0 lg:overflow-y-auto no-scrollbar"
                             >
                                 <div class="flex items-center justify-between">
                                     <div>
@@ -877,7 +796,7 @@ const submitHomework = () => {
                                 </div>
 
                                 <!-- Feedback Note from Teacher -->
-                                <div class="p-3 rounded-xl bg-white border border-[#ECEAE4]">
+                                <div class="p-3 rounded-xl bg-white border border-[#ECEAE4] flex-1">
                                     <div class="text-[10px] font-bold text-subtext uppercase tracking-wide flex items-center justify-between">
                                         <span>Catatan / Umpan Balik Guru</span>
                                         <span class="text-[10px] font-bold text-charcoal">{{ selectedMeeting.nilai.gradedBy }}</span>
@@ -891,7 +810,7 @@ const submitHomework = () => {
                             <!-- Not Graded State -->
                             <div
                                 v-else
-                                class="p-4 rounded-2xl bg-canvas border border-dashed border-[#ECEAE4] text-center"
+                                class="p-4 rounded-2xl bg-canvas border border-dashed border-[#ECEAE4] text-center flex-1 flex flex-col justify-center"
                             >
                                 <div class="w-10 h-10 rounded-full bg-muted mx-auto flex items-center justify-center text-subtext mb-2">
                                     <LmsIcon name="clock" className="w-5 h-5" />
@@ -904,7 +823,6 @@ const submitHomework = () => {
                                 </p>
                             </div>
                         </div>
-                    </div>
                 </div>
                     </template>
                 </div>
