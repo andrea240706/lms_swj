@@ -12,7 +12,9 @@ const props = defineProps({
     role: { type: Object, required: true },
     activeTab: { type: String, default: 'home' },
     selectedDay: { type: Number, default: 18 },
+    selectedDayDate: { type: String, default: '' },
     days: { type: Array, default: () => [] },
+    calendarEvents: { type: Object, default: () => ({}) },
     teacherGateOpen: { type: Boolean, default: true },
     materialsLock: { type: Object, default: () => ({ 1: false, 2: false, 3: true, 4: true }) },
     isSidebarCollapsed: { type: Boolean, default: false },
@@ -39,8 +41,8 @@ watch(() => props.activeTab, () => {
 });
 
 // ===== JADWAL MENGAJAR PER HARI =====
-const jadwalPerHari = {
-    18: [ // Senin
+const jadwalByDayName = {
+    Senin: [
         {
             id: 1,
             mapelId: 'pwpb',
@@ -53,7 +55,7 @@ const jadwalPerHari = {
             totalSesi: 5,
             siswa: 34,
             hadir: 31,
-            status: 'sedang', // 'sedang' | 'selesai' | 'mendatang'
+            status: 'sedang',
             heroBg: 'hero-sage',
             badgeColor: 'bg-sage-light text-sage-dark',
         },
@@ -74,7 +76,7 @@ const jadwalPerHari = {
             badgeColor: 'bg-blossom-light text-blossom-dark',
         },
     ],
-    19: [ // Selasa
+    Selasa: [
         {
             id: 3,
             mapelId: 'bd',
@@ -92,8 +94,8 @@ const jadwalPerHari = {
             badgeColor: 'bg-sky-light text-sky-dark',
         },
     ],
-    20: [], // Rabu - tidak mengajar
-    21: [ // Kamis
+    Rabu: [],
+    Kamis: [
         {
             id: 4,
             mapelId: 'pwpb',
@@ -111,18 +113,29 @@ const jadwalPerHari = {
             badgeColor: 'bg-sage-light text-sage-dark',
         },
     ],
-    22: [], // Jumat
-    23: [], // Sabtu
+    Jumat: [],
+    Sabtu: [],
 };
-
-const jadwalHariIni = computed(() => jadwalPerHari[props.selectedDay] || []);
-
-const sesiAktif = computed(() => jadwalHariIni.value.find(j => j.status === 'sedang') || jadwalHariIni.value[0] || null);
 
 const getDayLabel = (n) => {
+    const found = props.days.find((d) => d.n === n);
+    if (found) return found.full;
     const map = { 18: 'Senin', 19: 'Selasa', 20: 'Rabu', 21: 'Kamis', 22: 'Jumat', 23: 'Sabtu' };
-    return map[n] || '-';
+    return map[n] || 'Senin';
 };
+
+const currentDayEvents = computed(() => {
+    const found = props.days.find((d) => d.n === props.selectedDay);
+    const dateStr = found ? found.date : props.selectedDayDate;
+    return props.calendarEvents[dateStr] || null;
+});
+
+const jadwalHariIni = computed(() => {
+    const dayName = getDayLabel(props.selectedDay);
+    return jadwalByDayName[dayName] || [];
+});
+
+const sesiAktif = computed(() => jadwalHariIni.value.find(j => j.status === 'sedang') || jadwalHariIni.value[0] || null);
 
 // Pending grading queue
 const pendingNilai = [
@@ -248,8 +261,33 @@ const statusSesiLabel = (status) => {
                             title="Jadwal Mengajar Mingguan"
                             :days="days"
                             :selectedDay="selectedDay"
-                            @selectDay="(d) => $emit('selectDay', d)"
+                            :events="calendarEvents"
+                            @selectDay="(d, date) => $emit('selectDay', d, date)"
                         />
+
+                        <!-- Academic Notice Banner in Guru View -->
+                        <div
+                            v-if="currentDayEvents"
+                            class="rounded-[22px] p-4 mt-4 border flex items-center gap-3.5"
+                            :class="
+                                currentDayEvents.type === 'holiday' || currentDayEvents.type === 'leave'
+                                    ? 'bg-rose-50/80 border-rose-200'
+                                    : currentDayEvents.type === 'exam'
+                                    ? 'bg-purple-50/80 border-purple-200'
+                                    : 'bg-sky-50/80 border-sky-200'
+                            "
+                        >
+                            <span class="w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 text-base" :class="currentDayEvents.type === 'holiday' ? 'bg-rose-100 text-rose-700' : currentDayEvents.type === 'exam' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'">
+                                {{ currentDayEvents.type === 'holiday' ? '🎉' : currentDayEvents.type === 'exam' ? '📝' : '📌' }}
+                            </span>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-[10px] font-bold uppercase tracking-wider text-charcoal/70">
+                                    {{ currentDayEvents.type === 'holiday' ? 'Libur Resmi (SKB 3 Menteri)' : currentDayEvents.type === 'exam' ? 'Agenda Ujian Kejuruan' : 'Agenda Kalender Pendidikan' }}
+                                </div>
+                                <h4 class="text-xs font-extrabold text-charcoal mt-0.5">{{ currentDayEvents.name }}</h4>
+                                <p class="text-[11px] text-subtext mt-0.5">{{ currentDayEvents.description }}</p>
+                            </div>
+                        </div>
 
                         <!-- 3. SEMUA SESI HARI INI (jika > 1) -->
                         <div v-if="jadwalHariIni.length > 1">

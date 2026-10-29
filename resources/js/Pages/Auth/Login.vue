@@ -111,7 +111,7 @@ const submit = () => {
                     </h1>
 
                     <p class="text-[14px] text-[#6E6E77] mt-3 leading-relaxed max-w-[420px]">
-                        Akses modul praktik kejuruan, presensi mandiri berbatas waktu, dan pengumpulan tugas dalam satu portal terpadu.
+                        Akses modul praktik kejuruan, materi pembelajaran interaktif, dan pengumpulan tugas dalam satu portal terpadu.
                     </p>
 
                     <!-- Student Portrait & Program List -->
@@ -378,7 +378,7 @@ const submit = () => {
                         </h1>
 
                         <p class="text-[13px] text-[#6E6E77] mt-2.5 leading-relaxed max-w-[320px]">
-                            Akses modul praktik, presensi kehadiran mandiri, dan pengumpulan tugas dalam satu genggaman.
+                            Akses modul praktik kejuruan, materi pembelajaran, dan pengumpulan tugas dalam satu genggaman.
                         </p>
 
                         <div class="flex items-center gap-1.5 my-5">

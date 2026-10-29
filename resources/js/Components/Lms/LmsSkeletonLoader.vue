@@ -141,7 +141,7 @@ defineProps({
             </div>
         </template>
 
-        <!-- ==================== MEETING-DETAIL ==================== -->
+        <!-- ==================== MEETING-DETAIL (GURU) ==================== -->
         <!-- Sub-tabs + content (penilaian/materi/video) -->
         <template v-else-if="type === 'meeting-detail'">
             <!-- Sub-tab bar -->
@@ -157,6 +157,24 @@ defineProps({
                 <div class="space-y-3">
                     <div class="skel h-4 w-28 rounded-full"></div>
                     <div v-for="i in 3" :key="i" class="skel h-20 rounded-[22px]"></div>
+                </div>
+            </div>
+        </template>
+
+        <!-- ==================== MEETING-DETAIL-SISWA (MOODLE STYLE) ==================== -->
+        <template v-else-if="type === 'meeting-detail-siswa'">
+            <!-- Top Meeting Info Card -->
+            <div class="skel h-36 rounded-[28px] mb-4"></div>
+            <!-- Unified Moodle Container -->
+            <div class="bg-white rounded-[26px] border border-[#ECEAE4] p-5 space-y-5">
+                <div class="skel h-5 w-48 rounded-full"></div>
+                <div v-for="i in 4" :key="i" class="flex gap-4 pt-4 border-t border-[#F2F0EC]">
+                    <div class="skel w-9 h-9 rounded-xl shrink-0"></div>
+                    <div class="flex-1 space-y-2">
+                        <div class="skel h-4 w-1/3 rounded-lg"></div>
+                        <div class="skel h-3 w-3/4 rounded-lg"></div>
+                        <div class="skel h-12 w-full rounded-xl mt-2"></div>
+                    </div>
                 </div>
             </div>
         </template>

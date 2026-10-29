@@ -26,7 +26,6 @@ defineProps({
 
 defineEmits([
     'close',
-    'confirmAttendance',
     'submitAssignment',
     'submitGrade',
     'selectRole',
@@ -45,30 +44,8 @@ defineEmits([
             @click.stop
             class="w-full max-w-[400px] bg-white rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl transition-all max-h-[90vh] overflow-y-auto no-scrollbar"
         >
-            <!-- 1. STUDENT ATTENDANCE CONFIRMATION -->
-            <div v-if="sheetType === 'student_attendance'" class="text-center">
-                <span
-                    class="inline-block px-3 py-1 rounded-full bg-sage-light text-sage-dark text-xs font-bold"
-                >
-                    Timer Sesi Aktif: 12:40 Tersisa
-                </span>
-                <h3 class="text-lg font-extrabold text-charcoal mt-2">
-                    Konfirmasi Presensi Kehadiran
-                </h3>
-                <p class="text-xs text-subtext mt-1">
-                    Mata Pelajaran: Pemrograman Web & Perangkat Bergerak (XII RPL 1)
-                </p>
-                <button
-                    type="button"
-                    @click="$emit('confirmAttendance')"
-                    class="mt-5 w-full py-3.5 rounded-full bg-charcoal text-white text-xs font-bold cursor-pointer hover:opacity-90 active:scale-[0.99] transition-all"
-                >
-                    Konfirmasi Hadir Sekarang
-                </button>
-            </div>
-
-            <!-- 2. LESSON VIEWER / DOWNLOAD -->
-            <div v-else-if="sheetType === 'lesson'">
+            <!-- 1. LESSON VIEWER / DOWNLOAD -->
+            <div v-if="sheetType === 'lesson'">
                 <span
                     class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-blossom-light text-blossom-dark"
                 >

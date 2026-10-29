@@ -21,6 +21,10 @@ const props = defineProps({
         type: Number,
         default: 18,
     },
+    events: {
+        type: Object,
+        default: () => ({}),
+    },
 });
 
 const emit = defineEmits(['selectDay']);
@@ -85,6 +89,29 @@ const selectedDateFormatted = computed(() => {
     const year = d.getFullYear();
     return `${dayName}, ${date} ${month} ${year}`;
 });
+
+const selectedDateString = computed(() => {
+    const d = selectedDate.value;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+});
+
+const selectedEvent = computed(() => {
+    return props.events[selectedDateString.value] || null;
+});
+
+const getCellDateString = (cell) => {
+    const m = String(cell.month + 1).padStart(2, '0');
+    const d = String(cell.day).padStart(2, '0');
+    return `${cell.year}-${m}-${d}`;
+};
+
+const getEventForCell = (cell) => {
+    const str = getCellDateString(cell);
+    return props.events[str] || null;
+};
 
 // Calculate Calendar Day Matrix (6 rows x 7 days = 42 cells)
 const calendarCells = computed(() => {
@@ -184,7 +211,8 @@ const goToToday = () => {
     viewMonth.value = today.getMonth();
     viewYear.value = today.getFullYear();
     selectedDate.value = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    emit('selectDay', today.getDate());
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    emit('selectDay', today.getDate(), dateStr);
 };
 
 const selectCalendarDate = (cell) => {
@@ -193,11 +221,12 @@ const selectCalendarDate = (cell) => {
         viewMonth.value = cell.month;
         viewYear.value = cell.year;
     }
-    emit('selectDay', cell.day);
+    const dateStr = getCellDateString(cell);
+    emit('selectDay', cell.day, dateStr);
 };
 
 const confirmSelection = () => {
-    emit('selectDay', selectedDate.value.getDate());
+    emit('selectDay', selectedDate.value.getDate(), selectedDateString.value);
     closeModal();
 };
 
@@ -223,7 +252,7 @@ const gridColsClass = computed(() => {
                 type="button"
                 @click="openCalendarModal"
                 class="text-xs font-bold text-charcoal bg-white border border-[#ECEAE4] px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-2xs hover:border-charcoal/40 active:scale-95 transition-all cursor-pointer select-none"
-                title="Buka Kalender Real-Time"
+                title="Buka Kalender Pendidikan & Real-Time"
             >
                 <span class="w-2 h-2 rounded-full bg-[#2E7D32] live-dot"></span>
                 <span>{{ currentPillLabel }}</span>
@@ -242,42 +271,78 @@ const gridColsClass = computed(() => {
             </button>
         </div>
 
-        <!-- Weekly Capsule Grid (Senin - Sabtu) -->
+        <!-- Weekly Capsule Grid (Senin - Sabtu Dinamis) -->
         <div :class="['grid gap-1.5', gridColsClass]">
             <button
                 v-for="item in days"
-                :key="item.n"
+                :key="item.date || item.n"
                 type="button"
-                @click="$emit('selectDay', item.n)"
-                class="py-3 rounded-full flex flex-col items-center justify-center transition-all cursor-pointer select-none"
+                @click="$emit('selectDay', item.n, item.date)"
+                class="py-3 px-1 rounded-full flex flex-col items-center justify-center transition-all cursor-pointer select-none relative group"
                 :class="
                     selectedDay === item.n
                         ? 'bg-charcoal text-white shadow-md scale-[1.03]'
+                        : item.isHoliday
+                        ? 'bg-rose-50/80 text-rose-700 border border-rose-200 hover:border-rose-300'
+                        : item.isToday
+                        ? 'bg-sage-light/60 text-charcoal border border-sage/40 hover:border-charcoal/30'
                         : 'bg-white text-charcoal border border-[#ECEAE4] hover:border-charcoal/30'
                 "
+                :title="item.holidayName ? `Libur: ${item.holidayName}` : (item.academicEvent || item.full)"
             >
+                <!-- Day Name -->
                 <span
                     class="text-[10px] font-semibold"
-                    :class="selectedDay === item.n ? 'text-white/75' : 'text-subtext'"
+                    :class="
+                        selectedDay === item.n
+                            ? 'text-white/75'
+                            : item.isHoliday
+                            ? 'text-rose-600 font-bold'
+                            : 'text-subtext'
+                    "
                 >
                     {{ item.d }}
                 </span>
-                <span class="text-[15px] font-extrabold mt-0.5">{{ item.n }}</span>
-                <div class="flex gap-0.5 mt-1">
+
+                <!-- Day Number -->
+                <span
+                    class="text-[15px] font-extrabold mt-0.5"
+                    :class="item.isHoliday && selectedDay !== item.n ? 'text-rose-700' : ''"
+                >
+                    {{ item.n }}
+                </span>
+
+                <!-- Indicator Dot -->
+                <div class="flex items-center gap-0.5 mt-1">
                     <span
-                        class="w-1 h-1 rounded-full"
-                        :class="selectedDay === item.n ? 'bg-white' : 'bg-charcoal/25'"
+                        v-if="item.isToday"
+                        class="w-1.5 h-1.5 rounded-full"
+                        :class="selectedDay === item.n ? 'bg-emerald-400' : 'bg-emerald-600 animate-pulse'"
+                        title="Hari Ini"
                     ></span>
                     <span
+                        v-else-if="item.isHoliday"
+                        class="w-1.5 h-1.5 rounded-full"
+                        :class="selectedDay === item.n ? 'bg-rose-300' : 'bg-rose-500'"
+                        title="Hari Libur"
+                    ></span>
+                    <span
+                        v-else-if="item.eventType === 'exam'"
+                        class="w-1.5 h-1.5 rounded-full"
+                        :class="selectedDay === item.n ? 'bg-purple-300' : 'bg-purple-600'"
+                        title="Ujian / Evaluasi"
+                    ></span>
+                    <span
+                        v-else
                         class="w-1 h-1 rounded-full"
-                        :class="selectedDay === item.n ? 'bg-white/70' : 'bg-transparent'"
+                        :class="selectedDay === item.n ? 'bg-white' : 'bg-charcoal/25'"
                     ></span>
                 </div>
             </button>
         </div>
 
         <!-- ======================================================== -->
-        <!-- REAL-TIME CALENDAR MODAL                                  -->
+        <!-- REAL-TIME KALENDER PENDIDIKAN MODAL                       -->
         <!-- ======================================================== -->
         <Teleport to="body">
             <Transition name="calendar-modal">
@@ -287,15 +352,15 @@ const gridColsClass = computed(() => {
                     @click.self="closeModal"
                 >
                     <div
-                        class="bg-white rounded-[32px] p-5 sm:p-6 w-full max-w-sm border border-[#ECEAE4] shadow-2xl relative flex flex-col modal-card"
+                        class="bg-white rounded-[32px] p-5 sm:p-6 w-full max-w-sm sm:max-w-md border border-[#ECEAE4] shadow-2xl relative flex flex-col modal-card"
                     >
-                        <!-- Live Time Header -->
+                        <!-- Live Time & Kaldik Badge Header -->
                         <div class="flex items-center justify-between pb-3.5 border-b border-[#ECEAE4] mb-3.5">
                             <div class="flex items-center gap-2.5">
                                 <span class="w-2.5 h-2.5 rounded-full bg-[#2E7D32] live-dot shrink-0"></span>
                                 <div>
                                     <div class="text-[10px] font-bold uppercase tracking-wider text-subtext">
-                                        Waktu Real-Time
+                                        Kalender Pendidikan & Real-Time
                                     </div>
                                     <div class="text-xs font-extrabold text-charcoal">
                                         {{ liveTimeFormatted }}
@@ -356,7 +421,7 @@ const gridColsClass = computed(() => {
                             </span>
                         </div>
 
-                        <!-- 42-Day Matrix Grid -->
+                        <!-- 42-Day Matrix Grid with Holiday & Event Highlights -->
                         <div class="grid grid-cols-7 gap-1 text-center">
                             <button
                                 v-for="(cell, i) in calendarCells"
@@ -370,35 +435,82 @@ const gridColsClass = computed(() => {
                                             ? 'bg-charcoal text-white shadow-sm'
                                             : cell.isToday
                                             ? 'bg-sage-light text-sage-dark font-extrabold border border-sage/40'
+                                            : getEventForCell(cell)?.type === 'holiday' || getEventForCell(cell)?.type === 'leave'
+                                            ? 'text-rose-600 hover:bg-rose-50 font-extrabold'
                                             : 'text-charcoal hover:bg-canvas'
                                         : 'text-subtext/40 hover:bg-canvas/50',
                                 ]"
                             >
                                 <span>{{ cell.day }}</span>
+                                <!-- Event Indicator Dots -->
                                 <span
-                                    v-if="cell.isToday && !isSelectedDate(cell)"
-                                    class="w-1 h-1 rounded-full bg-[#2E7D32] absolute bottom-1"
+                                    v-if="!isSelectedDate(cell)"
+                                    class="w-1 h-1 rounded-full absolute bottom-1"
+                                    :class="
+                                        cell.isToday
+                                            ? 'bg-[#2E7D32]'
+                                            : getEventForCell(cell)?.type === 'holiday' || getEventForCell(cell)?.type === 'leave'
+                                            ? 'bg-rose-500'
+                                            : getEventForCell(cell)?.type === 'exam'
+                                            ? 'bg-purple-600'
+                                            : getEventForCell(cell)?.type === 'school_event'
+                                            ? 'bg-sky-500'
+                                            : ''
+                                    "
                                 ></span>
                             </button>
                         </div>
 
+                        <!-- Legend Mini Bar -->
+                        <div class="flex items-center justify-center gap-3 text-[10px] text-subtext mt-3 pt-2 border-t border-[#ECEAE4]/60">
+                            <span class="flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Libur Nasional
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span> PTS / PAS
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Hari Ini
+                            </span>
+                        </div>
+
                         <!-- Selected Date Info & Actions -->
-                        <div class="mt-4 pt-3.5 border-t border-[#ECEAE4] flex items-center justify-between">
-                            <div>
-                                <div class="text-[10px] text-subtext font-semibold uppercase tracking-wider">
-                                    Tanggal Dipilih
+                        <div class="mt-3 pt-3 border-t border-[#ECEAE4]">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0 flex-1">
+                                    <div class="text-[10px] text-subtext font-semibold uppercase tracking-wider">
+                                        Agenda Kalender Pendidikan
+                                    </div>
+                                    <div class="text-xs font-extrabold text-charcoal mt-0.5 truncate">
+                                        {{ selectedDateFormatted }}
+                                    </div>
+                                    <!-- Event Badge -->
+                                    <div v-if="selectedEvent" class="mt-1.5 space-y-0.5">
+                                        <span
+                                            class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold"
+                                            :class="selectedEvent.badgeColor"
+                                        >
+                                            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                            {{ selectedEvent.name }}
+                                        </span>
+                                        <p class="text-[10px] text-subtext leading-tight truncate">
+                                            {{ selectedEvent.description }}
+                                        </p>
+                                    </div>
+                                    <div v-else class="mt-1.5">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sage-light text-sage-dark">
+                                            ● Hari Efektif KBM Reguler
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="text-xs font-extrabold text-charcoal mt-0.5">
-                                    {{ selectedDateFormatted }}
-                                </div>
+                                <button
+                                    type="button"
+                                    @click="confirmSelection"
+                                    class="px-4 py-2 rounded-full bg-charcoal text-white text-xs font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-sm shrink-0"
+                                >
+                                    Terapkan
+                                </button>
                             </div>
-                            <button
-                                type="button"
-                                @click="confirmSelection"
-                                class="px-4 py-2 rounded-full bg-charcoal text-white text-xs font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-sm"
-                            >
-                                Terapkan
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -429,5 +541,14 @@ const gridColsClass = computed(() => {
 
 .calendar-modal-leave-to .modal-card {
     transform: scale(0.95) translateY(10px);
+}
+
+.live-dot {
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
 }
 </style>

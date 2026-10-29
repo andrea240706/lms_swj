@@ -61,7 +61,9 @@ const showToast = (msg) => {
 // Upload Modal state
 const isUploadModalOpen = ref(false);
 const uploadTarget = ref({ mapelId: null, meetingId: null, tugasTitle: '' });
-const simulatedFileName = ref('Tugas_Praktikum_NadiaPutri_XIIRPL1.zip');
+const droppedFile = ref(null); // { name, size, type }
+const isDragOver = ref(false);
+const fileInputRef = ref(null);
 
 // Selected Mapel & Meeting computed
 const selectedMapel = computed(() => {
@@ -160,35 +162,60 @@ const handleDownload = (fileName) => {
 // Open Upload modal
 const openUpload = (mapelId, meetingId, tugasTitle) => {
     uploadTarget.value = { mapelId, meetingId, tugasTitle };
-    simulatedFileName.value = `Tugas_Pertemuan${meetingId}_NadiaPutri.zip`;
+    droppedFile.value = null;
+    isDragOver.value = false;
     isUploadModalOpen.value = true;
+};
+
+// Drag & Drop handlers
+const onDragOver = (e) => {
+    e.preventDefault();
+    isDragOver.value = true;
+};
+const onDragLeave = () => { isDragOver.value = false; };
+const onDrop = (e) => {
+    e.preventDefault();
+    isDragOver.value = false;
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) {
+        droppedFile.value = { name: files[0].name, size: files[0].size, type: files[0].type };
+    }
+};
+const onFileInputChange = (e) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+        droppedFile.value = { name: files[0].name, size: files[0].size, type: files[0].type };
+    }
+};
+const formatFileSize = (bytes) => {
+    if (!bytes || bytes <= 0) return '0 KB';
+    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 };
 
 // Confirm upload homework
 const submitHomework = () => {
     if (!uploadTarget.value.mapelId || !uploadTarget.value.meetingId) return;
 
+    if (!droppedFile.value) {
+        showToast('Pilih atau seret berkas tugas terlebih dahulu.');
+        return;
+    }
+
     const mapel = mapelList.value.find((m) => m.id === uploadTarget.value.mapelId);
     if (mapel) {
         const meeting = mapel.meetings.find((mt) => mt.id === uploadTarget.value.meetingId);
         if (meeting && meeting.tugas) {
             meeting.tugas.isSubmitted = true;
-            meeting.tugas.submittedFile = simulatedFileName.value;
+            meeting.tugas.submittedFile = droppedFile.value?.name ?? 'Tugas_Siswa.pdf';
             const now = new Date();
-            const dateStr = now.toLocaleDateString('id-ID', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-            });
-            const timeStr = now.toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit',
-            });
+            const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
             meeting.tugas.submittedAt = `${dateStr}, ${timeStr} WIB`;
             meeting.tugas.status = 'Menunggu Penilaian Guru';
             if (meeting.nilai) {
                 meeting.nilai.status = 'Menunggu Penilaian Guru';
-                meeting.nilai.feedback = 'Berkas tugas telah diterima, sedang dalam antrean koreksi guru pengampu.';
+                meeting.nilai.feedback = 'Tugas telah diterima, sedang dalam antrean koreksi guru pengampu.';
             }
             showToast('Tugas berhasil dikirim ke guru!');
         }
@@ -512,7 +539,7 @@ const submitHomework = () => {
 
             <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
                 <div class="w-full max-w-[1800px] mx-auto space-y-4">
-                    <LmsSkeletonLoader v-if="isLoading" type="meeting-detail" />
+                    <LmsSkeletonLoader v-if="isLoading" type="meeting-detail-siswa" />
                     <template v-else>
                     <!-- TOP CARD UI: Pertemuan Info Header -->
                 <div
@@ -540,361 +567,312 @@ const submitHomework = () => {
                     </div>
                 </div>
 
-                <!-- Equal-height 2x2 Grid on Desktop: Left (Materi & Video), Right (Tugas & Nilai) -->
-                <div class="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-stretch">
-                        <!-- ============================================== -->
-                        <!-- 1. KOLOM FILE MATERI                           -->
-                        <!-- ============================================== -->
-                        <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow h-full flex flex-col lg:h-[380px] lg:col-start-1 lg:row-start-1">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-7 h-7 rounded-full bg-sky-light text-sky-dark flex items-center justify-center">
-                                        <LmsIcon name="book" className="w-4 h-4" />
-                                    </span>
-                                    <h3 class="text-[15px] font-extrabold text-charcoal">
-                                        Kolom Berkas Materi
-                                    </h3>
-                                </div>
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-canvas text-subtext border border-[#ECEAE4]">
-                                    {{ meetingMaterials.length ? `${studentMaterialFileCount} file` : selectedMeeting.materi.pages }}
-                                </span>
-                            </div>
+                <!-- ======================================================== -->
+                <!-- MOODLE-STYLE UNIFIED ACTIVITY & RESOURCE FEED           -->
+                <!-- ======================================================== -->
+                <div class="bg-white rounded-[26px] border border-[#ECEAE4] soft-shadow divide-y divide-[#ECEAE4] overflow-hidden">
 
-                            <div class="p-3.5 rounded-2xl bg-canvas border border-[#ECEAE4] flex-1 flex flex-col lg:min-h-0 lg:overflow-y-auto no-scrollbar">
+                    <!-- Top Section Bar -->
+                    <div class="px-5 sm:px-6 py-3.5 bg-[#FAF9F6] flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-charcoal"></span>
+                            <span class="text-xs font-extrabold text-charcoal uppercase tracking-wider">Aktivitas &amp; Sumber Pembelajaran</span>
+                        </div>
+                        <span class="text-[11px] font-bold text-subtext">Pertemuan {{ selectedMeeting.number }}</span>
+                    </div>
+
+                    <!-- 1. DAFTAR HADIR (PRESENSI) -->
+                    <div class="p-5 sm:p-6 hover:bg-[#FAF9F6]/50 transition-colors">
+                        <div class="flex items-start gap-3 sm:gap-4">
+                            <div class="w-9 h-9 rounded-xl bg-sage-light text-sage-dark flex items-center justify-center shrink-0 mt-0.5">
+                                <LmsIcon name="calendar" className="w-4 h-4" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h3 class="text-sm font-extrabold text-charcoal leading-snug">
+                                        Daftar Hadir Pertemuan {{ selectedMeeting.number }}
+                                    </h3>
+                                    <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-sage-light text-sage-dark border border-[#C8DFCD]">
+                                        ● Sesi Aktif
+                                    </span>
+                                </div>
+
+                                <div class="mt-2 text-xs space-y-1 text-charcoal/80 font-medium">
+                                    <div><span class="font-bold text-charcoal">Jadwal Sesi:</span> {{ selectedMeeting.date }} • {{ selectedMeeting.time }}</div>
+                                    <div><span class="font-bold text-charcoal">Ruang Kelas:</span> {{ selectedMapel.room }} (Pengajar: {{ selectedMapel.teacher }})</div>
+                                </div>
+
+                                <div class="mt-3 flex items-center gap-2 text-[11px] text-[#2E7D32] bg-[#E8F5E9]/60 px-3 py-1.5 rounded-xl border border-[#C8DFCD] w-fit">
+                                    <LmsIcon name="check" className="w-3.5 h-3.5" />
+                                    <span class="font-bold">Kehadiran Anda otomatis tercatat dalam sistem presensi harian kelas</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. TUGAS (PENUGASAN SISWA) -->
+                    <div class="p-5 sm:p-6 hover:bg-[#FAF9F6]/50 transition-colors">
+                        <div class="flex items-start gap-3 sm:gap-4">
+                            <div class="w-9 h-9 rounded-xl bg-blossom-light text-blossom-dark flex items-center justify-center shrink-0 mt-0.5">
+                                <LmsIcon name="task" className="w-4 h-4" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h3 class="text-sm font-extrabold text-charcoal leading-snug">
+                                        {{ selectedMeeting.tugas.title }}
+                                    </h3>
+                                    <span
+                                        class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full"
+                                        :class="selectedMeeting.tugas.isSubmitted ? 'bg-sage-light text-sage-dark border border-[#C8DFCD]' : 'bg-[#FFF3E0] text-[#E65100] border border-[#FFE0B2]'"
+                                    >
+                                        {{ selectedMeeting.tugas.status }}
+                                    </span>
+                                </div>
+
+                                <!-- Metadata Dates -->
+                                <div class="mt-2.5 text-xs space-y-1 text-charcoal/80">
+                                    <div>
+                                        <span class="font-bold text-charcoal">Batas Waktu (Due):</span>
+                                        <span class="ml-1 font-semibold">{{ selectedMeeting.tugas.deadline }}</span>
+                                        <span
+                                            class="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-md"
+                                            :class="selectedMeeting.tugas.isSubmitted ? 'bg-muted text-subtext' : 'bg-red-50 text-red-600 border border-red-100'"
+                                        >
+                                            {{ selectedMeeting.tugas.deadlineStatus }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="font-bold text-charcoal">Instruksi Tugas:</span>
+                                        <span class="ml-1 text-subtext">Kerjakan tugas secara mandiri atau kelompok sesuai instruksi pada lembar soal berikut.</span>
+                                    </div>
+                                </div>
+
+                                <!-- Lembar Soal Lampiran -->
+                                <div class="mt-3 flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        @click="handleDownload(selectedMeeting.tugas.file)"
+                                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:border-charcoal/40 active:scale-[0.99] transition-all cursor-pointer"
+                                    >
+                                        <LmsIcon name="book" className="w-3.5 h-3.5 text-subtext" />
+                                        <span>{{ selectedMeeting.tugas.file }}</span>
+                                        <span class="text-[10px] text-subtext font-normal">({{ selectedMeeting.tugas.fileSize }})</span>
+                                        <LmsIcon name="download" className="w-3 h-3 text-charcoal ml-1" />
+                                    </button>
+                                </div>
+
+                                <!-- Kotak Status Pengumpulan & Nilai (Integrated) -->
+                                <div class="mt-4 rounded-2xl border p-4 bg-canvas/70" :class="selectedMeeting.tugas.isSubmitted ? 'border-[#C8DFCD]' : 'border-[#ECEAE4]'">
+                                    <!-- Sudah Mengumpulkan -->
+                                    <template v-if="selectedMeeting.tugas.isSubmitted">
+                                        <div class="flex items-start justify-between gap-3 flex-wrap">
+                                            <div>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="w-5 h-5 rounded-full bg-[#2E7D32] text-white flex items-center justify-center shrink-0">
+                                                        <LmsIcon name="check" className="w-3 h-3" />
+                                                    </span>
+                                                    <span class="text-xs font-extrabold text-[#2E7D32]">Tugas Berhasil Terkirim</span>
+                                                    <span class="text-[10px] text-subtext font-semibold">• {{ selectedMeeting.tugas.submittedAt }}</span>
+                                                </div>
+                                                <div v-if="selectedMeeting.tugas.submittedFile" class="text-xs text-charcoal font-medium mt-1.5 pl-7">
+                                                    Berkas: <span class="font-bold underline">{{ selectedMeeting.tugas.submittedFile }}</span>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                @click="openUpload(selectedMapel.id, selectedMeeting.id, selectedMeeting.tugas.title)"
+                                                class="px-3 py-1.5 rounded-full bg-white text-charcoal border border-[#D5D2C9] text-xs font-bold hover:bg-canvas transition-colors cursor-pointer"
+                                            >
+                                                Kirim Ulang / Ganti
+                                            </button>
+                                        </div>
+
+                                        <!-- Nilai & Feedback Guru jika sudah dinilai -->
+                                        <div v-if="selectedMeeting.nilai.hasScore" class="mt-3.5 pt-3 border-t border-[#E8E6E0] flex items-start gap-4">
+                                            <div class="text-center px-3 py-1.5 bg-white rounded-xl border border-[#ECEAE4] shrink-0">
+                                                <div class="text-[9px] font-bold text-subtext uppercase">Nilai</div>
+                                                <div class="text-xl font-black text-charcoal leading-none mt-0.5">{{ selectedMeeting.nilai.score }}</div>
+                                                <div class="text-[9px] font-bold text-[#2E7D32] mt-0.5">Grade {{ selectedMeeting.nilai.grade }}</div>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="text-[10px] font-bold text-subtext uppercase tracking-wide flex items-center justify-between">
+                                                    <span>Umpan Balik Guru ({{ selectedMeeting.nilai.gradedBy }})</span>
+                                                    <span class="text-[10px] text-subtext">{{ selectedMeeting.nilai.gradedAt }}</span>
+                                                </div>
+                                                <p class="text-xs font-semibold text-charcoal mt-1 italic leading-relaxed">
+                                                    "{{ selectedMeeting.nilai.feedback }}"
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div v-else class="mt-3 pt-2 border-t border-[#E8E6E0] text-[11px] font-medium text-subtext flex items-center gap-1.5">
+                                            <LmsIcon name="clock" className="w-3.5 h-3.5 text-subtext" />
+                                            <span>Menunggu koreksi dan penilaian dari guru mata pelajaran</span>
+                                        </div>
+                                    </template>
+
+                                    <!-- Belum Mengumpulkan -->
+                                    <template v-else>
+                                        <div class="flex items-center justify-between gap-3 flex-wrap">
+                                            <div>
+                                                <div class="text-xs font-extrabold text-[#E65100]">Belum Ada Pengumpulan</div>
+                                                <div class="text-[11px] text-subtext mt-0.5">Silakan unggah lembar jawaban Anda sebelum batas tenggat berakhir.</div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                @click="openUpload(selectedMapel.id, selectedMeeting.id, selectedMeeting.tugas.title)"
+                                                class="px-4 py-2 rounded-full bg-charcoal text-white text-xs font-bold hover:opacity-90 active:scale-[0.99] transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                                            >
+                                                <LmsIcon name="download" className="w-3.5 h-3.5 rotate-180" />
+                                                <span>Kumpulkan Tugas</span>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. MATERI & DOKUMEN PEMBELAJARAN -->
+                    <div class="p-5 sm:p-6 hover:bg-[#FAF9F6]/50 transition-colors">
+                        <div class="flex items-start gap-3 sm:gap-4">
+                            <div class="w-9 h-9 rounded-xl bg-sky-light text-sky-dark flex items-center justify-center shrink-0 mt-0.5">
+                                <LmsIcon name="book" className="w-4 h-4" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h3 class="text-sm font-extrabold text-charcoal leading-snug">
+                                        Materi Pertemuan {{ selectedMeeting.number }}
+                                    </h3>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-canvas text-subtext border border-[#ECEAE4]">
+                                        {{ meetingMaterials.length ? `${studentMaterialFileCount} Berkas Terlampir` : selectedMeeting.materi.pages }}
+                                    </span>
+                                </div>
+
+                                <!-- Dynamic Uploaded Materials -->
                                 <template v-if="meetingMaterials.length">
-                                    <div v-for="material in meetingMaterials" :key="material.id" class="mb-3 last:mb-0">
-                                        <h4 class="text-xs font-extrabold text-charcoal leading-snug">{{ material.title }}</h4>
-                                        <p v-if="material.description" class="text-[10px] text-subtext mt-1 leading-relaxed">
+                                    <div v-for="material in meetingMaterials" :key="material.id" class="mt-3 pt-3 border-t border-[#F2F0EC] first:mt-2 first:pt-0 first:border-0">
+                                        <h4 class="text-xs font-extrabold text-charcoal">{{ material.title }}</h4>
+                                        <p v-if="material.description" class="text-xs text-charcoal/80 mt-1 leading-relaxed">
                                             {{ material.description }}
                                         </p>
-                                        <div v-if="material.files?.length" class="mt-2 space-y-1.5">
+                                        <div v-if="material.files?.length" class="mt-2.5 flex flex-wrap gap-2">
                                             <button
                                                 v-for="file in material.files"
                                                 :key="file.id"
                                                 type="button"
                                                 @click="openMaterialFile(file)"
-                                                class="w-full flex items-center gap-2 rounded-xl bg-white border border-[#ECEAE4] px-2.5 py-2 text-left hover:border-charcoal/30 active:scale-[0.99] transition-all cursor-pointer"
+                                                class="flex items-center gap-2 rounded-xl bg-white border border-[#ECEAE4] px-3 py-2 text-left hover:border-charcoal/40 active:scale-[0.99] transition-all cursor-pointer shadow-2xs"
                                             >
                                                 <span
-                                                    class="w-9 h-9 rounded-lg flex items-center justify-center font-black text-[9px] shrink-0"
+                                                    class="w-7 h-7 rounded-lg flex items-center justify-center font-black text-[9px] shrink-0"
                                                     :class="fileTone(file.extension)"
                                                 >
                                                     {{ file.extension }}
                                                 </span>
-                                                <span class="flex-1 min-w-0">
-                                                    <span class="block text-[11px] font-bold text-charcoal truncate">{{ file.original_name }}</span>
+                                                <span class="min-w-0 max-w-[220px]">
+                                                    <span class="block text-xs font-bold text-charcoal truncate">{{ file.original_name }}</span>
                                                     <span class="block text-[10px] text-subtext">{{ file.human_size }}</span>
                                                 </span>
-                                                <LmsIcon name="download" className="w-3.5 h-3.5 text-charcoal shrink-0" />
+                                                <LmsIcon name="download" className="w-3.5 h-3.5 text-charcoal shrink-0 ml-1" />
                                             </button>
                                         </div>
                                     </div>
                                 </template>
 
+                                <!-- Fallback Static Material -->
                                 <template v-else>
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center font-extrabold text-xs shrink-0">
-                                            PDF
+                                    <div class="mt-2 text-xs space-y-1">
+                                        <div>
+                                            <span class="font-bold text-charcoal">Judul Materi:</span>
+                                            <span class="ml-1 text-charcoal font-semibold">{{ selectedMeeting.materi.title }}</span>
                                         </div>
-                                        <div class="flex-1 min-w-0">
-                                            <h4 class="text-xs font-extrabold text-charcoal truncate leading-snug">
-                                                {{ selectedMeeting.materi.title }}
-                                            </h4>
-                                            <div class="text-[10px] text-subtext mt-0.5 font-medium">
-                                                Ukuran: {{ selectedMeeting.materi.size }} &middot; Format Dokumen Resmi
-                                            </div>
-                                        </div>
+                                        <p class="text-xs text-charcoal/80 mt-1 leading-relaxed">
+                                            {{ selectedMeeting.materi.description }}
+                                        </p>
                                     </div>
 
-                                    <p class="text-xs text-charcoal/80 mt-2.5 font-normal leading-relaxed flex-1">
-                                        {{ selectedMeeting.materi.description }}
-                                    </p>
-
-                                    <div class="mt-3.5 flex items-center gap-2 shrink-0">
+                                    <div class="mt-3 flex items-center gap-2">
                                         <button
                                             type="button"
                                             @click="handleDownload(selectedMeeting.materi.title)"
-                                            class="flex-1 py-2.5 rounded-full bg-charcoal text-white text-xs font-bold hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                                            class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-[#ECEAE4] text-xs font-bold text-charcoal hover:border-charcoal/40 active:scale-[0.99] transition-all cursor-pointer shadow-2xs"
                                         >
-                                            <LmsIcon name="download" className="w-3.5 h-3.5" />
-                                            <span>Unduh Berkas Materi</span>
+                                            <span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center font-black text-[9px] shrink-0">
+                                                PDF
+                                            </span>
+                                            <span>{{ selectedMeeting.materi.title }}</span>
+                                            <span class="text-[10px] text-subtext font-normal">({{ selectedMeeting.materi.size }})</span>
+                                            <LmsIcon name="download" className="w-3.5 h-3.5 text-charcoal ml-1" />
                                         </button>
                                     </div>
                                 </template>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- ============================================== -->
-                        <!-- 4. MATERI VIDEO (YOUTUBE PREVIEW & REDIRECT)   -->
-                        <!-- ============================================== -->
-                        <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow h-full flex flex-col lg:h-[380px] lg:col-start-1 lg:row-start-2">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-7 h-7 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-extrabold text-xs">
-                                        ▶
-                                    </span>
-                                    <h3 class="text-[15px] font-extrabold text-charcoal">
-                                        Video Pembelajaran
-                                    </h3>
-                                </div>
-                                <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#FF0000]/10 text-[#CC0000] border border-[#FF0000]/20">
-                                    YouTube
-                                </span>
+                    <!-- 4. VIDEO PEMBELAJARAN (MEDIA REFERENSI) -->
+                    <div class="p-5 sm:p-6 hover:bg-[#FAF9F6]/50 transition-colors">
+                        <div class="flex items-start gap-3 sm:gap-4">
+                            <div class="w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center font-extrabold text-xs shrink-0 mt-0.5">
+                                ▶
                             </div>
-
-                            <!-- YouTube Preview Card (Click redirects directly to YouTube) -->
-                            <div
-                                @click="openVideo(selectedMeeting.video.url)"
-                                class="group cursor-pointer rounded-2xl overflow-hidden border border-[#ECEAE4] soft-shadow hover:border-charcoal/40 transition-all bg-black relative lg:flex-1 lg:min-h-0 lg:flex lg:flex-col"
-                            >
-                                <!-- Thumbnail Preview with 16:9 Aspect Ratio -->
-                                <div class="relative w-full aspect-video overflow-hidden lg:aspect-auto lg:flex-1 lg:min-h-0">
-                                    <img
-                                        :src="selectedMeeting.video.thumbnail"
-                                        :alt="selectedMeeting.video.title"
-                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90 group-hover:opacity-100"
-                                    />
-                                    <!-- Dark Gradient Overlay -->
-                                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-
-                                    <!-- Big Play Button Overlay -->
-                                    <div class="absolute inset-0 flex items-center justify-center">
-                                        <div
-                                            class="w-13 h-13 rounded-full bg-[#FF0000] text-white flex items-center justify-center shadow-2xl group-hover:scale-110 group-active:scale-95 transition-transform"
-                                        >
-                                            <LmsIcon name="play" className="w-5 h-5 ml-0.5 fill-current" />
-                                        </div>
-                                    </div>
-
-                                    <!-- YouTube Logo Pill Top Left -->
-                                    <div class="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-xs px-2.5 py-1 rounded-md text-[10px] font-black text-white flex items-center gap-1.5 border border-white/20">
-                                        <span class="w-2.5 h-2 rounded-xs bg-[#FF0000] flex items-center justify-center">
-                                            <span class="w-0 h-0 border-t-[2px] border-t-transparent border-l-[3.5px] border-l-white border-b-[2px] border-b-transparent"></span>
-                                        </span>
-                                        <span>YouTube</span>
-                                    </div>
-
-                                    <!-- Duration Pill Bottom Right -->
-                                    <div class="absolute bottom-2.5 right-2.5 bg-black/80 px-2 py-0.5 rounded text-[10px] font-extrabold text-white">
-                                        {{ selectedMeeting.video.duration }}
-                                    </div>
-                                </div>
-
-                                <!-- Video Title & Channel Info -->
-                                <div class="p-3 bg-white border-t border-[#ECEAE4] shrink-0">
-                                    <h4 class="text-xs font-extrabold text-charcoal leading-snug group-hover:text-black line-clamp-2">
-                                        {{ selectedMeeting.video.title }}
-                                    </h4>
-                                    <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-[#F2F0EC]">
-                                        <span class="text-[11px] font-semibold text-subtext truncate">
-                                            📺 {{ selectedMeeting.video.channel }}
-                                        </span>
-                                        <span class="text-xs font-bold text-red-600 flex items-center gap-1 shrink-0 group-hover:underline">
-                                            Tonton di YouTube ↗
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <p class="text-[10px] text-subtext text-center mt-auto pt-2.5 font-medium">
-                                Ketuk pratinjau di atas untuk membuka video secara otomatis di laman YouTube.
-                            </p>
-                        </div>
-
-                        <!-- ============================================== -->
-                        <!-- 2. KOLOM FILE TUGAS & PENGUMPULAN TUGAS         -->
-                        <!-- ============================================== -->
-                        <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow h-full flex flex-col lg:h-[380px] lg:col-start-2 lg:row-start-1">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-7 h-7 rounded-full bg-blossom-light text-blossom-dark flex items-center justify-center">
-                                        <LmsIcon name="task" className="w-4 h-4" />
-                                    </span>
-                                    <h3 class="text-[15px] font-extrabold text-charcoal">
-                                        Kolom Tugas &amp; Pengumpulan
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h3 class="text-sm font-extrabold text-charcoal leading-snug">
+                                        Video: {{ selectedMeeting.video.title }}
                                     </h3>
+                                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#FF0000]/10 text-[#CC0000] border border-[#FF0000]/20">
+                                        YouTube
+                                    </span>
                                 </div>
-                                <span
-                                    class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full"
-                                    :class="
-                                        selectedMeeting.tugas.isSubmitted
-                                            ? 'bg-sage-light text-sage-dark'
-                                            : 'bg-blossom-light text-blossom-dark'
-                                    "
+
+                                <div class="mt-1 text-xs text-subtext font-semibold">
+                                    📺 {{ selectedMeeting.video.channel }} • Durasi {{ selectedMeeting.video.duration }}
+                                </div>
+
+                                <!-- Compact Responsive Video Preview Banner -->
+                                <div
+                                    @click="openVideo(selectedMeeting.video.url)"
+                                    class="mt-3 group cursor-pointer rounded-2xl overflow-hidden border border-[#ECEAE4] bg-white hover:border-charcoal/40 transition-all shadow-2xs max-w-2xl flex flex-col sm:flex-row items-stretch"
                                 >
-                                    {{ selectedMeeting.tugas.status }}
-                                </span>
-                            </div>
-
-                            <!-- Tugas Description & Lembar Soal -->
-                            <div class="p-3.5 rounded-2xl bg-canvas border border-[#ECEAE4] flex-1 flex flex-col gap-3 lg:min-h-0 lg:overflow-y-auto no-scrollbar">
-                                <div>
-                                    <h4 class="text-xs font-extrabold text-charcoal leading-snug">
-                                        {{ selectedMeeting.tugas.title }}
-                                    </h4>
-                                    <div class="flex items-center justify-between mt-2 pt-2 border-t border-[#E8E6E0]">
-                                        <span class="text-[11px] font-semibold text-subtext">
-                                            📄 {{ selectedMeeting.tugas.file }} ({{ selectedMeeting.tugas.fileSize }})
-                                        </span>
-                                        <button
-                                            type="button"
-                                            @click="handleDownload(selectedMeeting.tugas.file)"
-                                            class="text-xs font-extrabold text-charcoal underline cursor-pointer hover:opacity-80"
-                                        >
-                                            Unduh Soal
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Informasi Deadline Pengumpulan Tugas -->
-                                <div class="p-3 rounded-xl bg-white border border-[#ECEAE4] flex items-center justify-between">
-                                    <div>
-                                        <div class="text-[10px] font-bold text-subtext uppercase tracking-wide">
-                                            Batas Waktu Pengumpulan
-                                        </div>
-                                        <div class="text-xs font-extrabold text-charcoal mt-0.5">
-                                            {{ selectedMeeting.tugas.deadline }}
-                                        </div>
-                                    </div>
-                                    <span
-                                        class="text-[10px] font-extrabold px-2 py-1 rounded-lg"
-                                        :class="
-                                            selectedMeeting.tugas.isSubmitted
-                                                ? 'bg-sage-light text-sage-dark'
-                                                : 'bg-red-50 text-red-600 border border-red-100'
-                                        "
-                                    >
-                                        {{ selectedMeeting.tugas.deadlineStatus }}
-                                    </span>
-                                </div>
-
-                                <!-- Pengumpulan Tugas Status & Upload Action -->
-                                <div class="pt-1 mt-auto">
-                                    <!-- Sudah Dikumpulkan State -->
-                                    <div
-                                        v-if="selectedMeeting.tugas.isSubmitted"
-                                        class="p-3 rounded-xl bg-sage-light/40 border border-[#C8DFCD]"
-                                    >
-                                        <div class="flex items-center justify-between">
-                                            <div class="flex items-center gap-2">
-                                                <span class="w-5 h-5 rounded-full bg-[#2E7D32] text-white flex items-center justify-center">
-                                                    <LmsIcon name="check" className="w-3 h-3" />
-                                                </span>
-                                                <span class="text-xs font-extrabold text-[#2E7D32]">
-                                                    Tugas Berhasil Terkirim
-                                                </span>
+                                    <div class="relative sm:w-48 aspect-video sm:aspect-auto bg-black shrink-0 overflow-hidden">
+                                        <img
+                                            :src="selectedMeeting.video.thumbnail"
+                                            :alt="selectedMeeting.video.title"
+                                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90 group-hover:opacity-100"
+                                        />
+                                        <div class="absolute inset-0 flex items-center justify-center">
+                                            <div class="w-9 h-9 rounded-full bg-[#FF0000] text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                                <LmsIcon name="play" className="w-3.5 h-3.5 ml-0.5 fill-current" />
                                             </div>
-                                            <span class="text-[10px] font-semibold text-subtext">
-                                                {{ selectedMeeting.tugas.submittedAt }}
+                                        </div>
+                                        <div class="absolute bottom-1.5 right-1.5 bg-black/80 px-1.5 py-0.5 rounded text-[9px] font-extrabold text-white">
+                                            {{ selectedMeeting.video.duration }}
+                                        </div>
+                                    </div>
+                                    <div class="p-3 sm:p-4 flex-1 flex flex-col justify-between">
+                                        <div>
+                                            <h4 class="text-xs font-extrabold text-charcoal leading-snug line-clamp-2 group-hover:text-black">
+                                                {{ selectedMeeting.video.title }}
+                                            </h4>
+                                            <p class="text-[11px] text-subtext mt-1">
+                                                Simak pembahasan materi melalui video referensi resmi ini.
+                                            </p>
+                                        </div>
+                                        <div class="mt-2.5 pt-2 border-t border-[#F2F0EC] flex items-center justify-between text-xs">
+                                            <span class="text-[10px] text-subtext font-semibold">Klik untuk memutar</span>
+                                            <span class="font-bold text-red-600 flex items-center gap-1 group-hover:underline">
+                                                Tonton di YouTube ↗
                                             </span>
                                         </div>
-                                        <div class="text-xs font-medium text-charcoal mt-1.5 pl-7">
-                                            Berkas: <span class="font-bold underline">{{ selectedMeeting.tugas.submittedFile }}</span>
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            @click="openUpload(selectedMapel.id, selectedMeeting.id, selectedMeeting.tugas.title)"
-                                            class="mt-3 w-full py-2 rounded-full bg-white text-charcoal border border-[#D5D2C9] text-xs font-bold hover:bg-canvas transition-colors cursor-pointer"
-                                        >
-                                            Kirim Ulang / Perbarui Berkas Jawaban
-                                        </button>
-                                    </div>
-
-                                    <!-- Belum Dikumpulkan State -->
-                                    <div v-else>
-                                        <button
-                                            type="button"
-                                            @click="openUpload(selectedMapel.id, selectedMeeting.id, selectedMeeting.tugas.title)"
-                                            class="w-full py-3 rounded-full bg-charcoal text-white text-xs font-bold hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-                                        >
-                                            <LmsIcon name="download" className="w-3.5 h-3.5 rotate-180" />
-                                            <span>Kumpulkan Jawaban Tugas Sekarang</span>
-                                        </button>
-                                        <p class="text-[10px] text-center text-subtext mt-1.5 font-medium">
-                                            Mendukung berkas format PDF, ZIP, RAR, atau Gambar (Maks 20 MB)
-                                        </p>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- ============================================== -->
-                        <!-- 3. KOLOM KHUSUS MELIHAT INFORMASI NILAI        -->
-                        <!-- ============================================== -->
-                        <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow h-full flex flex-col lg:h-[380px] lg:col-start-2 lg:row-start-2">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-7 h-7 rounded-full bg-sage-light text-sage-dark flex items-center justify-center">
-                                        <LmsIcon name="chart" className="w-4 h-4" />
-                                    </span>
-                                    <h3 class="text-[15px] font-extrabold text-charcoal">
-                                        Kolom Informasi Nilai
-                                    </h3>
-                                </div>
-                                <span class="text-xs font-bold text-subtext">
-                                    KKM: {{ selectedMeeting.nilai.kkm }}
-                                </span>
-                            </div>
-
-                            <!-- Graded State -->
-                            <div
-                                v-if="selectedMeeting.nilai.hasScore"
-                                class="p-4 rounded-2xl bg-canvas border border-[#ECEAE4] flex-1 flex flex-col gap-3 lg:min-h-0 lg:overflow-y-auto no-scrollbar"
-                            >
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <span class="text-[10px] font-bold text-subtext uppercase tracking-wider">
-                                            Hasil Penilaian Resmi
-                                        </span>
-                                        <div class="flex items-baseline gap-2 mt-0.5">
-                                            <span class="text-3xl font-black text-charcoal">
-                                                {{ selectedMeeting.nilai.score }}
-                                            </span>
-                                            <span class="text-xs font-bold text-subtext">/ 100</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="text-right">
-                                        <span
-                                            class="inline-block px-3 py-1 rounded-full text-xs font-extrabold bg-[#2E7D32]/10 text-[#2E7D32] border border-[#2E7D32]/30"
-                                        >
-                                            ✓ {{ selectedMeeting.nilai.status }} (Grade {{ selectedMeeting.nilai.grade }})
-                                        </span>
-                                        <div class="text-[10px] text-subtext mt-1">
-                                            Dinilai: {{ selectedMeeting.nilai.gradedAt }}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Feedback Note from Teacher -->
-                                <div class="p-3 rounded-xl bg-white border border-[#ECEAE4] flex-1">
-                                    <div class="text-[10px] font-bold text-subtext uppercase tracking-wide flex items-center justify-between">
-                                        <span>Catatan / Umpan Balik Guru</span>
-                                        <span class="text-[10px] font-bold text-charcoal">{{ selectedMeeting.nilai.gradedBy }}</span>
-                                    </div>
-                                    <p class="text-xs font-semibold text-charcoal mt-1.5 italic leading-relaxed">
-                                        "{{ selectedMeeting.nilai.feedback }}"
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Not Graded State -->
-                            <div
-                                v-else
-                                class="p-4 rounded-2xl bg-canvas border border-dashed border-[#ECEAE4] text-center flex-1 flex flex-col justify-center"
-                            >
-                                <div class="w-10 h-10 rounded-full bg-muted mx-auto flex items-center justify-center text-subtext mb-2">
-                                    <LmsIcon name="clock" className="w-5 h-5" />
-                                </div>
-                                <div class="text-xs font-extrabold text-charcoal">
-                                    {{ selectedMeeting.nilai.status }}
-                                </div>
-                                <p class="text-[11px] text-subtext mt-1 max-w-[85%] mx-auto leading-relaxed">
-                                    {{ selectedMeeting.nilai.feedback }}
-                                </p>
-                            </div>
-                        </div>
                 </div>
                     </template>
                 </div>
@@ -902,7 +880,7 @@ const submitHomework = () => {
         </template>
 
         <!-- ======================================================== -->
-        <!-- MODAL: UNGGAH / PENGUMPULAN TUGAS SISWA                  -->
+        <!-- MODAL: PENGUMPULAN BERKAS TUGAS SISWA                   -->
         <!-- ======================================================== -->
         <div
             v-if="isUploadModalOpen"
@@ -911,56 +889,101 @@ const submitHomework = () => {
         >
             <div
                 @click.stop
-                class="w-full max-w-[400px] bg-white rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl transition-all"
+                class="w-full max-w-[480px] bg-white rounded-t-[32px] sm:rounded-[32px] shadow-2xl transition-all overflow-hidden flex flex-col"
             >
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-blossom-light text-blossom-dark">
-                        Unggah Tugas
-                    </span>
+                <!-- Modal Header -->
+                <div class="px-6 pt-6 pb-4 shrink-0">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-blossom-light text-blossom-dark">
+                            Unggah Berkas Tugas
+                        </span>
+                        <button
+                            type="button"
+                            @click="isUploadModalOpen = false"
+                            class="w-8 h-8 rounded-full bg-muted text-charcoal flex items-center justify-center hover:bg-canvas active:scale-95 transition-all cursor-pointer text-xs font-bold"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                    <h3 class="text-[15px] font-extrabold text-charcoal leading-snug line-clamp-2">
+                        {{ uploadTarget.tugasTitle }}
+                    </h3>
+                    <p class="text-xs text-subtext mt-1">
+                        Pilih berkas dari perangkat Anda atau seret berkas ke kotak di bawah.
+                    </p>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="px-6 pb-6">
+                    <!-- Hidden real file input -->
+                    <input
+                        ref="fileInputRef"
+                        type="file"
+                        class="hidden"
+                        @change="onFileInputChange"
+                    />
+
+                    <!-- Drag & Drop Zone -->
+                    <div
+                        @dragover="onDragOver"
+                        @dragleave="onDragLeave"
+                        @drop="onDrop"
+                        @click="fileInputRef?.click()"
+                        class="rounded-2xl border-2 border-dashed transition-all cursor-pointer"
+                        :class="isDragOver
+                            ? 'border-charcoal bg-charcoal/5 scale-[1.01]'
+                            : droppedFile
+                                ? 'border-[#C8DFCD] bg-[#E8F5E9]/40'
+                                : 'border-[#D5D2C9] bg-canvas hover:border-charcoal/40 hover:bg-canvas'"
+                    >
+                        <!-- File selected state -->
+                        <div v-if="droppedFile" class="p-4 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-sage-light text-sage-dark flex items-center justify-center shrink-0">
+                                <LmsIcon name="file" className="w-5 h-5" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-xs font-extrabold text-charcoal truncate">{{ droppedFile.name }}</div>
+                                <div class="text-[10px] text-subtext mt-0.5">{{ formatFileSize(droppedFile.size) }} • Siap diunggah</div>
+                            </div>
+                            <button
+                                type="button"
+                                @click.stop="droppedFile = null"
+                                class="w-7 h-7 rounded-full bg-white border border-[#ECEAE4] text-charcoal flex items-center justify-center hover:bg-muted transition-all shrink-0"
+                            >
+                                <LmsIcon name="x" className="w-3 h-3" />
+                            </button>
+                        </div>
+                        <!-- Empty / drag state -->
+                        <div v-else class="p-6 text-center">
+                            <div class="w-12 h-12 rounded-full bg-white mx-auto flex items-center justify-center text-charcoal shadow-xs mb-3">
+                                <LmsIcon name="download" className="w-6 h-6 rotate-180" />
+                            </div>
+                            <div class="text-xs font-extrabold text-charcoal">
+                                {{ isDragOver ? 'Lepaskan berkas di sini...' : 'Seret & Lepas berkas di sini' }}
+                            </div>
+                            <div class="text-[10px] text-subtext mt-1">atau <span class="font-bold text-charcoal underline underline-offset-1">klik untuk memilih berkas</span></div>
+                            <div class="text-[10px] text-subtext/70 mt-2">Format: PDF, DOC, DOCX, ZIP, dan lainnya</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="px-6 pb-6 pt-3 shrink-0 border-t border-[#F2F0EC]">
+                    <button
+                        type="button"
+                        @click="submitHomework"
+                        class="w-full py-3.5 rounded-full bg-charcoal text-white text-xs font-bold hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-sm"
+                    >
+                        Konfirmasi &amp; Kirim Berkas
+                    </button>
                     <button
                         type="button"
                         @click="isUploadModalOpen = false"
-                        class="text-subtext hover:text-charcoal font-bold text-sm cursor-pointer"
+                        class="mt-2 w-full py-2.5 rounded-full text-xs font-bold text-subtext hover:text-charcoal transition-colors cursor-pointer"
                     >
-                        ✕
+                        Batal
                     </button>
                 </div>
-
-                <h3 class="text-lg font-extrabold text-charcoal leading-snug">
-                    {{ uploadTarget.tugasTitle }}
-                </h3>
-                <p class="text-xs text-subtext mt-1">
-                    Silakan pilih berkas jawaban tugas kamu dari penyimpanan perangkat.
-                </p>
-
-                <!-- Simulated File Picker Box -->
-                <div class="mt-4 p-4 rounded-2xl border-2 border-dashed border-[#D5D2C9] bg-canvas text-center">
-                    <div class="w-10 h-10 rounded-full bg-white mx-auto flex items-center justify-center text-charcoal shadow-xs mb-2">
-                        <LmsIcon name="task" className="w-5 h-5" />
-                    </div>
-                    <div class="text-xs font-extrabold text-charcoal">
-                        {{ simulatedFileName }}
-                    </div>
-                    <div class="text-[10px] text-subtext mt-0.5 font-semibold">
-                        Ukuran: 4.2 MB • Siap diunggah
-                    </div>
-                </div>
-
-                <!-- Action Button -->
-                <button
-                    type="button"
-                    @click="submitHomework"
-                    class="mt-5 w-full py-3.5 rounded-full bg-charcoal text-white text-xs font-bold hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-sm"
-                >
-                    Konfirmasi &amp; Kirim Tugas
-                </button>
-                <button
-                    type="button"
-                    @click="isUploadModalOpen = false"
-                    class="mt-2 w-full py-2.5 rounded-full text-xs font-bold text-subtext hover:text-charcoal transition-colors cursor-pointer"
-                >
-                    Batal
-                </button>
             </div>
         </div>
     </div>

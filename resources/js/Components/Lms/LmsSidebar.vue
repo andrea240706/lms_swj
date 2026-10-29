@@ -45,14 +45,18 @@ const handleTabClick = (t) => {
     emit('selectTab', targetId);
 };
 
+const navTabs = computed(() => {
+    return (props.role?.tabs || []).filter((t) => t.id !== 'presensi');
+});
+
 const getTabBadge = (tabId) => {
     if (tabId === 'mapel' || tabId === 'materi') return '2 Mapel';
     if (tabId === 'rekapNilai') return 'Leger';
     if (tabId === 'tugas') return '1 Baru';
-    if (tabId === 'presensi') return '96%';
     if (tabId === 'presensiPagi') return 'Hari Ini';
     if (tabId === 'siswaPerwalian') return '36 Siswa';
     if (tabId === 'pengguna') return '1.3K';
+    if (tabId === 'penugasan') return '100%';
     if (tabId === 'penugasan') return '100%';
     if (tabId === 'pengumuman') return '4 Aktif';
     if (tabId === 'admin_mgmt') return '4 Akun';
@@ -109,7 +113,7 @@ const getTabBadge = (tabId) => {
                 </div>
 
                 <button
-                    v-for="t in role.tabs"
+                    v-for="t in navTabs"
                     :key="t.id"
                     type="button"
                     @click="handleTabClick(t)"

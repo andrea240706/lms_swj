@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\MaterialResource;
 use App\Models\Material;
+use App\Services\AcademicCalendarService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -13,7 +15,7 @@ class DashboardController extends Controller
     /**
      * Display the multi-role LMS dashboard.
      */
-    public function index(Request $request): Response
+    public function index(Request $request, AcademicCalendarService $calendarService): Response
     {
         $user = $request->user();
         $userRoleKey = $user ? $user->getRoleKey() : 'siswa';
@@ -30,12 +32,11 @@ class DashboardController extends Controller
                 'userSub' => $user && $user->getRoleKey() === 'siswa' ? 'NISN: '.$user->username.' • Rekayasa Perangkat Lunak' : 'NISN: 008492104 • Rekayasa Perangkat Lunak',
                 'avatar' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
                 'heroStyle' => 'hero-sage',
-                'focusNote' => 'Akses sesi aktif, unduh modul belajar, kumpul tugas, & isi presensi mandiri.',
+                'focusNote' => 'Akses sesi aktif, unduh modul belajar, dan kumpul tugas.',
                 'tabs' => [
                     ['id' => 'home', 'label' => 'Home', 'icon' => 'home'],
                     ['id' => 'mapel', 'label' => 'Mapel', 'icon' => 'book'],
                     ['id' => 'tugas', 'label' => 'Tugas', 'icon' => 'task'],
-                    ['id' => 'presensi', 'label' => 'Rekap', 'icon' => 'chart'],
                 ],
             ],
             'guru' => [
@@ -118,14 +119,8 @@ class DashboardController extends Controller
             ],
         ];
 
-        $days = [
-            ['d' => 'Sen', 'n' => 18, 'full' => 'Senin'],
-            ['d' => 'Sel', 'n' => 19, 'full' => 'Selasa'],
-            ['d' => 'Rab', 'n' => 20, 'full' => 'Rabu'],
-            ['d' => 'Kam', 'n' => 21, 'full' => 'Kamis'],
-            ['d' => 'Jum', 'n' => 22, 'full' => 'Jumat'],
-            ['d' => 'Sab', 'n' => 23, 'full' => 'Sabtu'],
-        ];
+        $days = $calendarService->getWeekDays();
+        $calendarEvents = $calendarService->getCombinedEvents((int) Carbon::now()->year);
 
         $assignments = [
             [
@@ -173,6 +168,9 @@ class DashboardController extends Controller
             'roles' => $roles,
             'initialRole' => isset($roles[$simulatedRole]) ? $simulatedRole : 'siswa',
             'days' => $days,
+            'calendarEvents' => $calendarEvents,
+            'todayDate' => Carbon::now()->toDateString(),
+            'todayDayNum' => Carbon::now()->day,
             'initialAssignments' => $assignments,
             'currentUser' => $user,
             'materials' => MaterialResource::collection($materials)->resolve($request),

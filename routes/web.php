@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AcademicCalendarController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\ProfileController;
@@ -15,6 +16,9 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+Route::get('/api/kalender-pendidikan', [AcademicCalendarController::class, 'index'])
+    ->name('api.kalender-pendidikan');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])

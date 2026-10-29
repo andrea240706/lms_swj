@@ -32,12 +32,28 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+    calendarEvents: {
+        type: Object,
+        default: () => ({}),
+    },
+    todayDate: {
+        type: String,
+        default: '',
+    },
+    todayDayNum: {
+        type: Number,
+        default: 0,
+    },
 });
 
 // Active Role & Tab state
 const currentRoleKey = ref(props.initialRole);
 const activeTab = ref(props.roles[props.initialRole]?.tabs[0]?.id || 'home');
-const selectedDay = ref(18);
+
+// Initialize selected day based on today or first day of current week
+const todayInDays = props.days.find((d) => d.isToday);
+const selectedDay = ref(todayInDays ? todayInDays.n : (props.days[0]?.n || 18));
+const selectedDayDate = ref(todayInDays ? todayInDays.date : (props.days[0]?.date || ''));
 
 // Desktop Sidebar state (Desktop only, hidden on mobile)
 const isSidebarCollapsed = ref(false);
@@ -61,7 +77,6 @@ onMounted(() => {
 });
 
 // Interactive features state
-const studentAttendanceDone = ref(false);
 const teacherGateOpen = ref(true);
 const materialsLock = ref({ 1: false, 2: false, 3: true, 4: true });
 const assignments = ref([...props.initialAssignments]);
@@ -91,12 +106,33 @@ const selectRole = (roleKey) => {
     closeActionSheet();
 };
 
+// Guard against deprecated presensi tab
+watch(
+    () => activeTab.value,
+    (tab) => {
+        if (tab === 'presensi') {
+            activeTab.value = 'home';
+        }
+    },
+    { immediate: true }
+);
+
 const selectTab = (tabId) => {
+    if (tabId === 'presensi') {
+        activeTab.value = 'home';
+        return;
+    }
     activeTab.value = tabId === 'materi' ? 'mapel' : tabId;
 };
 
-const selectDay = (dayNum) => {
+const selectDay = (dayNum, dayDate = null) => {
     selectedDay.value = dayNum;
+    if (dayDate) {
+        selectedDayDate.value = dayDate;
+    } else {
+        const found = props.days.find((d) => d.n === dayNum);
+        selectedDayDate.value = found ? found.date : '';
+    }
 };
 
 // Action Sheet triggers
@@ -110,11 +146,6 @@ const openActionSheet = (type, data = {}) => {
 
 const closeActionSheet = () => {
     actionSheet.value.isOpen = false;
-};
-
-const handleConfirmAttendance = () => {
-    studentAttendanceDone.value = true;
-    closeActionSheet();
 };
 
 const handleLessonSheet = (title, subject) => {
@@ -202,15 +233,15 @@ const handleLogout = () => {
                     :role="currentRole"
                     :activeTab="activeTab"
                     :selectedDay="selectedDay"
+                    :selectedDayDate="selectedDayDate"
                     :days="days"
+                    :calendarEvents="calendarEvents"
                     :assignments="assignments"
-                    :studentAttendanceDone="studentAttendanceDone"
                     :materialsLock="materialsLock"
                     :isSidebarCollapsed="isSidebarCollapsed"
                     @selectTab="selectTab"
                     @selectDay="selectDay"
                     @toggleSidebar="toggleSidebar"
-                    @openAttendanceModal="openActionSheet('student_attendance')"
                     @openLessonSheet="handleLessonSheet"
                     @openUploadModal="handleUploadModal"
                     @openMenu="openActionSheet('role_switcher')"
@@ -223,7 +254,9 @@ const handleLogout = () => {
                     :role="currentRole"
                     :activeTab="activeTab"
                     :selectedDay="selectedDay"
+                    :selectedDayDate="selectedDayDate"
                     :days="days"
+                    :calendarEvents="calendarEvents"
                     :teacherGateOpen="teacherGateOpen"
                     :materialsLock="materialsLock"
                     :isSidebarCollapsed="isSidebarCollapsed"
@@ -306,7 +339,6 @@ const handleLogout = () => {
             :roles="roles"
             :activeRole="currentRoleKey"
             @close="closeActionSheet"
-            @confirmAttendance="handleConfirmAttendance"
             @submitAssignment="handleSubmitAssignment"
             @submitGrade="handleSubmitGrade"
             @selectRole="selectRole"

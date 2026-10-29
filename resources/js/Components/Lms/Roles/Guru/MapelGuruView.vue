@@ -368,7 +368,9 @@ const handleAddFiles = (event) => {
 
 const ungradedStudents = computed(() => {
     if (!selectedMeeting.value) return [];
-    return selectedMeeting.value.students.filter((s) => s.submittedFile && s.score === null);
+    return selectedMeeting.value.students.filter((s) => {
+        return Boolean(s.submittedFile) && s.score === null;
+    });
 });
 
 const gradedStudents = computed(() => {
@@ -378,7 +380,9 @@ const gradedStudents = computed(() => {
 
 const notSubmittedStudents = computed(() => {
     if (!selectedMeeting.value) return [];
-    return selectedMeeting.value.students.filter((s) => !s.submittedFile);
+    return selectedMeeting.value.students.filter((s) => {
+        return !s.submittedFile;
+    });
 });
 
 // Navigation
@@ -432,7 +436,9 @@ const saveGrade = () => {
     // Update tugas ungradedCount on meeting
     const meeting = selectedMeeting.value;
     if (meeting) {
-        meeting.tugas.ungradedCount = meeting.students.filter((s) => s.submittedFile && s.score === null).length;
+        meeting.tugas.ungradedCount = meeting.students.filter((s) => {
+            return Boolean(s.submittedFile) && s.score === null;
+        }).length;
     }
 
     showToast(`Nilai ${gradingStudent.value.name}: ${score} berhasil disimpan!`);
@@ -751,6 +757,8 @@ const gradeFromScore = (score) => {
                                     {{ selectedMeeting?.tugas.deadlineStatus }}
                                 </span>
                             </div>
+
+
                             <div class="mt-3 pt-3 border-t border-[#F2F0EC]">
                                 <div class="flex items-center justify-between mb-1.5">
                                     <span class="text-[11px] font-bold text-charcoal">
@@ -786,25 +794,29 @@ const gradeFromScore = (score) => {
                                 <div
                                     v-for="student in ungradedStudents"
                                     :key="student.id"
-                                    class="bg-white rounded-[22px] p-3.5 border border-[#ECEAE4] soft-shadow flex items-center gap-3"
+                                    class="bg-white rounded-[22px] p-3.5 border border-[#ECEAE4] soft-shadow"
                                 >
-                                    <img :src="student.avatar" :alt="student.name" class="w-9 h-9 rounded-full object-cover border border-[#E6E4DF] shrink-0" />
-                                    <div class="flex-1 min-w-0">
-                                        <div class="text-xs font-extrabold text-charcoal truncate">{{ student.name }}</div>
-                                        <div class="text-[10px] mt-0.5 font-semibold" :class="submissionStatusColor(student.status)">
-                                            {{ student.status }} • {{ student.submittedAt }}
+                                    <div class="flex items-center gap-3">
+                                        <img :src="student.avatar" :alt="student.name" class="w-9 h-9 rounded-full object-cover border border-[#E6E4DF] shrink-0" />
+                                        <div class="flex-1 min-w-0">
+                                            <div class="text-xs font-extrabold text-charcoal truncate">{{ student.name }}</div>
+                                            <div class="text-[10px] mt-0.5 font-semibold" :class="submissionStatusColor(student.status)">
+                                                {{ student.status }} • {{ student.submittedAt }}
+                                            </div>
+                                            <div v-if="student.submittedFile" class="flex items-center gap-2 mt-0.5">
+                                                <button type="button" @click.stop="handleDownload(student.submittedFile)" class="text-[10px] font-bold text-charcoal underline underline-offset-1">
+                                                    📎 {{ student.submittedFile }}
+                                                </button>
+                                            </div>
                                         </div>
-                                        <button type="button" @click.stop="handleDownload(student.submittedFile)" class="text-[10px] font-bold text-charcoal underline underline-offset-1 mt-0.5">
-                                            📎 {{ student.submittedFile }}
+                                        <button
+                                            type="button"
+                                            @click="openGradeModal(student)"
+                                            class="px-3.5 py-2 rounded-full bg-charcoal text-white text-[11px] font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0"
+                                        >
+                                            Beri Nilai
                                         </button>
                                     </div>
-                                    <button
-                                        type="button"
-                                        @click="openGradeModal(student)"
-                                        class="px-3.5 py-2 rounded-full bg-charcoal text-white text-[11px] font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0"
-                                    >
-                                        Beri Nilai
-                                    </button>
                                 </div>
                             </div>
 
@@ -1347,7 +1359,8 @@ const gradeFromScore = (score) => {
                         </button>
                     </div>
 
-                    <div v-if="gradingStudent?.submittedFile" class="bg-canvas rounded-2xl p-3 border border-[#ECEAE4] mb-4 flex items-center gap-2">
+                    <!-- File Submission -->
+                    <div v-if="gradingStudent?.submittedFile" class="bg-canvas rounded-2xl p-3 border border-[#ECEAE4] mb-3 flex items-center gap-2">
                         <span class="text-xs font-bold text-charcoal/60">📎</span>
                         <div class="flex-1 min-w-0">
                             <div class="text-xs font-extrabold text-charcoal truncate">{{ gradingStudent?.submittedFile }}</div>
@@ -1355,6 +1368,7 @@ const gradeFromScore = (score) => {
                         </div>
                         <button type="button" @click="handleDownload(gradingStudent?.submittedFile)" class="text-[10px] font-bold text-charcoal underline cursor-pointer">Unduh</button>
                     </div>
+
 
                     <div class="mb-4">
                         <label class="block text-xs font-extrabold text-charcoal mb-2">Nilai (0 - 100)</label>
