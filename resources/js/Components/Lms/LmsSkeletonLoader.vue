@@ -142,7 +142,7 @@ defineProps({
         </template>
 
         <!-- ==================== MEETING-DETAIL ==================== -->
-        <!-- Sub-tabs + content (penilaian/materi/kuis/video) -->
+        <!-- Sub-tabs + content (penilaian/materi/video) -->
         <template v-else-if="type === 'meeting-detail'">
             <!-- Sub-tab bar -->
             <div class="skel h-11 rounded-2xl mb-4"></div>

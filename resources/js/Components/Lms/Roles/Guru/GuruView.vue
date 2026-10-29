@@ -364,7 +364,7 @@ const statusSesiLabel = (status) => {
             </div>
 
             <!-- ==========================================
-                 TAB 2: MAPEL (Materi, Tugas, Kuis Online)
+                 TAB 2: MAPEL (Materi, Tugas)
                  ========================================== -->
             <MapelGuruView
                 v-else-if="activeTab === 'mapel' || activeTab === 'materi'"
