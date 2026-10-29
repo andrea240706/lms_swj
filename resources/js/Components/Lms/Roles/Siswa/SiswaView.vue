@@ -53,6 +53,7 @@ const emit = defineEmits([
     'openUploadModal',
     'openMenu',
     'openProfile',
+    'openSettings',
     'toggleSidebar',
 ]);
 
@@ -184,6 +185,7 @@ const assignmentStatusColor = (status) => {
                     :isSidebarCollapsed="isSidebarCollapsed"
                     @openMenu="$emit('openMenu')"
                     @openProfile="$emit('openProfile')"
+                    @openSettings="$emit('openSettings')"
                     @toggleSidebar="$emit('toggleSidebar')"
                 />
 
@@ -253,9 +255,9 @@ const assignmentStatusColor = (status) => {
                                         : 'bg-sky-50/80 border-sky-200'
                                 "
                             >
-                                <span class="w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 text-base" :class="currentDayEvents.type === 'holiday' ? 'bg-rose-100 text-rose-700' : currentDayEvents.type === 'exam' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'">
-                                    {{ currentDayEvents.type === 'holiday' ? '🎉' : currentDayEvents.type === 'exam' ? '📝' : '📌' }}
-                                </span>
+                                <div class="w-9 h-9 rounded-2xl flex items-center justify-center shrink-0" :class="currentDayEvents.type === 'holiday' ? 'bg-rose-100 text-rose-700' : currentDayEvents.type === 'exam' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'">
+                                    <LmsIcon :name="currentDayEvents.type === 'holiday' ? 'bell' : currentDayEvents.type === 'exam' ? 'task' : 'book'" className="w-4 h-4" />
+                                </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="text-[10px] font-bold uppercase tracking-wider text-charcoal/70">
                                         {{ currentDayEvents.type === 'holiday' ? 'Hari Libur Nasional Resmi' : currentDayEvents.type === 'exam' ? 'Agenda Ujian Kejuruan' : 'Agenda Sekolah' }}
@@ -267,9 +269,13 @@ const assignmentStatusColor = (status) => {
 
                             <div
                                 v-if="currentSchedule.length === 0"
-                                class="bg-white rounded-[22px] p-5 border border-[#ECEAE4] text-center text-subtext text-xs"
+                                class="bg-white rounded-[22px] p-6 border border-[#ECEAE4] text-center"
                             >
-                                Tidak ada sesi pelajaran hari ini 🎉
+                                <div class="w-10 h-10 rounded-full bg-canvas border border-[#ECEAE4] flex items-center justify-center mx-auto mb-2 text-subtext">
+                                    <LmsIcon name="clock" className="w-4 h-4" />
+                                </div>
+                                <div class="text-xs font-bold text-charcoal">Tidak Ada Sesi Pelajaran Hari Ini</div>
+                                <p class="text-[11px] text-subtext mt-0.5">Silakan gunakan waktu untuk belajar mandiri atau penyelesaian tugas.</p>
                             </div>
                             <div
                                 v-for="s in currentSchedule"
@@ -318,8 +324,8 @@ const assignmentStatusColor = (status) => {
                                             <div class="flex-1 min-w-0">
                                                 <div class="text-[10px] font-bold text-subtext uppercase tracking-wider">{{ a.subject }}</div>
                                                 <div class="text-xs font-extrabold text-charcoal group-hover:text-black truncate mt-0.5">{{ a.title }}</div>
-                                                <div class="text-[11px] text-subtext mt-1 flex items-center gap-1">
-                                                    <span>⏰</span>
+                                                <div class="text-[11px] text-subtext mt-1 flex items-center gap-1.5">
+                                                    <LmsIcon name="clock" className="w-3.5 h-3.5 text-subtext shrink-0" />
                                                     <span>Tenggat: {{ a.due }}</span>
                                                 </div>
                                             </div>
@@ -396,6 +402,7 @@ const assignmentStatusColor = (status) => {
                 :isSidebarCollapsed="isSidebarCollapsed"
                 @openMenu="$emit('openMenu')"
                 @openProfile="$emit('openProfile')"
+                @openSettings="$emit('openSettings')"
                 @toggleSidebar="$emit('toggleSidebar')"
             />
 
@@ -413,6 +420,7 @@ const assignmentStatusColor = (status) => {
                     title="Tugas & Pengumpulan"
                     @openMenu="$emit('openMenu')"
                     @openProfile="$emit('openProfile')"
+                    @openSettings="$emit('openSettings')"
                     @toggleSidebar="$emit('toggleSidebar')"
                 />
 

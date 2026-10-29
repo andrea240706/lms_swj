@@ -47,7 +47,7 @@ class DashboardController extends Controller
                 'userSub' => $user && $user->getRoleKey() === 'guru' ? 'NIP: '.$user->username.' • Pengampu RPL' : 'NIP: 19880412 201504 1 002 • Pengampu RPL',
                 'avatar' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
                 'heroStyle' => 'hero-blossom',
-                'focusNote' => 'Buka presensi dengan timer, kunci/buka bab materi, & nilai tugas cepat.',
+                'focusNote' => 'Kelola modul pembelajaran, kunci/buka bab materi, & nilai tugas cepat.',
                 'tabs' => [
                     ['id' => 'home', 'label' => 'Dashboard', 'icon' => 'home'],
                     ['id' => 'mapel', 'label' => 'Kelas & Mapel', 'icon' => 'book'],

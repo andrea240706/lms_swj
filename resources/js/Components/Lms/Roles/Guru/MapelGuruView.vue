@@ -11,7 +11,7 @@ const props = defineProps({
     isSidebarCollapsed: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["openMenu", "openProfile", "toggleSidebar"]);
+const emit = defineEmits(["openMenu", "openProfile", "toggleSidebar", "openSettings"]);
 
 const page = usePage();
 
@@ -503,6 +503,7 @@ const gradeFromScore = (score) => {
                     @toggleSidebar="$emit('toggleSidebar')"
                     @openMenu="$emit('openMenu')"
                     @openProfile="$emit('openProfile')"
+                    @openSettings="$emit('openSettings')"
                     class="shrink-0"
                 />
                 <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">

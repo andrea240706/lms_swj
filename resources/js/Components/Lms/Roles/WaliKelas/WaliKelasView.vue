@@ -27,7 +27,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['openMenu', 'openProfile', 'showToast', 'toggleSidebar']);
+const emit = defineEmits(['openMenu', 'openProfile', 'showToast', 'toggleSidebar', 'openSettings']);
 
 // ===== SKELETON LOADER =====
 const isLoading = ref(true);
@@ -274,6 +274,7 @@ const getGradeBadgeClass = (score, kkm) => {
             :title="pageTitle"
             @openMenu="$emit('openMenu')"
             @openProfile="$emit('openProfile')"
+            @openSettings="$emit('openSettings')"
             @toggleSidebar="$emit('toggleSidebar')"
         />
 

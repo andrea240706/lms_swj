@@ -17,7 +17,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['openMenu', 'openProfile', 'toggleSidebar']);
+const emit = defineEmits(['openMenu', 'openProfile', 'toggleSidebar', 'openSettings']);
 
 const page = usePage();
 
@@ -257,6 +257,7 @@ const submitHomework = () => {
                     @toggleSidebar="$emit('toggleSidebar')"
                     @openMenu="$emit('openMenu')"
                     @openProfile="$emit('openProfile')"
+                    @openSettings="$emit('openSettings')"
                     class="shrink-0"
                 />
 
@@ -437,8 +438,9 @@ const submitHomework = () => {
                     </div>
 
                     <!-- Jadwal Pill -->
-                    <div class="mt-3 flex items-center text-xs font-bold text-charcoal/80">
-                        <span>🕒 {{ selectedMapel.dayTime }}</span>
+                    <div class="mt-3 flex items-center gap-1.5 text-xs font-bold text-charcoal/80">
+                        <LmsIcon name="clock" className="w-3.5 h-3.5 text-charcoal/70 shrink-0" />
+                        <span>{{ selectedMapel.dayTime }}</span>
                     </div>
                 </div>
 
@@ -483,24 +485,27 @@ const submitHomework = () => {
                         <div class="mt-4 pt-3 border-t border-[#F2F0EC] flex items-center justify-between">
                             <div class="flex items-center gap-1.5 flex-wrap">
                                 <span
-                                    class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-canvas text-charcoal border border-[#ECEAE4]"
+                                    class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-canvas text-charcoal border border-[#ECEAE4] flex items-center gap-1"
                                 >
-                                    📄 Modul
+                                    <LmsIcon name="file" className="w-3 h-3 text-subtext" />
+                                    <span>Modul</span>
                                 </span>
                                 <span
-                                    class="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+                                    class="text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1"
                                     :class="
                                         mt.tugas?.isSubmitted
                                             ? 'bg-sage-light text-sage-dark border-[#C8DFCD]'
                                             : 'bg-canvas text-charcoal border-[#ECEAE4]'
                                     "
                                 >
-                                    📝 {{ mt.tugas?.isSubmitted ? 'Tugas Terkirim' : 'Tugas' }}
+                                    <LmsIcon name="task" className="w-3 h-3" />
+                                    <span>{{ mt.tugas?.isSubmitted ? 'Tugas Terkirim' : 'Tugas' }}</span>
                                 </span>
                                 <span
                                     class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FF0000]/10 text-[#CC0000] border border-[#FF0000]/20 flex items-center gap-1"
                                 >
-                                    ▶ YouTube
+                                    <LmsIcon name="play" className="w-2.5 h-2.5 fill-current" />
+                                    <span>YouTube</span>
                                 </span>
                             </div>
 
@@ -562,8 +567,14 @@ const submitHomework = () => {
                     </p>
 
                     <div class="mt-3 pt-3 border-t border-charcoal/10 flex items-center justify-between text-[11px] font-semibold text-charcoal/80">
-                        <span>👨‍🏫 {{ selectedMapel.teacher }}</span>
-                        <span>🏫 {{ selectedMapel.room }}</span>
+                        <span class="flex items-center gap-1.5">
+                            <LmsIcon name="user" className="w-3.5 h-3.5 text-charcoal/70" />
+                            <span>{{ selectedMapel.teacher }}</span>
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <LmsIcon name="home" className="w-3.5 h-3.5 text-charcoal/70" />
+                            <span>{{ selectedMapel.room }}</span>
+                        </span>
                     </div>
                 </div>
 
@@ -815,8 +826,8 @@ const submitHomework = () => {
                     <!-- 4. VIDEO PEMBELAJARAN (MEDIA REFERENSI) -->
                     <div class="p-5 sm:p-6 hover:bg-[#FAF9F6]/50 transition-colors">
                         <div class="flex items-start gap-3 sm:gap-4">
-                            <div class="w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center font-extrabold text-xs shrink-0 mt-0.5">
-                                ▶
+                            <div class="w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0 mt-0.5">
+                                <LmsIcon name="play" className="w-4 h-4 fill-current ml-0.5" />
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap">
@@ -828,8 +839,9 @@ const submitHomework = () => {
                                     </span>
                                 </div>
 
-                                <div class="mt-1 text-xs text-subtext font-semibold">
-                                    📺 {{ selectedMeeting.video.channel }} • Durasi {{ selectedMeeting.video.duration }}
+                                <div class="mt-1 text-xs text-subtext font-semibold flex items-center gap-1.5">
+                                    <LmsIcon name="video" className="w-3.5 h-3.5 text-subtext shrink-0" />
+                                    <span>{{ selectedMeeting.video.channel }} • Durasi {{ selectedMeeting.video.duration }}</span>
                                 </div>
 
                                 <!-- Compact Responsive Video Preview Banner -->
@@ -864,7 +876,8 @@ const submitHomework = () => {
                                         <div class="mt-2.5 pt-2 border-t border-[#F2F0EC] flex items-center justify-between text-xs">
                                             <span class="text-[10px] text-subtext font-semibold">Klik untuk memutar</span>
                                             <span class="font-bold text-red-600 flex items-center gap-1 group-hover:underline">
-                                                Tonton di YouTube ↗
+                                                <span>Tonton di YouTube</span>
+                                                <LmsIcon name="arrowUpRight" className="w-3 h-3 text-red-600" />
                                             </span>
                                         </div>
                                     </div>

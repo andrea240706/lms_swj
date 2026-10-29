@@ -15,14 +15,13 @@ const props = defineProps({
     selectedDayDate: { type: String, default: '' },
     days: { type: Array, default: () => [] },
     calendarEvents: { type: Object, default: () => ({}) },
-    teacherGateOpen: { type: Boolean, default: true },
     materialsLock: { type: Object, default: () => ({ 1: false, 2: false, 3: true, 4: true }) },
     isSidebarCollapsed: { type: Boolean, default: false },
 });
 
 const emit = defineEmits([
-    'selectTab', 'selectDay', 'toggleGate', 'toggleLock',
-    'openGradeModal', 'openMenu', 'openProfile', 'toggleSidebar',
+    'selectTab', 'selectDay', 'toggleLock',
+    'openGradeModal', 'openMenu', 'openProfile', 'openSettings', 'toggleSidebar',
 ]);
 
 // ===== SKELETON LOADER =====
@@ -172,6 +171,7 @@ const statusSesiLabel = (status) => {
                     :isSidebarCollapsed="isSidebarCollapsed"
                     @openMenu="$emit('openMenu')"
                     @openProfile="$emit('openProfile')"
+                    @openSettings="$emit('openSettings')"
                     @toggleSidebar="$emit('toggleSidebar')"
                 />
 
@@ -211,16 +211,16 @@ const statusSesiLabel = (status) => {
                             <!-- Stats row -->
                             <div class="flex items-center gap-3 mt-4">
                                 <div class="flex-1 bg-white/80 rounded-2xl px-3.5 py-2.5">
-                                    <div class="text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">Siswa</div>
-                                    <div class="text-base font-extrabold text-charcoal mt-0.5">{{ sesiAktif.siswa }} Orang</div>
+                                    <div class="text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">Total Siswa</div>
+                                    <div class="text-base font-extrabold text-charcoal mt-0.5">{{ sesiAktif.siswa }} Siswa</div>
                                 </div>
                                 <div class="flex-1 bg-white/80 rounded-2xl px-3.5 py-2.5">
-                                    <div class="text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">Sesi</div>
-                                    <div class="text-base font-extrabold text-charcoal mt-0.5">{{ sesiAktif.sesi }}/{{ sesiAktif.totalSesi }}</div>
+                                    <div class="text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">Progress Sesi</div>
+                                    <div class="text-base font-extrabold text-charcoal mt-0.5">Pertemuan {{ sesiAktif.sesi }}/{{ sesiAktif.totalSesi }}</div>
                                 </div>
-                                <div v-if="sesiAktif.status === 'sedang'" class="flex-1 bg-white/80 rounded-2xl px-3.5 py-2.5">
-                                    <div class="text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">Hadir</div>
-                                    <div class="text-base font-extrabold text-[#2E7D32] mt-0.5">{{ sesiAktif.hadir }} <span class="text-xs text-charcoal/50">orang</span></div>
+                                <div class="flex-1 bg-white/80 rounded-2xl px-3.5 py-2.5">
+                                    <div class="text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">Ruang Kelas</div>
+                                    <div class="text-base font-extrabold text-charcoal mt-0.5">{{ sesiAktif.ruang }}</div>
                                 </div>
                             </div>
 
@@ -228,17 +228,18 @@ const statusSesiLabel = (status) => {
                             <div class="flex items-center gap-2 mt-4">
                                 <button
                                     type="button"
-                                    @click="$emit('toggleGate')"
-                                    class="px-4 py-2.5 rounded-full bg-charcoal text-white text-xs font-extrabold shadow-sm active:scale-95 transition-transform cursor-pointer"
+                                    @click="$emit('selectTab', 'mapel')"
+                                    class="px-4 py-2.5 rounded-full bg-charcoal text-white text-xs font-extrabold shadow-sm active:scale-95 transition-transform cursor-pointer flex items-center gap-1.5"
                                 >
-                                    {{ teacherGateOpen ? '🔴 Tutup Presensi' : '🟢 Buka Presensi (15m)' }}
+                                    <span>Kelola Materi &amp; Tugas</span>
+                                    <LmsIcon name="chevronRight" className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                     type="button"
-                                    @click="$emit('selectTab', 'mapel')"
+                                    @click="$emit('selectTab', 'rekapNilai')"
                                     class="px-3.5 py-2.5 rounded-full bg-white/90 text-charcoal text-xs font-bold cursor-pointer hover:bg-white border border-white/60 transition-colors shadow-2xs"
                                 >
-                                    Kelola Mapel →
+                                    Rekap Nilai
                                 </button>
                             </div>
 
@@ -277,8 +278,8 @@ const statusSesiLabel = (status) => {
                                     : 'bg-sky-50/80 border-sky-200'
                             "
                         >
-                            <span class="w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 text-base" :class="currentDayEvents.type === 'holiday' ? 'bg-rose-100 text-rose-700' : currentDayEvents.type === 'exam' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'">
-                                {{ currentDayEvents.type === 'holiday' ? '🎉' : currentDayEvents.type === 'exam' ? '📝' : '📌' }}
+                            <span class="w-9 h-9 rounded-2xl flex items-center justify-center shrink-0" :class="currentDayEvents.type === 'holiday' ? 'bg-rose-100 text-rose-700' : currentDayEvents.type === 'exam' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'">
+                                <LmsIcon :name="currentDayEvents.type === 'holiday' ? 'clock' : currentDayEvents.type === 'exam' ? 'task' : 'book'" className="w-4 h-4" />
                             </span>
                             <div class="flex-1 min-w-0">
                                 <div class="text-[10px] font-bold uppercase tracking-wider text-charcoal/70">
@@ -411,6 +412,7 @@ const statusSesiLabel = (status) => {
                 :isSidebarCollapsed="isSidebarCollapsed"
                 @openMenu="$emit('openMenu')"
                 @openProfile="$emit('openProfile')"
+                @openSettings="$emit('openSettings')"
                 @toggleSidebar="$emit('toggleSidebar')"
             />
 
@@ -424,6 +426,7 @@ const statusSesiLabel = (status) => {
                 :isSidebarCollapsed="isSidebarCollapsed"
                 @openMenu="$emit('openMenu')"
                 @openProfile="$emit('openProfile')"
+                @openSettings="$emit('openSettings')"
                 @toggleSidebar="$emit('toggleSidebar')"
             />
 

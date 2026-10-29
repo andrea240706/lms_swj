@@ -16,7 +16,7 @@ defineProps({
     },
 });
 
-defineEmits(['openMenu', 'openProfile', 'openNotification', 'toggleSidebar']);
+defineEmits(['openMenu', 'openProfile', 'openNotification', 'toggleSidebar', 'openSettings']);
 </script>
 
 <template>
@@ -119,6 +119,16 @@ defineEmits(['openMenu', 'openProfile', 'openNotification', 'toggleSidebar']);
                     <span
                         class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"
                     ></span>
+                </button>
+
+                <!-- Settings Button -->
+                <button
+                    type="button"
+                    @click="$emit('openSettings')"
+                    class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white border border-[#ECEAE4] flex items-center justify-center text-charcoal soft-shadow hover:bg-black/5 active:scale-95 transition-all cursor-pointer"
+                    title="Pengaturan LMS"
+                >
+                    <LmsIcon name="settings" className="w-5 h-5 text-charcoal" />
                 </button>
 
                 <!-- Desktop Separator -->

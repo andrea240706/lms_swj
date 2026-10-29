@@ -22,6 +22,7 @@ const emit = defineEmits([
     'toggleCollapse',
     'openProfile',
     'openMenu',
+    'openSettings',
     'logout',
 ]);
 
@@ -171,6 +172,20 @@ const getTabBadge = (tabId) => {
 
         <!-- Bottom Section: Roles, Collapse Toggle & Logout -->
         <div class="p-3 border-t border-[#ECEAE4]/80 space-y-1.5 bg-canvas/40">
+            <!-- Settings Trigger Button -->
+            <button
+                type="button"
+                @click="$emit('openSettings')"
+                class="w-full flex items-center rounded-2xl transition-all cursor-pointer font-bold text-xs text-charcoal/75 hover:text-charcoal hover:bg-white border border-transparent hover:border-[#ECEAE4]"
+                :class="isCollapsed ? 'h-10 justify-center' : 'h-10 px-3 gap-2.5'"
+                :title="isCollapsed ? 'Pengaturan LMS' : ''"
+            >
+                <LmsIcon name="settings" className="w-4 h-4 shrink-0 text-subtext" />
+                <span v-if="!isCollapsed" class="truncate text-left">
+                    Pengaturan
+                </span>
+            </button>
+
             <!-- Role Switcher Trigger Button -->
             <button
                 type="button"
@@ -184,8 +199,6 @@ const getTabBadge = (tabId) => {
                     Ganti Role (Preview)
                 </span>
             </button>
-
-
         </div>
     </aside>
 </template>

@@ -10,7 +10,7 @@ const props = defineProps({
     isSidebarCollapsed: { type: Boolean, default: false },
 });
 
-defineEmits(['openMenu', 'openProfile', 'toggleSidebar']);
+defineEmits(['openMenu', 'openProfile', 'toggleSidebar', 'openSettings']);
 
 // ===== SKELETON LOADER =====
 const isLoading = ref(true);
@@ -158,6 +158,7 @@ const showToast = (msg) => {
             @toggleSidebar="$emit('toggleSidebar')"
             @openMenu="$emit('openMenu')"
             @openProfile="$emit('openProfile')"
+            @openSettings="$emit('openSettings')"
         />
 
         <!-- ============================================================ -->

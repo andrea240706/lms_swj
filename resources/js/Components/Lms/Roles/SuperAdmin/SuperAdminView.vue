@@ -24,7 +24,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['openMenu', 'openProfile', 'showToast', 'toggleSidebar', 'selectTab']);
+const emit = defineEmits(['openMenu', 'openProfile', 'showToast', 'toggleSidebar', 'selectTab', 'openSettings']);
 
 // ===== SKELETON LOADER =====
 const isLoading = ref(true);
@@ -229,6 +229,7 @@ const handleRunBackup = () => {
             :title="pageTitle"
             @openMenu="$emit('openMenu')"
             @openProfile="$emit('openProfile')"
+            @openSettings="$emit('openSettings')"
             @toggleSidebar="$emit('toggleSidebar')"
         />
 

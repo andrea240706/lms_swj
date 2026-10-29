@@ -77,7 +77,6 @@ onMounted(() => {
 });
 
 // Interactive features state
-const teacherGateOpen = ref(true);
 const materialsLock = ref({ 1: false, 2: false, 3: true, 4: true });
 const assignments = ref([...props.initialAssignments]);
 
@@ -185,10 +184,6 @@ const toggleMaterialLock = (id) => {
     materialsLock.value[id] = !materialsLock.value[id];
 };
 
-const toggleTeacherGate = () => {
-    teacherGateOpen.value = !teacherGateOpen.value;
-};
-
 const handleShowToast = (message) => {
     openActionSheet('toast', { message });
 };
@@ -220,6 +215,7 @@ const handleLogout = () => {
             @toggleCollapse="toggleSidebar"
             @openProfile="openActionSheet('profile', currentRole)"
             @openMenu="openActionSheet('role_switcher')"
+            @openSettings="openActionSheet('settings', currentRole)"
             @logout="handleLogout"
         />
 
@@ -246,6 +242,7 @@ const handleLogout = () => {
                     @openUploadModal="handleUploadModal"
                     @openMenu="openActionSheet('role_switcher')"
                     @openProfile="openActionSheet('profile', currentRole)"
+                    @openSettings="openActionSheet('settings', currentRole)"
                 />
 
                 <!-- 2. GURU -->
@@ -257,17 +254,16 @@ const handleLogout = () => {
                     :selectedDayDate="selectedDayDate"
                     :days="days"
                     :calendarEvents="calendarEvents"
-                    :teacherGateOpen="teacherGateOpen"
                     :materialsLock="materialsLock"
                     :isSidebarCollapsed="isSidebarCollapsed"
                     @selectTab="selectTab"
                     @selectDay="selectDay"
-                    @toggleGate="toggleTeacherGate"
                     @toggleLock="toggleMaterialLock"
                     @toggleSidebar="toggleSidebar"
                     @openGradeModal="handleGradeModal"
                     @openMenu="openActionSheet('role_switcher')"
                     @openProfile="openActionSheet('profile', currentRole)"
+                    @openSettings="openActionSheet('settings', currentRole)"
                 />
 
                 <!-- 3. WALI KELAS -->
@@ -280,6 +276,7 @@ const handleLogout = () => {
                     @toggleSidebar="toggleSidebar"
                     @openMenu="openActionSheet('role_switcher')"
                     @openProfile="openActionSheet('profile', currentRole)"
+                    @openSettings="openActionSheet('settings', currentRole)"
                     @showToast="handleShowToast"
                 />
 
@@ -292,6 +289,7 @@ const handleLogout = () => {
                     @toggleSidebar="toggleSidebar"
                     @openMenu="openActionSheet('role_switcher')"
                     @openProfile="openActionSheet('profile', currentRole)"
+                    @openSettings="openActionSheet('settings', currentRole)"
                     @showToast="handleShowToast"
                 />
 
@@ -305,6 +303,7 @@ const handleLogout = () => {
                     @toggleSidebar="toggleSidebar"
                     @openMenu="openActionSheet('role_switcher')"
                     @openProfile="openActionSheet('profile', currentRole)"
+                    @openSettings="openActionSheet('settings', currentRole)"
                     @showToast="handleShowToast"
                 />
 
@@ -318,6 +317,7 @@ const handleLogout = () => {
                     @toggleSidebar="toggleSidebar"
                     @openMenu="openActionSheet('role_switcher')"
                     @openProfile="openActionSheet('profile', currentRole)"
+                    @openSettings="openActionSheet('settings', currentRole)"
                     @showToast="handleShowToast"
                 />
 
@@ -338,10 +338,12 @@ const handleLogout = () => {
             :sheetData="actionSheet.data"
             :roles="roles"
             :activeRole="currentRoleKey"
+            :currentUser="currentUser"
             @close="closeActionSheet"
             @submitAssignment="handleSubmitAssignment"
             @submitGrade="handleSubmitGrade"
             @selectRole="selectRole"
+            @openSettings="openActionSheet('settings', currentRole)"
             @logout="handleLogout"
         />
     </div>

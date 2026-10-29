@@ -1,5 +1,6 @@
 <script setup>
 import LmsIcon from '@/Components/Lms/LmsIcon.vue';
+import LmsSettingsModal from '@/Components/Lms/LmsSettingsModal.vue';
 
 defineProps({
     isOpen: {
@@ -22,6 +23,10 @@ defineProps({
         type: String,
         default: 'siswa',
     },
+    currentUser: {
+        type: Object,
+        default: null,
+    },
 });
 
 defineEmits([
@@ -29,6 +34,7 @@ defineEmits([
     'submitAssignment',
     'submitGrade',
     'selectRole',
+    'openSettings',
     'logout',
 ]);
 </script>
@@ -38,14 +44,29 @@ defineEmits([
     <div
         v-if="isOpen"
         @click="$emit('close')"
-        class="fixed inset-0 bg-charcoal/40 backdrop-blur-xs flex items-end justify-center z-50 p-0 sm:p-4"
+        class="fixed inset-0 bg-charcoal/40 backdrop-blur-xs flex items-end sm:items-center justify-center z-50 p-0 sm:p-4"
     >
         <div
             @click.stop
-            class="w-full max-w-[400px] bg-white rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl transition-all max-h-[90vh] overflow-y-auto no-scrollbar"
+            class="w-full bg-white shadow-2xl transition-all overflow-hidden"
+            :class="
+                sheetType === 'settings'
+                    ? 'max-w-lg sm:max-w-xl rounded-t-[32px] sm:rounded-[32px]'
+                    : 'max-w-[400px] rounded-t-[32px] sm:rounded-[32px] p-6 max-h-[90vh] overflow-y-auto no-scrollbar'
+            "
         >
+            <!-- 0. SETTINGS MODAL -->
+            <div v-if="sheetType === 'settings'">
+                <LmsSettingsModal
+                    :role="sheetData?.userName ? sheetData : (roles[activeRole] || {})"
+                    :currentUser="currentUser"
+                    @close="$emit('close')"
+                    @logout="$emit('logout')"
+                />
+            </div>
+
             <!-- 1. LESSON VIEWER / DOWNLOAD -->
-            <div v-if="sheetType === 'lesson'">
+            <div v-else-if="sheetType === 'lesson'">
                 <span
                     class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-blossom-light text-blossom-dark"
                 >
@@ -60,7 +81,10 @@ defineEmits([
                 <div
                     class="mt-4 p-3 rounded-2xl bg-canvas border border-[#ECEAE4] flex items-center justify-between"
                 >
-                    <span class="text-xs font-bold text-charcoal">📄 Modul_Praktikum_RPL.pdf (2.4 MB)</span>
+                    <span class="text-xs font-bold text-charcoal flex items-center gap-2">
+                        <LmsIcon name="file" className="w-4 h-4 text-subtext shrink-0" />
+                        <span>Modul_Praktikum_RPL.pdf (2.4 MB)</span>
+                    </span>
                     <span class="text-xs font-extrabold text-charcoal underline cursor-pointer">Unduh</span>
                 </div>
                 <button
@@ -179,6 +203,14 @@ defineEmits([
                 </div>
 
                 <div class="mt-5 space-y-2">
+                    <button
+                        type="button"
+                        @click="$emit('openSettings')"
+                        class="w-full py-3 px-4 rounded-2xl bg-canvas border border-[#ECEAE4] text-charcoal font-bold text-xs hover:bg-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-2xs"
+                    >
+                        <LmsIcon name="settings" className="w-4 h-4 text-charcoal" />
+                        <span>Pengaturan Akun & Preferensi</span>
+                    </button>
                     <button
                         type="button"
                         @click="$emit('logout')"
