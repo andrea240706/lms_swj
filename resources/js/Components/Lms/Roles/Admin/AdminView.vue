@@ -1041,11 +1041,14 @@ const savePengumuman = () => {
                         <!-- User List Cards -->
                         <div class="space-y-2.5">
                             <div
-                                v-for="u in filteredUsers"
+                                v-for="(u, index) in filteredUsers"
                                 :key="u.id"
                                 class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-charcoal/30 transition-all"
                             >
                                 <div class="flex items-center gap-3 min-w-0">
+                                    <span class="w-6 text-xs font-black text-subtext/60 shrink-0 text-center select-none">
+                                        {{ index + 1 }}
+                                    </span>
                                     <div
                                         class="w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm shrink-0"
                                         :class="u.role === 'siswa' ? 'bg-sky-light text-sky-dark' : u.role === 'guru' ? 'bg-sage-light text-sage-dark' : u.role === 'kepsek' ? 'bg-amberpastel-light text-amberpastel-dark' : 'bg-lavender-light text-lavender-dark'"
@@ -1074,13 +1077,6 @@ const savePengumuman = () => {
                                         :class="u.status === 'Aktif' ? 'bg-[#E8F5E9] text-[#2E7D32]' : u.status === 'Pantauan' ? 'bg-blossom-light text-blossom-dark' : 'bg-muted text-subtext'"
                                     >
                                         {{ u.status }}
-                                    </span>
-                                    <span
-                                        class="text-[10px] font-bold px-2.5 py-1 rounded-full"
-                                        :class="u.sandiStatus === 'Sandi Default' || u.sandiStatus === 'Default' ? 'bg-amberpastel-light text-amberpastel-dark' : 'bg-sage-light text-sage-dark'"
-                                        :title="u.sandiStatus === 'Sandi Default' || u.sandiStatus === 'Default' ? 'Pengguna belum mengubah sandi default inisial' : 'Kata sandi dikelola secara mandiri oleh pengguna'"
-                                    >
-                                        {{ u.sandiStatus === 'Sandi Default' || u.sandiStatus === 'Default' ? 'Sandi Inisial' : 'Sandi Mandiri' }}
                                     </span>
                                     <button
                                         type="button"
