@@ -398,7 +398,7 @@ const detectConflict = (form, excludeId = null) => {
                 return {
                     conflict: true,
                     type: 'guru',
-                    message: `⚠️ BENTROK GURU: ${form.guru} sudah memiliki jadwal mengajar di kelas [${item.rombel}] pada ${form.hari}, ${form.jamKe}!`,
+                    message: `BENTROK GURU: ${form.guru} sudah memiliki jadwal mengajar di kelas [${item.rombel}] pada ${form.hari}, ${form.jamKe}!`,
                 };
             }
             // 2. Bentrok Rombel (Kelas yang sama tidak bisa ada 2 mapel di jam yang sama)
@@ -406,7 +406,7 @@ const detectConflict = (form, excludeId = null) => {
                 return {
                     conflict: true,
                     type: 'rombel',
-                    message: `⚠️ BENTROK KELAS: Rombel [${form.rombel}] sudah memiliki jadwal [${item.mapel}] pada ${form.hari}, ${form.jamKe}!`,
+                    message: `BENTROK KELAS: Rombel [${form.rombel}] sudah memiliki jadwal [${item.mapel}] pada ${form.hari}, ${form.jamKe}!`,
                 };
             }
             // 3. Bentrok Ruangan (Lab / Bengkel tidak bisa dipakai 2 kelas bersamaan)
@@ -414,7 +414,7 @@ const detectConflict = (form, excludeId = null) => {
                 return {
                     conflict: true,
                     type: 'ruang',
-                    message: `⚠️ BENTROK RUANGAN: Ruangan [${form.ruang}] sedang digunakan oleh rombel [${item.rombel}] (${item.mapel})!`,
+                    message: `BENTROK RUANGAN: Ruangan [${form.ruang}] sedang digunakan oleh rombel [${item.rombel}] (${item.mapel})!`,
                 };
             }
         }
@@ -829,7 +829,7 @@ const savePengumuman = () => {
                                 <div class="flex items-center justify-between">
                                     <span class="text-[11px] font-bold text-subtext">Status Konflik</span>
                                     <span class="w-8 h-8 rounded-full bg-[#E8F5E9] text-[#2E7D32] flex items-center justify-center font-black text-xs">
-                                        ✓
+                                        <LmsIcon name="check" className="w-4 h-4" />
                                     </span>
                                 </div>
                                 <div class="mt-2">
@@ -1495,18 +1495,20 @@ const savePengumuman = () => {
                                             <button
                                                 type="button"
                                                 @click="jadwalViewMode = 'rombel'"
-                                                class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                                                class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
                                                 :class="jadwalViewMode === 'rombel' ? 'bg-white text-charcoal shadow-2xs' : 'text-subtext hover:text-charcoal'"
                                             >
-                                                👥 Jadwal per Rombel (Kelas)
+                                                <LmsIcon name="user" className="w-3.5 h-3.5" />
+                                                <span>Jadwal per Rombel (Kelas)</span>
                                             </button>
                                             <button
                                                 type="button"
                                                 @click="jadwalViewMode = 'guru'"
-                                                class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                                                class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
                                                 :class="jadwalViewMode === 'guru' ? 'bg-white text-charcoal shadow-2xs' : 'text-subtext hover:text-charcoal'"
                                             >
-                                                👨‍🏫 Timeline Harian Guru
+                                                <LmsIcon name="clock" className="w-3.5 h-3.5" />
+                                                <span>Timeline Harian Guru</span>
                                             </button>
                                         </div>
                                     </div>
@@ -1519,7 +1521,10 @@ const savePengumuman = () => {
                                             class="px-3.5 py-2 rounded-xl bg-canvas border border-[#ECEAE4] text-charcoal text-xs font-bold hover:bg-muted active:scale-95 transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
                                             title="Salin template jadwal dari satu rombel ke rombel lain"
                                         >
-                                            <span>⚡ Salin ke Rombel Lain</span>
+                                            <svg class="w-3.5 h-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                            </svg>
+                                            <span>Salin ke Rombel Lain</span>
                                         </button>
 
                                         <button
@@ -1631,8 +1636,13 @@ const savePengumuman = () => {
                                     v-if="filteredJadwal.length === 0"
                                     class="bg-white rounded-[26px] p-8 text-center border border-dashed border-[#ECEAE4] space-y-3"
                                 >
-                                    <div class="w-12 h-12 rounded-full bg-canvas mx-auto flex items-center justify-center text-subtext text-xl font-bold">
-                                        🗓️
+                                    <div class="w-12 h-12 rounded-full bg-canvas mx-auto flex items-center justify-center text-subtext">
+                                        <svg class="w-6 h-6 text-subtext/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                            <line x1="16" y1="2" x2="16" y2="6" />
+                                            <line x1="8" y1="2" x2="8" y2="6" />
+                                            <line x1="3" y1="10" x2="21" y2="10" />
+                                        </svg>
                                     </div>
                                     <div>
                                         <h4 class="text-sm font-extrabold text-charcoal">Belum Ada Jadwal di Hari {{ selectedHariJadwal }}</h4>
@@ -1667,10 +1677,22 @@ const savePengumuman = () => {
                                                     {{ j.status }}
                                                 </span>
                                             </div>
-                                            <div class="text-xs text-subtext mt-1.5 flex items-center gap-3 flex-wrap">
-                                                <span>👨‍🏫 Guru: <strong class="text-charcoal">{{ j.guru }}</strong></span>
-                                                <span>📍 Ruang: <strong class="text-charcoal">{{ j.ruang }}</strong></span>
-                                                <span>⏰ Waktu: {{ j.jamKe.includes('(') ? j.jamKe.split('(')[1].replace(')', '') : '' }}</span>
+                                            <div class="text-xs text-subtext mt-1.5 flex items-center gap-3.5 flex-wrap">
+                                                <span class="inline-flex items-center gap-1.5">
+                                                    <LmsIcon name="user" className="w-3.5 h-3.5 text-subtext/80" />
+                                                    <span>Guru: <strong class="text-charcoal">{{ j.guru }}</strong></span>
+                                                </span>
+                                                <span class="inline-flex items-center gap-1.5">
+                                                    <svg class="w-3.5 h-3.5 text-subtext/80 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                                        <circle cx="12" cy="10" r="3" />
+                                                    </svg>
+                                                    <span>Ruang: <strong class="text-charcoal">{{ j.ruang }}</strong></span>
+                                                </span>
+                                                <span class="inline-flex items-center gap-1.5">
+                                                    <LmsIcon name="clock" className="w-3.5 h-3.5 text-subtext/80" />
+                                                    <span>Waktu: <strong class="text-charcoal">{{ j.jamKe.includes('(') ? j.jamKe.split('(')[1].replace(')', '') : '' }}</strong></span>
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -1701,7 +1723,15 @@ const savePengumuman = () => {
                                     v-if="guruDayJadwal.length === 0"
                                     class="bg-white rounded-[26px] p-8 text-center border border-dashed border-[#ECEAE4] space-y-2"
                                 >
-                                    <div class="text-2xl">☕</div>
+                                    <div class="w-12 h-12 rounded-full bg-canvas mx-auto flex items-center justify-center text-subtext">
+                                        <svg class="w-6 h-6 text-subtext/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                                            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                                            <line x1="6" y1="1" x2="6" y2="4" />
+                                            <line x1="10" y1="1" x2="10" y2="4" />
+                                            <line x1="14" y1="1" x2="14" y2="4" />
+                                        </svg>
+                                    </div>
                                     <h4 class="text-sm font-extrabold text-charcoal">Guru Bebas Tugas di Hari {{ selectedHariJadwal }}</h4>
                                     <p class="text-xs text-subtext">Tidak ada jadwal mengajar untuk {{ selectedGuruFilter }} pada hari {{ selectedHariJadwal }}.</p>
                                 </div>
@@ -1842,9 +1872,9 @@ const savePengumuman = () => {
                         <button
                             type="button"
                             @click="isPengumumanModalOpen = false"
-                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold text-xs cursor-pointer"
+                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold cursor-pointer"
                         >
-                            ✕
+                            <LmsIcon name="x" className="w-3.5 h-3.5" />
                         </button>
                     </div>
 
@@ -1945,9 +1975,9 @@ const savePengumuman = () => {
                         <button
                             type="button"
                             @click="isJadwalModalOpen = false"
-                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold text-xs cursor-pointer"
+                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold cursor-pointer"
                         >
-                            ✕
+                            <LmsIcon name="x" className="w-3.5 h-3.5" />
                         </button>
                     </div>
 
@@ -1957,7 +1987,11 @@ const savePengumuman = () => {
                         class="p-3.5 rounded-2xl bg-blossom-light border border-[#F8B4B4] text-blossom-dark space-y-1 animate-pulse"
                     >
                         <div class="flex items-center gap-2 font-black text-xs">
-                            <span>🚫 TERDETEKSI BENTROK JADWAL!</span>
+                            <svg class="w-4 h-4 text-blossom-dark shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                            </svg>
+                            <span>TERDETEKSI BENTROK JADWAL!</span>
                         </div>
                         <p class="text-xs font-semibold leading-relaxed">
                             {{ currentConflict.message }}
@@ -2096,16 +2130,23 @@ const savePengumuman = () => {
             >
                 <div class="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl space-y-4">
                     <div class="flex items-center justify-between pb-3 border-b border-[#ECEAE4]">
-                        <div>
-                            <h3 class="text-base font-extrabold text-charcoal">⚡ Salin Template Jadwal</h3>
-                            <p class="text-xs text-subtext mt-0.5">Duplikasi seluruh susunan mapel antar rombel paralel.</p>
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-amberpastel-light text-amberpastel-dark flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                </svg>
+                            </span>
+                            <div>
+                                <h3 class="text-base font-extrabold text-charcoal">Salin Template Jadwal</h3>
+                                <p class="text-xs text-subtext mt-0.5">Duplikasi seluruh susunan mapel antar rombel paralel.</p>
+                            </div>
                         </div>
                         <button
                             type="button"
                             @click="isCloneModalOpen = false"
-                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold text-xs cursor-pointer"
+                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold cursor-pointer"
                         >
-                            ✕
+                            <LmsIcon name="x" className="w-3.5 h-3.5" />
                         </button>
                     </div>
 
@@ -2193,9 +2234,9 @@ const savePengumuman = () => {
                         <button
                             type="button"
                             @click="isWaliModalOpen = false"
-                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold text-xs cursor-pointer"
+                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold cursor-pointer"
                         >
-                            ✕
+                            <LmsIcon name="x" className="w-3.5 h-3.5" />
                         </button>
                     </div>
 
@@ -2277,9 +2318,9 @@ const savePengumuman = () => {
                         <button
                             type="button"
                             @click="isGuruMapelModalOpen = false"
-                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold text-xs cursor-pointer"
+                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold cursor-pointer"
                         >
-                            ✕
+                            <LmsIcon name="x" className="w-3.5 h-3.5" />
                         </button>
                     </div>
 
@@ -2398,9 +2439,9 @@ const savePengumuman = () => {
                         <button
                             type="button"
                             @click="isUserModalOpen = false"
-                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold text-xs cursor-pointer"
+                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold cursor-pointer"
                         >
-                            ✕
+                            <LmsIcon name="x" className="w-3.5 h-3.5" />
                         </button>
                     </div>
 
@@ -2541,9 +2582,9 @@ const savePengumuman = () => {
                         <button
                             type="button"
                             @click="isMasterModalOpen = false"
-                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold text-xs cursor-pointer"
+                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold cursor-pointer"
                         >
-                            ✕
+                            <LmsIcon name="x" className="w-3.5 h-3.5" />
                         </button>
                     </div>
 

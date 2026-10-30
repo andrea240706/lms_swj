@@ -314,7 +314,10 @@ const handleRunBackup = () => {
                                     placeholder="Cari nama, NIP, email operator..."
                                     class="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-canvas border border-[#E6E4DF] focus:outline-none focus:ring-2 focus:ring-charcoal/20"
                                 />
-                                <span class="absolute left-3 top-2.5 text-subtext text-xs">🔍</span>
+                                <svg class="w-3.5 h-3.5 absolute left-3 top-2.5 text-subtext/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                </svg>
                             </div>
 
                             <div class="flex items-center gap-1.5 self-start sm:self-auto overflow-x-auto w-full sm:w-auto">
@@ -414,10 +417,11 @@ const handleRunBackup = () => {
                                     <button
                                         type="button"
                                         @click="handleResetPassword(user)"
-                                        class="cursor-pointer px-3 py-1.5 rounded-xl bg-canvas hover:bg-[#EBE8E1] border border-[#ECEAE4] text-charcoal text-xs font-bold transition-all active:scale-95"
+                                        class="cursor-pointer px-3 py-1.5 rounded-xl bg-canvas hover:bg-[#EBE8E1] border border-[#ECEAE4] text-charcoal text-xs font-bold transition-all active:scale-95 inline-flex items-center gap-1.5"
                                         title="Buat sandi sementara baru"
                                     >
-                                        🔑 Reset Sandi
+                                        <LmsIcon name="lock" className="w-3.5 h-3.5" />
+                                        <span>Reset Sandi</span>
                                     </button>
 
                                     <div class="flex items-center gap-1.5">
@@ -629,7 +633,7 @@ const handleRunBackup = () => {
                                         class="p-2.5 rounded-xl text-xs font-medium border"
                                         :class="systemSettings.maintenanceMode ? 'bg-rose-50 text-rose-800 border-rose-200' : 'bg-canvas text-subtext border-[#ECEAE4]'"
                                     >
-                                        {{ systemSettings.maintenanceMode ? '⚠️ PERINGATAN: Sistem dikunci, hanya Super Admin yang dapat mengakses aplikasi.' : 'LMS beroperasi normal untuk seluruh siswa, guru, wali, dan staf operator.' }}
+                                        {{ systemSettings.maintenanceMode ? '[PERINGATAN] Sistem dikunci, hanya Super Admin yang dapat mengakses aplikasi.' : 'LMS beroperasi normal untuk seluruh siswa, guru, wali, dan staf operator.' }}
                                     </div>
                                 </div>
 
@@ -660,9 +664,10 @@ const handleRunBackup = () => {
                                 <button
                                     type="button"
                                     @click="handleRunBackup"
-                                    class="cursor-pointer px-4 py-2 rounded-xl bg-canvas hover:bg-[#EBE8E1] border border-[#ECEAE4] text-xs font-bold text-charcoal transition-all active:scale-95"
+                                    class="cursor-pointer px-4 py-2 rounded-xl bg-canvas hover:bg-[#EBE8E1] border border-[#ECEAE4] text-xs font-bold text-charcoal transition-all active:scale-95 inline-flex items-center gap-1.5"
                                 >
-                                    💾 Cadangkan Sekarang
+                                    <LmsIcon name="download" className="w-3.5 h-3.5" />
+                                    <span>Cadangkan Sekarang</span>
                                 </button>
                             </div>
 
