@@ -169,7 +169,7 @@ const deleteUser = (userId) => {
 };
 
 const handleToggleLockUser = (user) => {
-    user.status = user.status === 'Terkunci' ? 'Aktif' : 'Terkunci';
+    user.status = user.status === 'Aktif' ? 'Nonaktif' : 'Aktif';
     emit('showToast', `Status akun ${user.name} diperbarui menjadi ${user.status}.`);
 };
 
@@ -879,7 +879,7 @@ const savePengumuman = () => {
                                                 <LmsIcon name="user" className="w-4 h-4" />
                                             </span>
                                             <h4 class="text-sm font-extrabold text-charcoal">Manajemen Pengguna</h4>
-                                            <p class="text-[11px] text-subtext mt-1">Kelola akun Siswa, Guru, dan Wali Kelas. Reset sandi sementara instan.</p>
+                                            <p class="text-[11px] text-subtext mt-1">Kelola akun Siswa, Guru, Wali Kelas, dan Kepala Sekolah. Aktivasi status akun.</p>
                                         </div>
                                         <div class="text-xs font-bold text-charcoal mt-3 flex items-center gap-1">
                                             Kelola Akun →
@@ -944,8 +944,8 @@ const savePengumuman = () => {
                                         <div class="flex items-start gap-2.5 pb-2.5 border-b border-[#F2F0EC]">
                                             <span class="w-2 h-2 rounded-full bg-sky-dark mt-1.5 shrink-0"></span>
                                             <div>
-                                                <div class="font-extrabold text-charcoal">Buka Kunci Akun: Dimas Anggara (XII RPL 2)</div>
-                                                <div class="text-[10px] text-subtext">Hari ini, 07:15 WIB • Akun dibuka kembali setelah konfirmasi</div>
+                                                <div class="font-extrabold text-charcoal">Aktivasi Akun: Dimas Anggara (XII RPL 2)</div>
+                                                <div class="text-[10px] text-subtext">Hari ini, 07:15 WIB • Status akun diaktifkan kembali</div>
                                             </div>
                                         </div>
                                         <div class="flex items-start gap-2.5 pb-2.5 border-b border-[#F2F0EC]">
@@ -1074,7 +1074,7 @@ const savePengumuman = () => {
                                 <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto flex-wrap">
                                     <span
                                         class="text-[10px] font-bold px-2.5 py-1 rounded-full"
-                                        :class="u.status === 'Aktif' ? 'bg-[#E8F5E9] text-[#2E7D32]' : u.status === 'Pantauan' ? 'bg-blossom-light text-blossom-dark' : 'bg-muted text-subtext'"
+                                        :class="u.status === 'Aktif' ? 'bg-[#E8F5E9] text-[#2E7D32]' : 'bg-muted text-subtext'"
                                     >
                                         {{ u.status }}
                                     </span>
@@ -1090,10 +1090,10 @@ const savePengumuman = () => {
                                         type="button"
                                         @click="handleToggleLockUser(u)"
                                         class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
-                                        :class="u.status === 'Terkunci' ? 'bg-charcoal text-white' : 'bg-canvas border border-[#ECEAE4] text-subtext hover:text-charcoal'"
-                                        :title="u.status === 'Terkunci' ? 'Buka Kunci Akses Akun Pengguna' : 'Kunci Akses Akun Pengguna'"
+                                        :class="u.status === 'Nonaktif' || u.status === 'Terkunci' ? 'bg-charcoal text-white hover:bg-black' : 'bg-canvas border border-[#ECEAE4] text-subtext hover:text-charcoal hover:bg-white'"
+                                        :title="u.status === 'Nonaktif' || u.status === 'Terkunci' ? 'Aktifkan Akun Pengguna' : 'Nonaktifkan Akun Pengguna'"
                                     >
-                                        {{ u.status === 'Terkunci' ? 'Buka Kunci' : 'Kunci' }}
+                                        {{ u.status === 'Nonaktif' || u.status === 'Terkunci' ? 'Aktifkan' : 'Nonaktifkan' }}
                                     </button>
                                     <button
                                         type="button"
@@ -2438,8 +2438,7 @@ const savePengumuman = () => {
                                     class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
                                 >
                                     <option value="Aktif">Aktif</option>
-                                    <option value="Pantauan">Pantauan</option>
-                                    <option value="Terkunci">Terkunci</option>
+                                    <option value="Nonaktif">Nonaktif</option>
                                 </select>
                             </div>
                         </div>

@@ -20,9 +20,9 @@ export const initialUsersList = [
     // SISWA
     { id: 1, role: 'siswa', name: 'Nadia Putri Maharani', identifier: '008492104', rombel: 'XII RPL 1', email: 'nadia.putri@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Default', lastLogin: 'Hari ini, 07:12' },
     { id: 2, role: 'siswa', name: 'Fajar Nugraha Pratama', identifier: '008492105', rombel: 'XII RPL 1', email: 'fajar.nugraha@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Hari ini, 07:25' },
-    { id: 3, role: 'siswa', name: 'Aldiansyah Putra', identifier: '009112001', rombel: 'X DKV 1', email: 'aldiansyah.p@smkswj.sch.id', status: 'Pantauan', sandiStatus: 'Sandi Default', lastLogin: '3 hari lalu' },
+    { id: 3, role: 'siswa', name: 'Aldiansyah Putra', identifier: '009112001', rombel: 'X DKV 1', email: 'aldiansyah.p@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Default', lastLogin: '3 hari lalu' },
     { id: 4, role: 'siswa', name: 'Salsabila Azzahra', identifier: '009112002', rombel: 'X DKV 1', email: 'salsabila.a@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Hari ini, 06:55' },
-    { id: 5, role: 'siswa', name: 'Dimas Anggara Putra', identifier: '008492106', rombel: 'XII RPL 2', email: 'dimas.anggara@smkswj.sch.id', status: 'Terkunci', sandiStatus: 'Sandi Mandiri', lastLogin: 'Kemarin, 14:10' },
+    { id: 5, role: 'siswa', name: 'Dimas Anggara Putra', identifier: '008492106', rombel: 'XII RPL 2', email: 'dimas.anggara@smkswj.sch.id', status: 'Nonaktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Kemarin, 14:10' },
     { id: 6, role: 'siswa', name: 'Bagas Pratama', identifier: '009112003', rombel: 'X DKV 1', email: 'bagas.pratama@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Hari ini, 06:40' },
 
     // GURU
