@@ -37,6 +37,9 @@ export const initialUsersList = [
     { id: 202, role: 'wali', name: 'Dra. Endang Setyawati', identifier: '19700812 199702 2 002', rombel: 'Wali Kelas XII RPL 1', email: 'endang.setyawati@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Hari ini, 07:15' },
     { id: 203, role: 'wali', name: 'Ahmad Fauzi, M.Kom', identifier: '19850614 201201 1 004', rombel: 'Wali Kelas XII RPL 2', email: 'ahmad.fauzi@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Hari ini, 07:20' },
     { id: 204, role: 'wali', name: 'Dra. Sri Wahyuni', identifier: '19720419 199803 2 001', rombel: 'Wali Kelas XI AKL 1', email: 'sri.wahyuni@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Kemarin, 15:45' },
+
+    // KEPALA SEKOLAH
+    { id: 301, role: 'kepsek', name: 'Drs. Hendra Wijaya, M.M', identifier: '19650812 199003 1 004', rombel: 'Kepala Sekolah SMK SWJ', email: 'kepsek@smk.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Hari ini, 06:15' },
 ];
 
 export const masterTahunAjaran = [

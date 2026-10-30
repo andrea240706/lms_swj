@@ -63,10 +63,18 @@ const pageTitle = computed(() => {
 });
 
 // ========================================================
-// TAB 2: MANAJEMEN PENGGUNA STATE & METHODS
+// LIVE KPI DASHBOARD STATS
+// ========================================================
+const masterJurusanList = ref(JSON.parse(JSON.stringify(masterJurusan)));
+const masterRombelList = ref(JSON.parse(JSON.stringify(masterRombel)));
+const masterMapelList = ref(JSON.parse(JSON.stringify(masterMapel)));
+const masterTahunAjaranList = ref(JSON.parse(JSON.stringify(masterTahunAjaran)));
+
+// ========================================================
+// TAB 2: MANAJEMEN PENGGUNA STATE & METHODS (CRUD)
 // ========================================================
 const userList = ref(JSON.parse(JSON.stringify(initialUsersList)));
-const userRoleFilter = ref('semua'); // 'semua' | 'siswa' | 'guru' | 'wali'
+const userRoleFilter = ref('semua'); // 'semua' | 'siswa' | 'guru' | 'wali' | 'kepsek'
 const userSearchQuery = ref('');
 
 const filteredUsers = computed(() => {
@@ -87,9 +95,94 @@ const filteredUsers = computed(() => {
     });
 });
 
+// User CRUD Modal State
+const isUserModalOpen = ref(false);
+const isEditingUser = ref(false);
+const userForm = ref({
+    id: null,
+    role: 'siswa',
+    name: '',
+    identifier: '',
+    rombel: '',
+    email: '',
+    status: 'Aktif',
+    sandiStatus: 'Default',
+    lastLogin: 'Baru dibuat',
+});
+
+// Reset Password Dialog State
+const isResetModalOpen = ref(false);
+const resetData = ref({
+    user: null,
+    tempPassword: '',
+});
+
+const openAddUserModal = (defaultRole = 'siswa') => {
+    isEditingUser.value = false;
+    userForm.value = {
+        id: null,
+        role: defaultRole,
+        name: '',
+        identifier: '',
+        rombel:
+            defaultRole === 'siswa'
+                ? masterRombelList.value[0]?.name || 'X TBSM A'
+                : defaultRole === 'wali'
+                ? 'Wali Kelas ' + (masterRombelList.value[0]?.name || 'X TBSM A')
+                : defaultRole === 'kepsek'
+                ? 'Kepala Sekolah SMK SWJ'
+                : 'Guru Pengampu',
+        email: '',
+        status: 'Aktif',
+        sandiStatus: 'Default',
+        lastLogin: 'Belum pernah login',
+    };
+    isUserModalOpen.value = true;
+};
+
+const openEditUserModal = (user) => {
+    isEditingUser.value = true;
+    userForm.value = JSON.parse(JSON.stringify(user));
+    isUserModalOpen.value = true;
+};
+
+const saveUser = () => {
+    if (!userForm.value.name.trim() || !userForm.value.email.trim() || !userForm.value.identifier.trim()) {
+        emit('showToast', 'Lengkapi Nama, Email, dan NISN/NIP pengguna.');
+        return;
+    }
+    if (isEditingUser.value) {
+        const idx = userList.value.findIndex((u) => u.id === userForm.value.id);
+        if (idx !== -1) {
+            userList.value[idx] = { ...userForm.value };
+            emit('showToast', `Data akun [${userForm.value.name}] berhasil diperbarui.`);
+        }
+    } else {
+        const newUser = {
+            ...userForm.value,
+            id: Date.now(),
+        };
+        userList.value.unshift(newUser);
+        emit('showToast', `Akun baru [${newUser.name}] sebagai ${newUser.role} berhasil didaftarkan.`);
+    }
+    isUserModalOpen.value = false;
+};
+
+const deleteUser = (userId) => {
+    const target = userList.value.find((u) => u.id === userId);
+    if (!target) return;
+    userList.value = userList.value.filter((u) => u.id !== userId);
+    emit('showToast', `Akun [${target.name}] berhasil dihapus dari sistem.`);
+};
+
 const handleResetPassword = (user) => {
     const tempPassword = `SWJ-${Math.floor(1000 + Math.random() * 9000)}`;
-    emit('showToast', `Sandi sementara [${tempPassword}] berhasil dibuat untuk ${user.name}. Notifikasi dikirim ke email.`);
+    resetData.value = {
+        user,
+        tempPassword,
+    };
+    user.sandiStatus = 'Reset Dibutuhkan';
+    isResetModalOpen.value = true;
 };
 
 const handleToggleLockUser = (user) => {
@@ -98,9 +191,159 @@ const handleToggleLockUser = (user) => {
 };
 
 // ========================================================
-// TAB 3: DATA MASTER STATE & METHODS
+// TAB 3: DATA MASTER STATE & METHODS (CRUD)
 // ========================================================
 const masterSubTab = ref('jurusan'); // 'ta' | 'jurusan' | 'rombel' | 'mapel'
+
+const isMasterModalOpen = ref(false);
+const isEditingMaster = ref(false);
+const masterTargetType = ref('jurusan'); // 'jurusan' | 'rombel' | 'mapel' | 'ta'
+
+const masterItemForm = ref({
+    // Jurusan
+    code: '',
+    name: '',
+    tingkat: '3 Tingkat (X, XI, XII)',
+    kepalaLab: '',
+    rombelCount: 0,
+    siswaCount: 0,
+    // Rombel
+    jurusan: 'TBSM',
+    ruang: 'Bengkel TBSM 1',
+    kapasitas: 36,
+    terisi: 0,
+    wali: '',
+    // Mapel
+    kategori: 'Kejuruan Produktif',
+    rombelTingkat: 'Kelas X',
+    jamPerMinggu: 4,
+    kkm: 75,
+    // Tahun Ajaran
+    id: null,
+    tahun: '2027/2028',
+    semester: 'Ganjil',
+    status: 'Arsip',
+    mulai: '12 Juli 2027',
+    selesai: '18 Des 2027',
+    totalHariEfektif: 108,
+});
+
+const openAddMasterModal = (type) => {
+    masterTargetType.value = type;
+    isEditingMaster.value = false;
+    masterItemForm.value = {
+        code: '',
+        name: '',
+        tingkat: '3 Tingkat (X, XI, XII)',
+        kepalaLab: allGuruList.value[0]?.name || '',
+        rombelCount: 0,
+        siswaCount: 0,
+        jurusan: masterJurusanList.value[0]?.code || 'TBSM',
+        ruang: masterRuanganList[0] || 'Bengkel TBSM 1',
+        kapasitas: 36,
+        terisi: 0,
+        wali: allGuruList.value[0]?.name || '',
+        kategori: 'Kejuruan Produktif',
+        rombelTingkat: 'Kelas X',
+        jamPerMinggu: 4,
+        kkm: 75,
+        id: null,
+        tahun: '2027/2028',
+        semester: 'Ganjil',
+        status: 'Arsip',
+        mulai: '12 Juli 2027',
+        selesai: '18 Des 2027',
+        totalHariEfektif: 108,
+    };
+    isMasterModalOpen.value = true;
+};
+
+const openEditMasterModal = (type, item) => {
+    masterTargetType.value = type;
+    isEditingMaster.value = true;
+    masterItemForm.value = JSON.parse(JSON.stringify(item));
+    isMasterModalOpen.value = true;
+};
+
+const saveMasterItem = () => {
+    if (!masterItemForm.value.name && masterTargetType.value !== 'ta') {
+        emit('showToast', 'Lengkapi nama data master.');
+        return;
+    }
+
+    if (masterTargetType.value === 'jurusan') {
+        if (isEditingMaster.value) {
+            const idx = masterJurusanList.value.findIndex((j) => j.code === masterItemForm.value.code);
+            if (idx !== -1) masterJurusanList.value[idx] = { ...masterItemForm.value };
+            emit('showToast', `Jurusan [${masterItemForm.value.code}] berhasil diperbarui.`);
+        } else {
+            masterJurusanList.value.push({
+                ...masterItemForm.value,
+                rombelCount: 0,
+                siswaCount: 0,
+            });
+            emit('showToast', `Jurusan baru [${masterItemForm.value.code}] berhasil ditambahkan.`);
+        }
+    } else if (masterTargetType.value === 'rombel') {
+        if (isEditingMaster.value) {
+            const idx = masterRombelList.value.findIndex((r) => r.code === masterItemForm.value.code);
+            if (idx !== -1) masterRombelList.value[idx] = { ...masterItemForm.value };
+            emit('showToast', `Rombel [${masterItemForm.value.name}] berhasil diperbarui.`);
+        } else {
+            masterRombelList.value.push({
+                ...masterItemForm.value,
+                code: masterItemForm.value.name.toUpperCase().replace(/\s+/g, '-'),
+            });
+            emit('showToast', `Rombel [${masterItemForm.value.name}] berhasil ditambahkan.`);
+        }
+    } else if (masterTargetType.value === 'mapel') {
+        if (isEditingMaster.value) {
+            const idx = masterMapelList.value.findIndex((m) => m.code === masterItemForm.value.code);
+            if (idx !== -1) masterMapelList.value[idx] = { ...masterItemForm.value };
+            emit('showToast', `Mata Pelajaran [${masterItemForm.value.name}] berhasil diperbarui.`);
+        } else {
+            masterMapelList.value.push({
+                ...masterItemForm.value,
+                code: masterItemForm.value.code || masterItemForm.value.name.substring(0, 4).toUpperCase(),
+            });
+            emit('showToast', `Mata Pelajaran [${masterItemForm.value.name}] berhasil ditambahkan.`);
+        }
+    } else if (masterTargetType.value === 'ta') {
+        if (isEditingMaster.value) {
+            const idx = masterTahunAjaranList.value.findIndex((t) => t.id === masterItemForm.value.id);
+            if (idx !== -1) masterTahunAjaranList.value[idx] = { ...masterItemForm.value };
+            emit('showToast', `Tahun ajaran berhasil diperbarui.`);
+        } else {
+            masterTahunAjaranList.value.push({
+                ...masterItemForm.value,
+                id: Date.now(),
+            });
+            emit('showToast', `Tahun ajaran baru berhasil ditambahkan.`);
+        }
+    }
+    isMasterModalOpen.value = false;
+};
+
+const deleteMasterItem = (type, keyOrId) => {
+    if (type === 'jurusan') {
+        masterJurusanList.value = masterJurusanList.value.filter((j) => j.code !== keyOrId);
+        emit('showToast', `Jurusan ${keyOrId} berhasil dihapus.`);
+    } else if (type === 'rombel') {
+        masterRombelList.value = masterRombelList.value.filter((r) => r.code !== keyOrId);
+        emit('showToast', `Rombel ${keyOrId} berhasil dihapus.`);
+    } else if (type === 'mapel') {
+        masterMapelList.value = masterMapelList.value.filter((m) => m.code !== keyOrId);
+        emit('showToast', `Mata pelajaran ${keyOrId} berhasil dihapus.`);
+    }
+};
+
+const activateTahunAjaran = (ta) => {
+    masterTahunAjaranList.value.forEach((t) => {
+        t.status = t.id === ta.id ? 'Aktif' : 'Arsip';
+    });
+    selectedTahunAjaran.value = `${ta.tahun} • ${ta.semester}`;
+    emit('showToast', `Tahun ajaran ${ta.tahun} ${ta.semester} resmi diaktifkan.`);
+};
 
 // ========================================================
 // TAB 4: PENUGASAN & JADWAL STATE & METHODS
@@ -387,10 +630,12 @@ const saveGuruMapel = () => {
 };
 
 // ========================================================
-// TAB 5: PENGUMUMAN STATE & METHODS
+// TAB 5: PENGUMUMAN STATE & METHODS (CRUD)
 // ========================================================
 const pengumumanList = ref(JSON.parse(JSON.stringify(initialPengumumanList)));
 const isPengumumanModalOpen = ref(false);
+const isEditingPengumuman = ref(false);
+const editingPengumumanId = ref(null);
 const newPengumuman = ref({
     title: '',
     target: 'Semua Pengguna',
@@ -399,6 +644,8 @@ const newPengumuman = ref({
 });
 
 const openNewPengumumanModal = () => {
+    isEditingPengumuman.value = false;
+    editingPengumumanId.value = null;
     newPengumuman.value = {
         title: '',
         target: 'Semua Pengguna',
@@ -408,26 +655,73 @@ const openNewPengumumanModal = () => {
     isPengumumanModalOpen.value = true;
 };
 
+const openEditPengumumanModal = (p) => {
+    isEditingPengumuman.value = true;
+    editingPengumumanId.value = p.id;
+    newPengumuman.value = {
+        title: p.title,
+        target: p.target,
+        urgensi: p.urgensi,
+        content: p.content,
+    };
+    isPengumumanModalOpen.value = true;
+};
+
+const deletePengumuman = (id) => {
+    const item = pengumumanList.value.find((p) => p.id === id);
+    pengumumanList.value = pengumumanList.value.filter((p) => p.id !== id);
+    emit('showToast', `Pengumuman '${item?.title}' berhasil dihapus.`);
+};
+
 const savePengumuman = () => {
     if (!newPengumuman.value.title.trim() || !newPengumuman.value.content.trim()) {
         emit('showToast', 'Lengkapi judul dan isi pengumuman terlebih dahulu.');
         return;
     }
-    pengumumanList.value.unshift({
-        id: Date.now(),
-        title: newPengumuman.value.title.trim(),
-        target: newPengumuman.value.target,
-        targetBadge: 'bg-charcoal text-white',
-        urgensi: newPengumuman.value.urgensi,
-        urgensiBadge: newPengumuman.value.urgensi === 'Penting' ? 'bg-blossom-light text-blossom-dark' : 'bg-sage-light text-sage-dark',
-        status: 'Tayang',
-        date: '28 Okt 2026',
-        author: 'Rizky Pratama (Operator TU)',
-        content: newPengumuman.value.content.trim(),
-        views: 1,
-    });
+
+    if (isEditingPengumuman.value) {
+        const idx = pengumumanList.value.findIndex((p) => p.id === editingPengumumanId.value);
+        if (idx !== -1) {
+            pengumumanList.value[idx] = {
+                ...pengumumanList.value[idx],
+                title: newPengumuman.value.title.trim(),
+                target: newPengumuman.value.target,
+                targetBadge:
+                    newPengumuman.value.target === 'Semua Pengguna'
+                        ? 'bg-charcoal text-white'
+                        : 'bg-sky-light text-sky-dark',
+                urgensi: newPengumuman.value.urgensi,
+                urgensiBadge:
+                    newPengumuman.value.urgensi === 'Penting'
+                        ? 'bg-blossom-light text-blossom-dark'
+                        : 'bg-sage-light text-sage-dark',
+                content: newPengumuman.value.content.trim(),
+            };
+            emit('showToast', `Pengumuman '${newPengumuman.value.title}' berhasil diperbarui.`);
+        }
+    } else {
+        pengumumanList.value.unshift({
+            id: Date.now(),
+            title: newPengumuman.value.title.trim(),
+            target: newPengumuman.value.target,
+            targetBadge:
+                newPengumuman.value.target === 'Semua Pengguna'
+                    ? 'bg-charcoal text-white'
+                    : 'bg-sky-light text-sky-dark',
+            urgensi: newPengumuman.value.urgensi,
+            urgensiBadge:
+                newPengumuman.value.urgensi === 'Penting'
+                    ? 'bg-blossom-light text-blossom-dark'
+                    : 'bg-sage-light text-sage-dark',
+            status: 'Tayang',
+            date: 'Hari ini',
+            author: 'Rizky Pratama (Operator TU)',
+            content: newPengumuman.value.content.trim(),
+            views: 1,
+        });
+        emit('showToast', 'Pengumuman sekolah berhasil dipublikasikan ke seluruh target pengguna.');
+    }
     isPengumumanModalOpen.value = false;
-    emit('showToast', 'Pengumuman sekolah berhasil dipublikasikan ke seluruh target pengguna.');
 };
 </script>
 
@@ -502,14 +796,14 @@ const savePengumuman = () => {
                                 class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col justify-between cursor-pointer hover:border-charcoal/30 transition-colors"
                             >
                                 <div class="flex items-center justify-between">
-                                    <span class="text-[11px] font-bold text-subtext">Total Siswa Aktif</span>
+                                    <span class="text-[11px] font-bold text-subtext">Total Siswa Terdata</span>
                                     <span class="w-8 h-8 rounded-full bg-sky-light text-sky-dark flex items-center justify-center font-bold text-xs">
                                         <LmsIcon name="user" className="w-4 h-4" />
                                     </span>
                                 </div>
                                 <div class="mt-2">
-                                    <div class="text-2xl font-black text-charcoal">{{ adminStats.totalSiswa.toLocaleString() }}</div>
-                                    <div class="text-[11px] font-medium text-subtext mt-0.5">42 Rombel (X, XI, XII)</div>
+                                    <div class="text-2xl font-black text-charcoal">{{ userList.filter(u => u.role === 'siswa').length }} Akun</div>
+                                    <div class="text-[11px] font-medium text-subtext mt-0.5">{{ masterRombelList.length }} Rombel Aktif</div>
                                 </div>
                             </div>
 
@@ -525,8 +819,8 @@ const savePengumuman = () => {
                                     </span>
                                 </div>
                                 <div class="mt-2">
-                                    <div class="text-2xl font-black text-charcoal">{{ adminStats.totalGuru }} Guru</div>
-                                    <div class="text-[11px] font-medium text-subtext mt-0.5">42 Wali Kelas Terplot</div>
+                                    <div class="text-2xl font-black text-charcoal">{{ userList.filter(u => u.role === 'guru' || u.role === 'wali').length }} Guru</div>
+                                    <div class="text-[11px] font-medium text-subtext mt-0.5">{{ userList.filter(u => u.role === 'wali').length }} Wali Kelas Terplot</div>
                                 </div>
                             </div>
 
@@ -542,7 +836,7 @@ const savePengumuman = () => {
                                     </span>
                                 </div>
                                 <div class="mt-2">
-                                    <div class="text-2xl font-black text-charcoal">{{ adminStats.jadwalTerverifikasi }} Sesi</div>
+                                    <div class="text-2xl font-black text-charcoal">{{ jadwalMingguan.length }} Sesi</div>
                                     <div class="text-[11px] font-medium text-subtext mt-0.5">100% Terdistribusi Valid</div>
                                 </div>
                             </div>
@@ -694,6 +988,8 @@ const savePengumuman = () => {
                     <!-- ======================================================== -->
                     <!-- TAB 2: MANAJEMEN PENGGUNA (SISWA, GURU, WALI)            -->
                     <!-- ======================================================== -->
+                    <!-- TAB 2: MANAJEMEN PENGGUNA (SISWA, GURU, WALI, KEPSEK)    -->
+                    <!-- ======================================================== -->
                     <div v-else-if="activeTab === 'pengguna'" class="space-y-4">
                         <!-- Top Filter & Action Bar -->
                         <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col md:flex-row gap-3 items-center justify-between">
@@ -730,6 +1026,14 @@ const savePengumuman = () => {
                                 >
                                     Wali Kelas ({{ userList.filter(u => u.role === 'wali').length }})
                                 </button>
+                                <button
+                                    type="button"
+                                    @click="userRoleFilter = 'kepsek'"
+                                    class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                                    :class="userRoleFilter === 'kepsek' ? 'bg-white text-charcoal shadow-xs' : 'text-subtext hover:text-charcoal'"
+                                >
+                                    Kepsek ({{ userList.filter(u => u.role === 'kepsek').length }})
+                                </button>
                             </div>
 
                             <div class="flex items-center gap-2 w-full md:w-auto">
@@ -743,10 +1047,10 @@ const savePengumuman = () => {
                                 </div>
                                 <button
                                     type="button"
-                                    @click="$emit('showToast', 'Modal Tambah Pengguna Baru dibuka.')"
-                                    class="px-3.5 py-2 rounded-2xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs shrink-0"
+                                    @click="openAddUserModal(userRoleFilter === 'semua' ? 'siswa' : userRoleFilter)"
+                                    class="px-3.5 py-2 rounded-2xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs shrink-0 flex items-center gap-1.5"
                                 >
-                                    + Pengguna
+                                    <span>+ Pengguna</span>
                                 </button>
                             </div>
                         </div>
@@ -761,18 +1065,18 @@ const savePengumuman = () => {
                                 <div class="flex items-center gap-3 min-w-0">
                                     <div
                                         class="w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm shrink-0"
-                                        :class="u.role === 'siswa' ? 'bg-sky-light text-sky-dark' : u.role === 'guru' ? 'bg-sage-light text-sage-dark' : 'bg-lavender-light text-lavender-dark'"
+                                        :class="u.role === 'siswa' ? 'bg-sky-light text-sky-dark' : u.role === 'guru' ? 'bg-sage-light text-sage-dark' : u.role === 'kepsek' ? 'bg-amberpastel-light text-amberpastel-dark' : 'bg-lavender-light text-lavender-dark'"
                                     >
                                         {{ u.name.charAt(0) }}
                                     </div>
                                     <div class="min-w-0">
-                                        <div class="flex items-center gap-2">
+                                        <div class="flex items-center gap-2 flex-wrap">
                                             <h4 class="text-sm font-extrabold text-charcoal truncate">{{ u.name }}</h4>
                                             <span
                                                 class="text-[9px] font-black px-2 py-0.5 rounded-full uppercase"
-                                                :class="u.role === 'siswa' ? 'bg-sky-light text-sky-dark' : u.role === 'guru' ? 'bg-sage-light text-sage-dark' : 'bg-lavender-light text-lavender-dark'"
+                                                :class="u.role === 'siswa' ? 'bg-sky-light text-sky-dark' : u.role === 'guru' ? 'bg-sage-light text-sage-dark' : u.role === 'kepsek' ? 'bg-amberpastel-light text-amberpastel-dark' : 'bg-lavender-light text-lavender-dark'"
                                             >
-                                                {{ u.role === 'wali' ? 'Wali Kelas' : u.role }}
+                                                {{ u.role === 'wali' ? 'Wali Kelas' : u.role === 'kepsek' ? 'Kepala Sekolah' : u.role }}
                                             </span>
                                         </div>
                                         <div class="text-[11px] text-subtext truncate mt-0.5">
@@ -781,13 +1085,21 @@ const savePengumuman = () => {
                                     </div>
                                 </div>
 
-                                <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                                <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto flex-wrap">
                                     <span
                                         class="text-[10px] font-bold px-2.5 py-1 rounded-full"
                                         :class="u.status === 'Aktif' ? 'bg-[#E8F5E9] text-[#2E7D32]' : u.status === 'Pantauan' ? 'bg-blossom-light text-blossom-dark' : 'bg-muted text-subtext'"
                                     >
                                         {{ u.status }}
                                     </span>
+                                    <button
+                                        type="button"
+                                        @click="openEditUserModal(u)"
+                                        class="px-3 py-1.5 rounded-xl bg-canvas border border-[#ECEAE4] text-charcoal text-xs font-bold hover:bg-white active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                        title="Edit Akun Pengguna"
+                                    >
+                                        Edit
+                                    </button>
                                     <button
                                         type="button"
                                         @click="handleResetPassword(u)"
@@ -803,6 +1115,14 @@ const savePengumuman = () => {
                                         :class="u.status === 'Terkunci' ? 'bg-charcoal text-white' : 'bg-canvas border border-[#ECEAE4] text-subtext hover:text-charcoal'"
                                     >
                                         {{ u.status === 'Terkunci' ? 'Buka Kunci' : 'Kunci' }}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        @click="deleteUser(u.id)"
+                                        class="px-2.5 py-1.5 rounded-xl bg-canvas border border-[#ECEAE4] text-[#D32F2F] hover:bg-blossom-light text-xs font-bold active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                        title="Hapus Akun Pengguna"
+                                    >
+                                        Hapus
                                     </button>
                                 </div>
                             </div>
@@ -822,7 +1142,7 @@ const savePengumuman = () => {
                                     class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
                                     :class="masterSubTab === 'jurusan' ? 'bg-white text-charcoal shadow-xs' : 'text-subtext hover:text-charcoal'"
                                 >
-                                    Jurusan (4)
+                                    Jurusan ({{ masterJurusanList.length }})
                                 </button>
                                 <button
                                     type="button"
@@ -830,7 +1150,7 @@ const savePengumuman = () => {
                                     class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
                                     :class="masterSubTab === 'rombel' ? 'bg-white text-charcoal shadow-xs' : 'text-subtext hover:text-charcoal'"
                                 >
-                                    Rombel Kelas (42)
+                                    Rombel Kelas ({{ masterRombelList.length }})
                                 </button>
                                 <button
                                     type="button"
@@ -838,7 +1158,7 @@ const savePengumuman = () => {
                                     class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
                                     :class="masterSubTab === 'mapel' ? 'bg-white text-charcoal shadow-xs' : 'text-subtext hover:text-charcoal'"
                                 >
-                                    Mata Pelajaran (58)
+                                    Mata Pelajaran ({{ masterMapelList.length }})
                                 </button>
                                 <button
                                     type="button"
@@ -846,32 +1166,50 @@ const savePengumuman = () => {
                                     class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
                                     :class="masterSubTab === 'ta' ? 'bg-white text-charcoal shadow-xs' : 'text-subtext hover:text-charcoal'"
                                 >
-                                    Tahun Ajaran
+                                    Tahun Ajaran ({{ masterTahunAjaranList.length }})
                                 </button>
                             </div>
 
                             <button
                                 type="button"
-                                @click="$emit('showToast', 'Modal Tambah Master Data Baru dibuka.')"
-                                class="px-4 py-2 rounded-2xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs self-start sm:self-auto"
+                                @click="openAddMasterModal(masterSubTab)"
+                                class="px-4 py-2 rounded-2xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs self-start sm:self-auto flex items-center gap-1.5"
                             >
-                                + Tambah Data Master
+                                <span>+ Tambah {{ masterSubTab === 'ta' ? 'Tahun Ajaran' : masterSubTab === 'jurusan' ? 'Jurusan' : masterSubTab === 'rombel' ? 'Rombel' : 'Mapel' }}</span>
                             </button>
                         </div>
 
                         <!-- SUB 1: JURUSAN -->
                         <div v-if="masterSubTab === 'jurusan'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div
-                                v-for="j in masterJurusan"
+                                v-for="j in masterJurusanList"
                                 :key="j.code"
-                                class="bg-white rounded-[26px] p-5 border border-[#ECEAE4] soft-shadow flex flex-col justify-between"
+                                class="bg-white rounded-[26px] p-5 border border-[#ECEAE4] soft-shadow flex flex-col justify-between hover:border-charcoal/30 transition-all"
                             >
                                 <div>
                                     <div class="flex items-center justify-between mb-2">
                                         <span class="text-xs font-black px-2.5 py-1 rounded-xl bg-canvas border border-[#ECEAE4] text-charcoal">
                                             Kode: {{ j.code }}
                                         </span>
-                                        <span class="text-[11px] font-bold text-subtext">{{ j.tingkat }}</span>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-[11px] font-bold text-subtext mr-1">{{ j.tingkat }}</span>
+                                            <button
+                                                type="button"
+                                                @click="openEditMasterModal('jurusan', j)"
+                                                class="px-2.5 py-1 rounded-lg bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:bg-white active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                                title="Edit Jurusan"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                type="button"
+                                                @click="deleteMasterItem('jurusan', j.code)"
+                                                class="px-2 py-1 rounded-lg bg-canvas border border-[#ECEAE4] text-[#D32F2F] hover:bg-blossom-light text-xs font-bold active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                                title="Hapus Jurusan"
+                                            >
+                                                <LmsIcon name="trash" className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
                                     </div>
                                     <h4 class="text-base font-extrabold text-charcoal mt-1">{{ j.name }}</h4>
                                     <p class="text-xs text-subtext mt-0.5">Kepala Bengkel / Lab: <strong>{{ j.kepalaLab }}</strong></p>
@@ -892,9 +1230,9 @@ const savePengumuman = () => {
                         <!-- SUB 2: ROMBEL KELAS -->
                         <div v-else-if="masterSubTab === 'rombel'" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
                             <div
-                                v-for="r in masterRombel"
+                                v-for="r in masterRombelList"
                                 :key="r.code"
-                                class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col justify-between"
+                                class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col justify-between hover:border-charcoal/30 transition-all"
                             >
                                 <div>
                                     <div class="flex items-center justify-between mb-2">
@@ -913,8 +1251,23 @@ const savePengumuman = () => {
                                     </div>
                                 </div>
                                 <div class="mt-3 pt-2.5 border-t border-[#F2F0EC] flex items-center justify-between text-xs">
-                                    <span class="text-subtext">Kapasitas:</span>
-                                    <span class="font-bold text-charcoal">{{ r.terisi }} / {{ r.kapasitas }} Siswa</span>
+                                    <span class="text-subtext">Kapasitas: <strong class="text-charcoal">{{ r.terisi }} / {{ r.kapasitas }}</strong></span>
+                                    <div class="flex items-center gap-1.5">
+                                        <button
+                                            type="button"
+                                            @click="openEditMasterModal('rombel', r)"
+                                            class="px-2.5 py-1 rounded-lg bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:bg-white active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            type="button"
+                                            @click="deleteMasterItem('rombel', r.code)"
+                                            class="px-2 py-1 rounded-lg bg-canvas border border-[#ECEAE4] text-[#D32F2F] hover:bg-blossom-light text-xs font-bold active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                        >
+                                            <LmsIcon name="trash" className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -922,9 +1275,9 @@ const savePengumuman = () => {
                         <!-- SUB 3: MATA PELAJARAN -->
                         <div v-else-if="masterSubTab === 'mapel'" class="space-y-2.5">
                             <div
-                                v-for="m in masterMapel"
+                                v-for="m in masterMapelList"
                                 :key="m.code"
-                                class="bg-white rounded-[22px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                                class="bg-white rounded-[22px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-charcoal/30 transition-all"
                             >
                                 <div>
                                     <div class="flex items-center gap-2">
@@ -935,10 +1288,24 @@ const savePengumuman = () => {
                                         Kategori: {{ m.kategori }} • Sasaran: {{ m.rombelTingkat }} • Beban: {{ m.jamPerMinggu }} Jam/Minggu
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-2 shrink-0">
+                                <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                                     <span class="text-xs font-extrabold px-3 py-1 rounded-full bg-canvas border border-[#ECEAE4] text-charcoal">
                                         KKM: {{ m.kkm }}
                                     </span>
+                                    <button
+                                        type="button"
+                                        @click="openEditMasterModal('mapel', m)"
+                                        class="px-3 py-1 rounded-xl bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:bg-white active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        type="button"
+                                        @click="deleteMasterItem('mapel', m.code)"
+                                        class="px-2 py-1 rounded-xl bg-canvas border border-[#ECEAE4] text-[#D32F2F] hover:bg-blossom-light text-xs font-bold active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                    >
+                                        <LmsIcon name="trash" className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -946,9 +1313,9 @@ const savePengumuman = () => {
                         <!-- SUB 4: TAHUN AJARAN -->
                         <div v-else class="space-y-3">
                             <div
-                                v-for="ta in masterTahunAjaran"
+                                v-for="ta in masterTahunAjaranList"
                                 :key="ta.id"
-                                class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex items-center justify-between"
+                                class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex items-center justify-between gap-3 flex-wrap hover:border-charcoal/30 transition-all"
                             >
                                 <div>
                                     <div class="flex items-center gap-2">
@@ -964,14 +1331,23 @@ const savePengumuman = () => {
                                         Periode: {{ ta.mulai }} s/d {{ ta.selesai }} • {{ ta.totalHariEfektif }} Hari Efektif KBM
                                     </div>
                                 </div>
-                                <button
-                                    v-if="ta.status !== 'Aktif'"
-                                    type="button"
-                                    @click="$emit('showToast', `Tahun ajaran ${ta.tahun} ${ta.semester} diaktifkan.`)"
-                                    class="px-3 py-1.5 rounded-xl bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:bg-white active:scale-95 transition-all cursor-pointer"
-                                >
-                                    Aktifkan
-                                </button>
+                                <div class="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        @click="openEditMasterModal('ta', ta)"
+                                        class="px-3 py-1.5 rounded-xl bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:bg-white active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        v-if="ta.status !== 'Aktif'"
+                                        type="button"
+                                        @click="activateTahunAjaran(ta)"
+                                        class="px-3.5 py-1.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                    >
+                                        Aktifkan TA
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1129,7 +1505,7 @@ const savePengumuman = () => {
                                                 v-model="selectedTahunAjaran"
                                                 class="bg-transparent text-xs font-black text-charcoal focus:outline-none cursor-pointer"
                                             >
-                                                <option v-for="ta in masterTahunAjaran" :key="ta.id" :value="`${ta.tahun} • ${ta.semester}`">
+                                                <option v-for="ta in masterTahunAjaranList" :key="ta.id" :value="`${ta.tahun} • ${ta.semester}`">
                                                     {{ ta.tahun }} • {{ ta.semester }} ({{ ta.status }})
                                                 </option>
                                             </select>
@@ -1191,7 +1567,7 @@ const savePengumuman = () => {
                                                 Semua
                                             </button>
                                             <button
-                                                v-for="r in masterRombel"
+                                                v-for="r in masterRombelList"
                                                 :key="r.code"
                                                 type="button"
                                                 @click="selectedRombelFilter = r.name"
@@ -1432,13 +1808,27 @@ const savePengumuman = () => {
                                     {{ p.content }}
                                 </p>
 
-                                <div class="flex items-center gap-2 pt-1 text-xs">
+                                <div class="flex items-center gap-2 pt-1 text-xs flex-wrap">
                                     <button
                                         type="button"
                                         @click="$emit('showToast', `Pengumuman '${p.title}' disiarkan ulang.`)"
-                                        class="px-3 py-1.5 rounded-xl bg-canvas border border-[#ECEAE4] text-charcoal font-bold hover:bg-white active:scale-95 transition-all cursor-pointer"
+                                        class="px-3 py-1.5 rounded-xl bg-canvas border border-[#ECEAE4] text-charcoal font-bold hover:bg-white active:scale-95 transition-all cursor-pointer shadow-2xs"
                                     >
                                         Broadcast Ulang
+                                    </button>
+                                    <button
+                                        type="button"
+                                        @click="openEditPengumumanModal(p)"
+                                        class="px-3 py-1.5 rounded-xl bg-canvas border border-[#ECEAE4] text-charcoal font-bold hover:bg-white active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        type="button"
+                                        @click="deletePengumuman(p.id)"
+                                        class="px-3 py-1.5 rounded-xl bg-canvas border border-[#ECEAE4] text-[#D32F2F] hover:bg-blossom-light font-bold active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                    >
+                                        Hapus
                                     </button>
                                 </div>
                             </div>
@@ -1450,7 +1840,7 @@ const savePengumuman = () => {
         </div>
 
         <!-- ============================================================ -->
-        <!-- MODAL: BUAT PENGUMUMAN BARU                                  -->
+        <!-- MODAL: BUAT / EDIT PENGUMUMAN                                -->
         <!-- ============================================================ -->
         <Transition
             enter-active-class="transition-opacity duration-200"
@@ -1467,7 +1857,9 @@ const savePengumuman = () => {
             >
                 <div class="bg-white w-full max-w-lg rounded-t-[32px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl space-y-4">
                     <div class="flex items-center justify-between pb-3 border-b border-[#ECEAE4]">
-                        <h3 class="text-base font-extrabold text-charcoal">Buat Pengumuman Sekolah</h3>
+                        <h3 class="text-base font-extrabold text-charcoal">
+                            {{ isEditingPengumuman ? 'Edit Pengumuman Sekolah' : 'Buat Pengumuman Sekolah' }}
+                        </h3>
                         <button
                             type="button"
                             @click="isPengumumanModalOpen = false"
@@ -1493,7 +1885,7 @@ const savePengumuman = () => {
                                 <label class="block text-xs font-extrabold text-charcoal mb-1">Target Sasaran</label>
                                 <select
                                     v-model="newPengumuman.target"
-                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-charcoal/40"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
                                 >
                                     <option value="Semua Pengguna">Semua Pengguna</option>
                                     <option value="Khusus Guru">Khusus Guru</option>
@@ -1506,7 +1898,7 @@ const savePengumuman = () => {
                                 <label class="block text-xs font-extrabold text-charcoal mb-1">Tingkat Urgensi</label>
                                 <select
                                     v-model="newPengumuman.urgensi"
-                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-charcoal/40"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
                                 >
                                     <option value="Normal">Normal</option>
                                     <option value="Penting">Penting</option>
@@ -1540,7 +1932,7 @@ const savePengumuman = () => {
                             @click="savePengumuman"
                             class="flex-1 py-2.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs"
                         >
-                            Publikasikan
+                            {{ isEditingPengumuman ? 'Simpan Perubahan' : 'Publikasikan' }}
                         </button>
                     </div>
                 </div>
@@ -1605,7 +1997,7 @@ const savePengumuman = () => {
                                     v-model="jadwalForm.rombel"
                                     class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
                                 >
-                                    <option v-for="r in masterRombel" :key="r.code" :value="r.name">
+                                    <option v-for="r in masterRombelList" :key="r.code" :value="r.name">
                                         {{ r.name }} ({{ r.jurusan }})
                                     </option>
                                 </select>
@@ -1644,7 +2036,7 @@ const savePengumuman = () => {
                                 v-model="jadwalForm.mapel"
                                 class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
                             >
-                                <option v-for="m in masterMapel" :key="m.code" :value="m.name">
+                                <option v-for="m in masterMapelList" :key="m.code" :value="m.name">
                                     [{{ m.code }}] {{ m.name }} • ({{ m.jurusan }})
                                 </option>
                             </select>
@@ -1678,6 +2070,14 @@ const savePengumuman = () => {
                     </div>
 
                     <div class="flex gap-2 pt-2">
+                        <button
+                            v-if="isEditingJadwal"
+                            type="button"
+                            @click="deleteJadwal(jadwalForm.id); isJadwalModalOpen = false"
+                            class="px-3.5 py-2.5 rounded-xl bg-canvas border border-[#ECEAE4] text-[#D32F2F] hover:bg-blossom-light text-xs font-bold active:scale-95 transition-all cursor-pointer shadow-2xs"
+                        >
+                            Hapus
+                        </button>
                         <button
                             type="button"
                             @click="isJadwalModalOpen = false"
@@ -1744,7 +2144,7 @@ const savePengumuman = () => {
                                 v-model="cloneForm.fromRombel"
                                 class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
                             >
-                                <option v-for="r in masterRombel" :key="r.code" :value="r.name">
+                                <option v-for="r in masterRombelList" :key="r.code" :value="r.name">
                                     {{ r.name }} ({{ r.jurusan }})
                                 </option>
                             </select>
@@ -1756,7 +2156,7 @@ const savePengumuman = () => {
                                 v-model="cloneForm.toRombel"
                                 class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
                             >
-                                <option v-for="r in masterRombel" :key="r.code" :value="r.name">
+                                <option v-for="r in masterRombelList" :key="r.code" :value="r.name">
                                     {{ r.name }} ({{ r.jurusan }})
                                 </option>
                             </select>
@@ -1924,7 +2324,7 @@ const savePengumuman = () => {
                                 v-model="guruMapelForm.mapel"
                                 class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
                             >
-                                <option v-for="m in masterMapel" :key="m.code" :value="m.name">
+                                <option v-for="m in masterMapelList" :key="m.code" :value="m.name">
                                     [{{ m.code }}] {{ m.name }} ({{ m.jurusan }})
                                 </option>
                             </select>
@@ -1934,7 +2334,7 @@ const savePengumuman = () => {
                             <label class="block font-extrabold text-charcoal mb-1">Target Rombel yang Diajar (Pilih minimal 1)</label>
                             <div class="grid grid-cols-2 gap-2 bg-canvas p-2.5 rounded-2xl border border-[#ECEAE4] max-h-36 overflow-y-auto no-scrollbar">
                                 <label
-                                    v-for="r in masterRombel"
+                                    v-for="r in masterRombelList"
                                     :key="r.code"
                                     class="flex items-center gap-2 p-1.5 rounded-xl hover:bg-white cursor-pointer"
                                 >
@@ -1986,6 +2386,480 @@ const savePengumuman = () => {
                             class="flex-1 py-2.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs"
                         >
                             Simpan Penugasan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+
+        <!-- ============================================================ -->
+        <!-- MODAL: TAMBAH / EDIT DATA PENGGUNA (CRUD AKUN)               -->
+        <!-- ============================================================ -->
+        <Transition
+            enter-active-class="transition-opacity duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-150"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="isUserModalOpen"
+                class="fixed inset-0 bg-charcoal/50 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+                @click.self="isUserModalOpen = false"
+            >
+                <div class="bg-white w-full max-w-lg rounded-t-[32px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
+                    <div class="flex items-center justify-between pb-3 border-b border-[#ECEAE4]">
+                        <div>
+                            <h3 class="text-base font-extrabold text-charcoal">
+                                {{ isEditingUser ? 'Edit Akun Pengguna' : 'Tambah Pengguna Baru' }}
+                            </h3>
+                            <p class="text-xs text-subtext mt-0.5">Kelola data kredensial dan hak akses akun civitas sekolah.</p>
+                        </div>
+                        <button
+                            type="button"
+                            @click="isUserModalOpen = false"
+                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold text-xs cursor-pointer"
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <!-- Peran / Role -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Peran / Role</label>
+                                <select
+                                    v-model="userForm.role"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                >
+                                    <option value="siswa">Siswa (Peserta Didik)</option>
+                                    <option value="guru">Guru (Pengampu Mapel)</option>
+                                    <option value="wali">Guru Wali Kelas</option>
+                                    <option value="kepsek">Kepala Sekolah</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Status Akun</label>
+                                <select
+                                    v-model="userForm.status"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                >
+                                    <option value="Aktif">Aktif</option>
+                                    <option value="Pantauan">Pantauan</option>
+                                    <option value="Terkunci">Terkunci</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Nama Lengkap -->
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Nama Lengkap &amp; Gelar</label>
+                            <input
+                                v-model="userForm.name"
+                                type="text"
+                                placeholder="Contoh: Muhammad Farhan / Siti Rahma, M.Pd"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            />
+                        </div>
+
+                        <!-- Nomor Induk & Email -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">
+                                    {{ userForm.role === 'siswa' ? 'NISN (10 Digit)' : 'NIP / NUPTK' }}
+                                </label>
+                                <input
+                                    v-model="userForm.identifier"
+                                    type="text"
+                                    :placeholder="userForm.role === 'siswa' ? '0078129384' : '19850314 201101 1 004'"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                />
+                            </div>
+
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Email Resmi / Sekolah</label>
+                                <input
+                                    v-model="userForm.email"
+                                    type="email"
+                                    placeholder="nama@smkswj.sch.id"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Rombel / Penugasan -->
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">
+                                {{ userForm.role === 'siswa' ? 'Rombel Kelas' : userForm.role === 'wali' ? 'Wali Rombel' : 'Penugasan / Jabatan' }}
+                            </label>
+                            <input
+                                v-model="userForm.rombel"
+                                type="text"
+                                :placeholder="userForm.role === 'siswa' ? 'X TBSM A' : userForm.role === 'wali' ? 'Wali Kelas X TBSM A' : userForm.role === 'kepsek' ? 'Kepala Sekolah SMK SWJ' : 'Guru Produktif TBSM'"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <button
+                            type="button"
+                            @click="isUserModalOpen = false"
+                            class="flex-1 py-2.5 rounded-xl bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:bg-muted active:scale-95 transition-all cursor-pointer"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            @click="saveUser"
+                            class="flex-1 py-2.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs"
+                        >
+                            {{ isEditingUser ? 'Simpan Perubahan' : 'Daftarkan Akun' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+
+        <!-- ============================================================ -->
+        <!-- MODAL: RESET PASSWORD PENGGUNA (KATA SANDI SEMENTARA)         -->
+        <!-- ============================================================ -->
+        <Transition
+            enter-active-class="transition-opacity duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-150"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="isResetModalOpen"
+                class="fixed inset-0 bg-charcoal/50 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+                @click.self="isResetModalOpen = false"
+            >
+                <div class="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-[#ECEAE4]">
+                        <div>
+                            <h3 class="text-base font-extrabold text-charcoal">Reset Kata Sandi Pengguna</h3>
+                            <p class="text-xs text-subtext mt-0.5">{{ resetData.user?.name }} ({{ resetData.user?.role }})</p>
+                        </div>
+                        <button
+                            type="button"
+                            @click="isResetModalOpen = false"
+                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold text-xs cursor-pointer"
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <p class="text-subtext leading-relaxed">
+                            Kata sandi akun telah berhasil direset. Silakan salin dan berikan kata sandi sementara berikut kepada pengguna. Pengguna dapat langsung menggunakannya untuk login ke aplikasi LMS.
+                        </p>
+
+                        <div class="p-3.5 bg-canvas rounded-2xl border border-[#ECEAE4] flex items-center justify-between gap-3">
+                            <div>
+                                <div class="text-[10px] text-subtext font-bold uppercase tracking-wider">Kata Sandi Sementara:</div>
+                                <div class="text-base font-black text-charcoal tracking-widest font-mono mt-0.5">
+                                    {{ resetData.tempPassword }}
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                @click="navigator?.clipboard?.writeText ? navigator.clipboard.writeText(resetData.tempPassword) : null; $emit('showToast', 'Kata sandi sementara berhasil disalin!')"
+                                class="px-3.5 py-1.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs"
+                            >
+                                Salin
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <button
+                            type="button"
+                            @click="isResetModalOpen = false; $emit('showToast', 'Status reset sandi tersimpan.')"
+                            class="w-full py-2.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs"
+                        >
+                            Selesai &amp; Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+
+        <!-- ============================================================ -->
+        <!-- MODAL: TAMBAH / EDIT DATA MASTER (JURUSAN, ROMBEL, MAPEL, TA) -->
+        <!-- ============================================================ -->
+        <Transition
+            enter-active-class="transition-opacity duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-150"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="isMasterModalOpen"
+                class="fixed inset-0 bg-charcoal/50 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+                @click.self="isMasterModalOpen = false"
+            >
+                <div class="bg-white w-full max-w-lg rounded-t-[32px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
+                    <div class="flex items-center justify-between pb-3 border-b border-[#ECEAE4]">
+                        <div>
+                            <h3 class="text-base font-extrabold text-charcoal">
+                                {{ isEditingMaster ? 'Edit' : 'Tambah' }} Data Master:
+                                <span class="capitalize">{{ masterTargetType === 'ta' ? 'Tahun Ajaran' : masterTargetType }}</span>
+                            </h3>
+                            <p class="text-xs text-subtext mt-0.5">Konfigurasi struktur akademik sekolah SMK SWJ.</p>
+                        </div>
+                        <button
+                            type="button"
+                            @click="isMasterModalOpen = false"
+                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold text-xs cursor-pointer"
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    <!-- FORM JURUSAN -->
+                    <div v-if="masterTargetType === 'jurusan'" class="space-y-3 text-xs">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Kode Jurusan</label>
+                                <input
+                                    v-model="masterItemForm.code"
+                                    type="text"
+                                    :disabled="isEditingMaster"
+                                    placeholder="Contoh: TBSM / RPL"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold disabled:opacity-60"
+                                />
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Jenjang Tingkat</label>
+                                <input
+                                    v-model="masterItemForm.tingkat"
+                                    type="text"
+                                    placeholder="3 Tingkat (X, XI, XII)"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Nama Program Keahlian (Jurusan)</label>
+                            <input
+                                v-model="masterItemForm.name"
+                                type="text"
+                                placeholder="Contoh: Teknik Bisnis Sepeda Motor"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            />
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Kepala Bengkel / Laboratorium</label>
+                            <select
+                                v-model="masterItemForm.kepalaLab"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            >
+                                <option v-for="g in allGuruList" :key="g.nip" :value="g.name">
+                                    {{ g.name }} ({{ g.bidang }})
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- FORM ROMBEL -->
+                    <div v-else-if="masterTargetType === 'rombel'" class="space-y-3 text-xs">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Nama Rombel</label>
+                                <input
+                                    v-model="masterItemForm.name"
+                                    type="text"
+                                    placeholder="Contoh: X TBSM C"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                />
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Program Keahlian</label>
+                                <select
+                                    v-model="masterItemForm.jurusan"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                >
+                                    <option v-for="j in masterJurusanList" :key="j.code" :value="j.code">
+                                        {{ j.name }} ({{ j.code }})
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Wali Kelas</label>
+                            <select
+                                v-model="masterItemForm.wali"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            >
+                                <option v-for="g in allGuruList" :key="g.nip" :value="g.name">
+                                    {{ g.name }} ({{ g.bidang }})
+                                </option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Ruangan Homebase</label>
+                                <select
+                                    v-model="masterItemForm.ruang"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                >
+                                    <option v-for="ruang in masterRuanganList" :key="ruang" :value="ruang">
+                                        {{ ruang }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Kapasitas Maksimal</label>
+                                <input
+                                    v-model="masterItemForm.kapasitas"
+                                    type="number"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FORM MAPEL -->
+                    <div v-else-if="masterTargetType === 'mapel'" class="space-y-3 text-xs">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Kode Mapel</label>
+                                <input
+                                    v-model="masterItemForm.code"
+                                    type="text"
+                                    placeholder="Contoh: PMSM"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                />
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Kategori</label>
+                                <select
+                                    v-model="masterItemForm.kategori"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                >
+                                    <option value="Kejuruan Produktif">Kejuruan Produktif</option>
+                                    <option value="Umum & Normatif">Umum &amp; Normatif</option>
+                                    <option value="Muatan Lokal">Muatan Lokal</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Nama Mata Pelajaran</label>
+                            <input
+                                v-model="masterItemForm.name"
+                                type="text"
+                                placeholder="Contoh: Pemeliharaan Mesin Sepeda Motor"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            />
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Sasaran</label>
+                                <select
+                                    v-model="masterItemForm.rombelTingkat"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                >
+                                    <option value="Kelas X">Kelas X</option>
+                                    <option value="Kelas XI">Kelas XI</option>
+                                    <option value="Kelas XII">Kelas XII</option>
+                                    <option value="Semua Tingkat">Semua Tingkat</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Beban Jam/Mgg</label>
+                                <input
+                                    v-model="masterItemForm.jamPerMinggu"
+                                    type="number"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                />
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Standar KKM</label>
+                                <input
+                                    v-model="masterItemForm.kkm"
+                                    type="number"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FORM TAHUN AJARAN -->
+                    <div v-else class="space-y-3 text-xs">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Tahun Ajaran</label>
+                                <input
+                                    v-model="masterItemForm.tahun"
+                                    type="text"
+                                    placeholder="2027/2028"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                />
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Semester</label>
+                                <select
+                                    v-model="masterItemForm.semester"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                >
+                                    <option value="Ganjil">Ganjil</option>
+                                    <option value="Genap">Genap</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Tanggal Mulai KBM</label>
+                                <input
+                                    v-model="masterItemForm.mulai"
+                                    type="text"
+                                    placeholder="12 Juli 2027"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                />
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Tanggal Selesai KBM</label>
+                                <input
+                                    v-model="masterItemForm.selesai"
+                                    type="text"
+                                    placeholder="18 Des 2027"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Total Hari Efektif KBM</label>
+                            <input
+                                v-model="masterItemForm.totalHariEfektif"
+                                type="number"
+                                placeholder="108"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <button
+                            type="button"
+                            @click="isMasterModalOpen = false"
+                            class="flex-1 py-2.5 rounded-xl bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:bg-muted active:scale-95 transition-all cursor-pointer"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            @click="saveMasterItem"
+                            class="flex-1 py-2.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs"
+                        >
+                            {{ isEditingMaster ? 'Simpan Perubahan' : 'Tambahkan' }}
                         </button>
                     </div>
                 </div>
