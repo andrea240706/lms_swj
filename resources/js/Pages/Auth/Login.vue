@@ -49,8 +49,6 @@ const setQuickAccount = (role) => {
         form.username = 'kepsek@smk.sch.id';
     } else if (role === 'admin') {
         form.username = 'admin@smk.sch.id';
-    } else if (role === 'super_admin' || role === 'superadmin') {
-        form.username = 'superadmin@smk.sch.id';
     }
     form.password = 'password';
 };
@@ -300,13 +298,12 @@ const submit = () => {
                             <span class="text-[11px] font-bold uppercase tracking-wider text-[#6E6E77]">Akun Uji Coba Cepat:</span>
                             <span class="text-[10px] text-[#A09E97]">Klik untuk isi otomatis</span>
                         </div>
-                        <div class="grid grid-cols-6 gap-1.5">
+                        <div class="grid grid-cols-5 gap-1.5">
                             <button type="button" @click="setQuickAccount('siswa')" class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#EBF2D5] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Siswa</button>
                             <button type="button" @click="setQuickAccount('guru')" class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#FBD2E0] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Guru</button>
                             <button type="button" @click="setQuickAccount('wali')" class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#D0E8F8] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Wali</button>
                             <button type="button" @click="setQuickAccount('kepsek')" class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#FDE4C3] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Kepsek</button>
                             <button type="button" @click="setQuickAccount('admin')" class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#E2D9F3] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Admin</button>
-                            <button type="button" @click="setQuickAccount('super_admin')" class="px-2 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#D4E4D2] border border-[#ECEAE4] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Super</button>
                         </div>
                     </div>
 
@@ -570,13 +567,12 @@ const submit = () => {
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-[10px] font-bold uppercase tracking-wider text-[#6E6E77]">Akun Uji Coba Cepat:</span>
                             </div>
-                            <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                            <div class="grid grid-cols-5 gap-1.5">
                                 <button type="button" @click="setQuickAccount('siswa')" class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#EBF2D5] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Siswa</button>
                                 <button type="button" @click="setQuickAccount('guru')" class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#FBD2E0] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Guru</button>
                                 <button type="button" @click="setQuickAccount('wali')" class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#D0E8F8] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Wali</button>
                                 <button type="button" @click="setQuickAccount('kepsek')" class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#FDE4C3] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Kepsek</button>
                                 <button type="button" @click="setQuickAccount('admin')" class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#E2D9F3] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Admin</button>
-                                <button type="button" @click="setQuickAccount('super_admin')" class="px-2 py-1.5 rounded-xl bg-white hover:bg-[#D4E4D2] border border-[#E6E4DF] text-[11px] font-bold text-[#141416] text-center transition-colors cursor-pointer">Super Admin</button>
                             </div>
                         </div>
                     </div>

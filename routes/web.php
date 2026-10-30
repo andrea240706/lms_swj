@@ -34,7 +34,7 @@ Route::middleware('auth')->group(function () {
         ->name('materials.files.download');
 });
 
-Route::middleware(['auth', 'verified', 'role:guru,teacher,admin,super_admin'])
+Route::middleware(['auth', 'verified', 'role:guru,teacher,admin'])
     ->prefix('guru')
     ->name('guru.')
     ->group(function () {

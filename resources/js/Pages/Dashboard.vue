@@ -9,7 +9,6 @@ import GuruView from '@/Components/Lms/Roles/Guru/GuruView.vue';
 import WaliKelasView from '@/Components/Lms/Roles/WaliKelas/WaliKelasView.vue';
 import KepsekView from '@/Components/Lms/Roles/Kepsek/KepsekView.vue';
 import AdminView from '@/Components/Lms/Roles/Admin/AdminView.vue';
-import SuperAdminView from '@/Components/Lms/Roles/SuperAdmin/SuperAdminView.vue';
 
 const props = defineProps({
     roles: {
@@ -293,23 +292,9 @@ const handleLogout = () => {
                     @showToast="handleShowToast"
                 />
 
-                <!-- 5. ADMIN OPERATOR -->
+                <!-- 5. ADMINISTRATOR -->
                 <AdminView
                     v-else-if="currentRoleKey === 'admin'"
-                    :role="currentRole"
-                    :activeTab="activeTab"
-                    :isSidebarCollapsed="isSidebarCollapsed"
-                    @selectTab="selectTab"
-                    @toggleSidebar="toggleSidebar"
-                    @openMenu="openActionSheet('role_switcher')"
-                    @openProfile="openActionSheet('profile', currentRole)"
-                    @openSettings="openActionSheet('settings', currentRole)"
-                    @showToast="handleShowToast"
-                />
-
-                <!-- 6. SUPER ADMIN -->
-                <SuperAdminView
-                    v-else-if="currentRoleKey === 'super_admin'"
                     :role="currentRole"
                     :activeTab="activeTab"
                     :isSidebarCollapsed="isSidebarCollapsed"

@@ -31,12 +31,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function isAdmin(): bool
     {
-        return in_array($this->role, ['admin', 'super_admin']);
-    }
-
-    public function isSuperAdmin(): bool
-    {
-        return $this->role === 'super_admin';
+        return $this->role === 'admin';
     }
 
     public function isTeacher(): bool
@@ -60,7 +55,7 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
-     * Get the standard role key matching the 6 LMS UI roles.
+     * Get the standard role key matching the 5 LMS UI roles.
      */
     public function getRoleKey(): string
     {
@@ -69,7 +64,6 @@ class User extends Authenticatable implements FilamentUser
             'teacher', 'guru' => 'guru',
             'wali', 'wali_kelas' => 'wali_kelas',
             'kepsek', 'principal' => 'kepsek',
-            'super_admin' => 'super_admin',
             default => 'admin',
         };
     }

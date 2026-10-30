@@ -47,13 +47,12 @@ class DatabaseSeeder extends Seeder
                 'username' => 'admin@smk.sch.id',
                 'role' => 'admin',
             ],
-            [
-                'email' => 'superadmin@smk.sch.id',
-                'name' => 'Arif Darmawan',
-                'username' => 'superadmin@smk.sch.id',
-                'role' => 'super_admin',
-            ],
         ];
+
+        // Hapus akun superadmin lama jika ada
+        User::where('email', 'superadmin@smk.sch.id')
+            ->orWhere('role', 'super_admin')
+            ->delete();
 
         foreach ($accounts as $account) {
             User::where('email', $account['email'])

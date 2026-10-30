@@ -228,3 +228,16 @@ export const initialPengumumanList = [
         views: 890,
     },
 ];
+
+export const initialSystemSettings = {
+    tahunAjaranAktif: '2026/2027 • Ganjil',
+    maxUploadMb: 15,
+    maintenanceMode: false,
+    sessionTimeoutMinutes: 60,
+    allowedExtensions: ['PDF', 'DOCX', 'PPTX', 'ZIP', 'JPG', 'PNG', 'MP4'],
+    serverTimezone: 'Asia/Jakarta (WIB)',
+    backupSchedule: 'Harian otomatis pukul 02:00 WIB',
+    lastBackupTime: 'Hari ini, 02:00:15 WIB',
+    dapodikStatus: 'Tersinkron Penuh',
+    terakhirSinkron: '28 Okt 2026, 06:30 WIB',
+};

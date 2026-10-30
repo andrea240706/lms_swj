@@ -52,7 +52,7 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/');
     }
 
-    public function test_all_6_roles_can_authenticate_using_quick_credentials(): void
+    public function test_all_5_roles_can_authenticate_using_quick_credentials(): void
     {
         $this->seed();
 
@@ -62,7 +62,6 @@ class AuthenticationTest extends TestCase
             'wali' => 'wali.xdkv1@smk.sch.id',
             'kepsek' => 'kepsek@smk.sch.id',
             'admin' => 'admin@smk.sch.id',
-            'super_admin' => 'superadmin@smk.sch.id',
         ];
 
         foreach ($roleCredentials as $role => $username) {
