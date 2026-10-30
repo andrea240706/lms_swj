@@ -95,6 +95,39 @@ class DashboardController extends Controller
                 'avatar' => 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
                 'heroStyle' => 'hero-lavender',
                 'focusNote' => 'Kelola akun civitas, data master, plotting jadwal, pengumuman & pengaturan sistem.',
+                'sections' => [
+                    [
+                        'title' => 'Menu Utama',
+                        'tabs' => [
+                            ['id' => 'home', 'label' => 'Operasional', 'icon' => 'home'],
+                            ['id' => 'pengguna', 'label' => 'Pengguna', 'icon' => 'user'],
+                        ],
+                    ],
+                    [
+                        'title' => 'Data Master',
+                        'tabs' => [
+                            ['id' => 'master_ta', 'label' => 'Tahun Ajaran', 'icon' => 'clock', 'parent' => 'master', 'subTab' => 'ta'],
+                            ['id' => 'master_jurusan', 'label' => 'Jurusan (Keahlian)', 'icon' => 'folder', 'parent' => 'master', 'subTab' => 'jurusan'],
+                            ['id' => 'master_rombel', 'label' => 'Rombel (Kelas)', 'icon' => 'book', 'parent' => 'master', 'subTab' => 'rombel'],
+                            ['id' => 'master_mapel', 'label' => 'Mata Pelajaran', 'icon' => 'task', 'parent' => 'master', 'subTab' => 'mapel'],
+                        ],
+                    ],
+                    [
+                        'title' => 'Penugasan & Jadwal',
+                        'tabs' => [
+                            ['id' => 'penugasan_jadwal', 'label' => 'Jadwal Pelajaran', 'icon' => 'clock', 'parent' => 'penugasan', 'subTab' => 'jadwal'],
+                            ['id' => 'penugasan_guru', 'label' => 'Plotting Guru Mapel', 'icon' => 'user', 'parent' => 'penugasan', 'subTab' => 'guru'],
+                            ['id' => 'penugasan_wali', 'label' => 'Penetapan Wali Kelas', 'icon' => 'shield', 'parent' => 'penugasan', 'subTab' => 'wali'],
+                        ],
+                    ],
+                    [
+                        'title' => 'Informasi & Sistem',
+                        'tabs' => [
+                            ['id' => 'pengumuman', 'label' => 'Pengumuman', 'icon' => 'task'],
+                            ['id' => 'sistem', 'label' => 'Pengaturan Sistem', 'icon' => 'settings'],
+                        ],
+                    ],
+                ],
                 'tabs' => [
                     ['id' => 'home', 'label' => 'Operasional', 'icon' => 'home'],
                     ['id' => 'pengguna', 'label' => 'Pengguna', 'icon' => 'user'],

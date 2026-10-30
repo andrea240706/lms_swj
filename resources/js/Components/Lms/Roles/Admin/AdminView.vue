@@ -47,9 +47,39 @@ const triggerLoading = (ms = 400) => {
 onMounted(() => {
     triggerLoading(500);
 });
-watch(() => props.activeTab, () => {
-    triggerLoading(400);
-});
+// Sub-tabs state
+const masterSubTab = ref('jurusan'); // 'ta' | 'jurusan' | 'rombel' | 'mapel'
+const penugasanMode = ref('jadwal'); // 'wali' | 'guruMapel' | 'jadwal'
+
+const setMasterSubTab = (tab) => {
+    masterSubTab.value = tab;
+    emit('selectTab', `master_${tab}`);
+};
+
+const setPenugasanMode = (mode) => {
+    penugasanMode.value = mode;
+    const tabMap = {
+        jadwal: 'penugasan_jadwal',
+        guruMapel: 'penugasan_guru',
+        wali: 'penugasan_wali',
+    };
+    emit('selectTab', tabMap[mode] || 'penugasan_jadwal');
+};
+
+watch(
+    () => props.activeTab,
+    (newTab) => {
+        triggerLoading(350);
+        if (newTab === 'master_ta') masterSubTab.value = 'ta';
+        else if (newTab === 'master_jurusan') masterSubTab.value = 'jurusan';
+        else if (newTab === 'master_rombel') masterSubTab.value = 'rombel';
+        else if (newTab === 'master_mapel') masterSubTab.value = 'mapel';
+        else if (newTab === 'penugasan_jadwal') penugasanMode.value = 'jadwal';
+        else if (newTab === 'penugasan_guru') penugasanMode.value = 'guruMapel';
+        else if (newTab === 'penugasan_wali') penugasanMode.value = 'wali';
+    },
+    { immediate: true }
+);
 
 // Dynamic Page Titles
 const pageTitle = computed(() => {
@@ -58,7 +88,14 @@ const pageTitle = computed(() => {
         operasional: 'Operasional Akademik Sekolah',
         pengguna: 'Manajemen Pengguna (Siswa, Guru, Wali, Kepsek)',
         master: 'Data Master (TA, Jurusan, Kelas, Mapel)',
+        master_ta: 'Data Master • Tahun Ajaran',
+        master_jurusan: 'Data Master • Kompetensi Keahlian (Jurusan)',
+        master_rombel: 'Data Master • Rombongan Belajar (Kelas)',
+        master_mapel: 'Data Master • Mata Pelajaran Kurikulum',
         penugasan: 'Penugasan & Jadwal (Plotting Guru & Jadwal)',
+        penugasan_jadwal: 'Penugasan • Jadwal Pelajaran Mingguan',
+        penugasan_guru: 'Penugasan • Plotting Guru Pengampu Mapel',
+        penugasan_wali: 'Penugasan • Penetapan Wali Kelas',
         pengumuman: 'Pengumuman & Broadcast Sekolah',
         sistem: 'Pengaturan Sistem & Pemeliharaan LMS',
     };
@@ -179,7 +216,6 @@ const handleToggleLockUser = (user) => {
 // ========================================================
 // TAB 3: DATA MASTER STATE & METHODS (CRUD)
 // ========================================================
-const masterSubTab = ref('jurusan'); // 'ta' | 'jurusan' | 'rombel' | 'mapel'
 
 const isMasterModalOpen = ref(false);
 const isEditingMaster = ref(false);
@@ -334,7 +370,6 @@ const activateTahunAjaran = (ta) => {
 // ========================================================
 // TAB 4: PENUGASAN & JADWAL STATE & METHODS
 // ========================================================
-const penugasanMode = ref('jadwal'); // 'wali' | 'guruMapel' | 'jadwal'
 const selectedTahunAjaran = ref('2026/2027 • Ganjil');
 const jadwalViewMode = ref('rombel'); // 'rombel' | 'guru'
 const selectedHariJadwal = ref('Senin');
@@ -757,7 +792,7 @@ const handleToggleMaintenance = () => {
                 <!-- SKELETON LOADER -->
                 <LmsSkeletonLoader
                     v-if="isLoading"
-                    :type="activeTab === 'home' ? 'dashboard' : activeTab === 'master' ? 'mapel-list' : 'card-list'"
+                    :type="activeTab === 'home' ? 'dashboard' : (activeTab === 'master' || activeTab.startsWith('master_')) ? 'mapel-list' : 'card-list'"
                     :rows="6"
                     :cards="6"
                 />
@@ -840,7 +875,7 @@ const handleToggleMaintenance = () => {
 
                             <!-- KPI 3: Plotting Jadwal -->
                             <div
-                                @click="$emit('selectTab', 'penugasan')"
+                                @click="$emit('selectTab', 'penugasan_jadwal')"
                                 class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col justify-between cursor-pointer hover:border-charcoal/30 transition-colors"
                             >
                                 <div class="flex items-center justify-between">
@@ -886,7 +921,7 @@ const handleToggleMaintenance = () => {
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div
-                                        @click="$emit('selectTab', 'penugasan')"
+                                        @click="$emit('selectTab', 'penugasan_jadwal')"
                                         class="cursor-pointer bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow hover:border-charcoal/30 active:scale-[0.99] transition-all flex flex-col justify-between"
                                     >
                                         <div>
@@ -918,7 +953,7 @@ const handleToggleMaintenance = () => {
                                     </div>
 
                                     <div
-                                        @click="$emit('selectTab', 'master')"
+                                        @click="$emit('selectTab', 'master_jurusan')"
                                         class="cursor-pointer bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow hover:border-charcoal/30 active:scale-[0.99] transition-all flex flex-col justify-between"
                                     >
                                         <div>
@@ -1142,13 +1177,13 @@ const handleToggleMaintenance = () => {
                     <!-- ======================================================== -->
                     <!-- TAB 3: DATA MASTER (TA, JURUSAN, KELAS, MAPEL)           -->
                     <!-- ======================================================== -->
-                    <div v-else-if="activeTab === 'master'" class="space-y-4">
+                    <div v-else-if="activeTab === 'master' || activeTab.startsWith('master_')" class="space-y-4">
                         <!-- Sub-tab switcher -->
                         <div class="bg-white rounded-[26px] p-3 border border-[#ECEAE4] soft-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-1.5 p-1 bg-muted/70 rounded-2xl w-full sm:w-auto flex-wrap">
                                 <button
                                     type="button"
-                                    @click="masterSubTab = 'jurusan'"
+                                    @click="setMasterSubTab('jurusan')"
                                     class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
                                     :class="masterSubTab === 'jurusan' ? 'bg-white text-charcoal shadow-xs' : 'text-subtext hover:text-charcoal'"
                                 >
@@ -1156,7 +1191,7 @@ const handleToggleMaintenance = () => {
                                 </button>
                                 <button
                                     type="button"
-                                    @click="masterSubTab = 'rombel'"
+                                    @click="setMasterSubTab('rombel')"
                                     class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
                                     :class="masterSubTab === 'rombel' ? 'bg-white text-charcoal shadow-xs' : 'text-subtext hover:text-charcoal'"
                                 >
@@ -1164,7 +1199,7 @@ const handleToggleMaintenance = () => {
                                 </button>
                                 <button
                                     type="button"
-                                    @click="masterSubTab = 'mapel'"
+                                    @click="setMasterSubTab('mapel')"
                                     class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
                                     :class="masterSubTab === 'mapel' ? 'bg-white text-charcoal shadow-xs' : 'text-subtext hover:text-charcoal'"
                                 >
@@ -1172,7 +1207,7 @@ const handleToggleMaintenance = () => {
                                 </button>
                                 <button
                                     type="button"
-                                    @click="masterSubTab = 'ta'"
+                                    @click="setMasterSubTab('ta')"
                                     class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
                                     :class="masterSubTab === 'ta' ? 'bg-white text-charcoal shadow-xs' : 'text-subtext hover:text-charcoal'"
                                 >
@@ -1365,13 +1400,13 @@ const handleToggleMaintenance = () => {
                     <!-- ======================================================== -->
                     <!-- TAB 4: PENUGASAN & JADWAL (PLOTTING GURU & JADWAL)       -->
                     <!-- ======================================================== -->
-                    <div v-else-if="activeTab === 'penugasan'" class="space-y-4">
+                    <div v-else-if="activeTab === 'penugasan' || activeTab.startsWith('penugasan_')" class="space-y-4">
                         <!-- Mode Switcher -->
                         <div class="bg-white rounded-[26px] p-3 border border-[#ECEAE4] soft-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-1.5 p-1 bg-muted/70 rounded-2xl w-full sm:w-auto flex-wrap">
                                 <button
                                     type="button"
-                                    @click="penugasanMode = 'wali'"
+                                    @click="setPenugasanMode('wali')"
                                     class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
                                     :class="penugasanMode === 'wali' ? 'bg-white text-charcoal shadow-xs' : 'text-subtext hover:text-charcoal'"
                                 >
@@ -1379,7 +1414,7 @@ const handleToggleMaintenance = () => {
                                 </button>
                                 <button
                                     type="button"
-                                    @click="penugasanMode = 'guruMapel'"
+                                    @click="setPenugasanMode('guruMapel')"
                                     class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
                                     :class="penugasanMode === 'guruMapel' ? 'bg-white text-charcoal shadow-xs' : 'text-subtext hover:text-charcoal'"
                                 >
@@ -1387,7 +1422,7 @@ const handleToggleMaintenance = () => {
                                 </button>
                                 <button
                                     type="button"
-                                    @click="penugasanMode = 'jadwal'"
+                                    @click="setPenugasanMode('jadwal')"
                                     class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
                                     :class="penugasanMode === 'jadwal' ? 'bg-white text-charcoal shadow-xs' : 'text-subtext hover:text-charcoal'"
                                 >

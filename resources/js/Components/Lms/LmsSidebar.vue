@@ -35,6 +35,8 @@ const getTabLabel = (t) => {
 
 const isTabActive = (t) => {
     if (props.activeTab === t.id) return true;
+    if (t.id === 'master' && props.activeTab.startsWith('master_')) return true;
+    if (t.id === 'penugasan' && props.activeTab.startsWith('penugasan_')) return true;
     if ((props.activeTab === 'mapel' || props.activeTab === 'materi') && (t.id === 'mapel' || t.id === 'materi')) {
         return true;
     }
@@ -50,6 +52,18 @@ const navTabs = computed(() => {
     return (props.role?.tabs || []).filter((t) => t.id !== 'presensi');
 });
 
+const roleSections = computed(() => {
+    if (props.role?.sections && props.role.sections.length > 0) {
+        return props.role.sections;
+    }
+    return [
+        {
+            title: 'Menu Utama',
+            tabs: navTabs.value,
+        },
+    ];
+});
+
 const getTabBadge = (tabId) => {
     if (tabId === 'mapel' || tabId === 'materi') return '2 Mapel';
     if (tabId === 'rekapNilai') return 'Leger';
@@ -57,11 +71,13 @@ const getTabBadge = (tabId) => {
     if (tabId === 'presensiPagi') return 'Hari Ini';
     if (tabId === 'siswaPerwalian') return '36 Siswa';
     if (tabId === 'pengguna') return '1.3K';
-    if (tabId === 'penugasan') return '100%';
-    if (tabId === 'penugasan') return '100%';
+    if (tabId === 'master_ta') return 'Aktif';
+    if (tabId === 'master_jurusan') return '4';
+    if (tabId === 'master_rombel') return '42';
+    if (tabId === 'penugasan_wali') return '100%';
+    if (tabId === 'penugasan_jadwal') return 'Mingguan';
     if (tabId === 'pengumuman') return '4 Aktif';
-    if (tabId === 'admin_mgmt') return '4 Akun';
-    if (tabId === 'system_config') return 'Global';
+    if (tabId === 'sistem') return 'Global';
     return null;
 };
 </script>
@@ -104,69 +120,84 @@ const getTabBadge = (tabId) => {
             </div>
 
 
-            <!-- Navigation Links List -->
-            <div class="flex-1 overflow-y-auto no-scrollbar p-3 space-y-1.5">
+            <!-- Navigation Links List with Grouped Section Headers -->
+            <div class="flex-1 overflow-y-auto no-scrollbar p-3 space-y-3">
                 <div
-                    v-if="!isCollapsed"
-                    class="px-2 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-subtext/70"
+                    v-for="(section, sIdx) in roleSections"
+                    :key="section.title || sIdx"
+                    class="space-y-1"
                 >
-                    Menu Utama
-                </div>
+                    <!-- Section Header (Expanded Mode) -->
+                    <div
+                        v-if="!isCollapsed && section.title"
+                        class="px-2.5 pb-1 text-[10px] font-black uppercase tracking-wider text-subtext/70"
+                        :class="sIdx > 0 ? 'pt-2' : 'pt-0.5'"
+                    >
+                        {{ section.title }}
+                    </div>
 
-                <button
-                    v-for="t in navTabs"
-                    :key="t.id"
-                    type="button"
-                    @click="handleTabClick(t)"
-                    class="w-full relative flex items-center transition-all duration-200 cursor-pointer rounded-2xl group"
-                    :class="[
-                        isCollapsed
-                            ? 'h-11 justify-center'
-                            : 'h-12 px-3 justify-between',
-                        isTabActive(t)
-                            ? 'bg-charcoal text-white font-extrabold shadow-md shadow-charcoal/15'
-                            : 'text-charcoal/70 hover:text-charcoal hover:bg-canvas font-bold',
-                    ]"
-                    :title="isCollapsed ? getTabLabel(t) : ''"
-                >
-                    <!-- Left Icon & Label -->
-                    <div class="flex items-center gap-3 min-w-0">
-                        <div
-                            class="shrink-0 transition-transform duration-200"
-                            :class="isTabActive(t) ? 'scale-110' : 'group-hover:scale-105'"
-                        >
-                            <LmsIcon :name="t.icon" className="w-5 h-5" />
+                    <!-- Divider (Collapsed Mode between sections) -->
+                    <div
+                        v-else-if="isCollapsed && sIdx > 0"
+                        class="my-2 border-t border-[#ECEAE4]/80 mx-1"
+                    ></div>
+
+                    <!-- Navigation Items -->
+                    <button
+                        v-for="t in section.tabs"
+                        :key="t.id"
+                        type="button"
+                        @click="handleTabClick(t)"
+                        class="w-full relative flex items-center transition-all duration-200 cursor-pointer rounded-2xl group"
+                        :class="[
+                            isCollapsed
+                                ? 'h-10 justify-center'
+                                : 'h-10 px-3 justify-between',
+                            isTabActive(t)
+                                ? 'bg-charcoal text-white font-extrabold shadow-md shadow-charcoal/15'
+                                : 'text-charcoal/70 hover:text-charcoal hover:bg-canvas font-bold',
+                        ]"
+                        :title="isCollapsed ? getTabLabel(t) : ''"
+                    >
+                        <!-- Left Icon & Label -->
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div
+                                class="shrink-0 transition-transform duration-200"
+                                :class="isTabActive(t) ? 'scale-110' : 'group-hover:scale-105'"
+                            >
+                                <LmsIcon :name="t.icon" className="w-4 h-4" />
+                            </div>
+
+                            <span
+                                v-if="!isCollapsed"
+                                class="text-xs whitespace-nowrap overflow-hidden text-ellipsis text-left"
+                            >
+                                {{ getTabLabel(t) }}
+                            </span>
                         </div>
 
-                        <span
-                            v-if="!isCollapsed"
-                            class="text-xs whitespace-nowrap overflow-hidden text-ellipsis text-left"
-                        >
-                            {{ getTabLabel(t) }}
-                        </span>
-                    </div>
+                        <!-- Right Badge indicator (Expanded Only) -->
+                        <div v-if="!isCollapsed" class="shrink-0 ml-2">
+                            <span
+                                v-if="getTabBadge(t.id)"
+                                class="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                                :class="
+                                    isTabActive(t)
+                                        ? 'bg-white/20 text-white'
+                                        : 'bg-canvas border border-[#ECEAE4] text-subtext'
+                                "
+                            >
+                                {{ getTabBadge(t.id) }}
+                            </span>
+                        </div>
 
-                    <!-- Right Badge indicator (Expanded Only) -->
-                    <div v-if="!isCollapsed" class="shrink-0 ml-2">
+                        <!-- Mini Active Indicator Bar for Collapsed mode -->
                         <span
-                            v-if="getTabBadge(t.id)"
-                            class="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                            :class="
-                                isTabActive(t)
-                                    ? 'bg-white/20 text-white'
-                                    : 'bg-canvas border border-[#ECEAE4] text-subtext'
-                            "
-                        >
-                            {{ getTabBadge(t.id) }}
-                        </span>
-                    </div>
-
-                    <!-- Mini Active Indicator Bar for Collapsed mode -->
-                    <span
-                        v-if="isCollapsed && isTabActive(t)"
-                        class="absolute -left-3 w-1.5 h-6 bg-charcoal rounded-r-full"
-                    ></span>
-                </button>
+                            v-if="isCollapsed && isTabActive(t)"
+                            class="absolute -left-3 w-1.5 h-5 bg-charcoal rounded-r-full"
+                        ></span>
+                    </button>
+                </div>
             </div>
         </div>
 
