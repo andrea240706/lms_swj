@@ -110,13 +110,6 @@ const userForm = ref({
     lastLogin: 'Baru dibuat',
 });
 
-// Reset Password Dialog State
-const isResetModalOpen = ref(false);
-const resetData = ref({
-    user: null,
-    tempPassword: '',
-});
-
 const openAddUserModal = (defaultRole = 'siswa') => {
     isEditingUser.value = false;
     userForm.value = {
@@ -134,7 +127,7 @@ const openAddUserModal = (defaultRole = 'siswa') => {
                 : 'Guru Pengampu',
         email: '',
         status: 'Aktif',
-        sandiStatus: 'Default',
+        sandiStatus: 'Sandi Default',
         lastLogin: 'Belum pernah login',
     };
     isUserModalOpen.value = true;
@@ -163,7 +156,7 @@ const saveUser = () => {
             id: Date.now(),
         };
         userList.value.unshift(newUser);
-        emit('showToast', `Akun baru [${newUser.name}] sebagai ${newUser.role} berhasil didaftarkan.`);
+        emit('showToast', `Akun baru [${newUser.name}] berhasil didaftarkan dengan sandi inisial default.`);
     }
     isUserModalOpen.value = false;
 };
@@ -173,16 +166,6 @@ const deleteUser = (userId) => {
     if (!target) return;
     userList.value = userList.value.filter((u) => u.id !== userId);
     emit('showToast', `Akun [${target.name}] berhasil dihapus dari sistem.`);
-};
-
-const handleResetPassword = (user) => {
-    const tempPassword = `SWJ-${Math.floor(1000 + Math.random() * 9000)}`;
-    resetData.value = {
-        user,
-        tempPassword,
-    };
-    user.sandiStatus = 'Reset Dibutuhkan';
-    isResetModalOpen.value = true;
 };
 
 const handleToggleLockUser = (user) => {
@@ -961,8 +944,8 @@ const savePengumuman = () => {
                                         <div class="flex items-start gap-2.5 pb-2.5 border-b border-[#F2F0EC]">
                                             <span class="w-2 h-2 rounded-full bg-sky-dark mt-1.5 shrink-0"></span>
                                             <div>
-                                                <div class="font-extrabold text-charcoal">Reset Sandi: Dimas Anggara (XII RPL 2)</div>
-                                                <div class="text-[10px] text-subtext">Hari ini, 07:15 WIB • Dibuatkan sandi sementara</div>
+                                                <div class="font-extrabold text-charcoal">Buka Kunci Akun: Dimas Anggara (XII RPL 2)</div>
+                                                <div class="text-[10px] text-subtext">Hari ini, 07:15 WIB • Akun dibuka kembali setelah konfirmasi</div>
                                             </div>
                                         </div>
                                         <div class="flex items-start gap-2.5 pb-2.5 border-b border-[#F2F0EC]">
@@ -1092,6 +1075,13 @@ const savePengumuman = () => {
                                     >
                                         {{ u.status }}
                                     </span>
+                                    <span
+                                        class="text-[10px] font-bold px-2.5 py-1 rounded-full"
+                                        :class="u.sandiStatus === 'Sandi Default' || u.sandiStatus === 'Default' ? 'bg-amberpastel-light text-amberpastel-dark' : 'bg-sage-light text-sage-dark'"
+                                        :title="u.sandiStatus === 'Sandi Default' || u.sandiStatus === 'Default' ? 'Pengguna belum mengubah sandi default inisial' : 'Kata sandi dikelola secara mandiri oleh pengguna'"
+                                    >
+                                        {{ u.sandiStatus === 'Sandi Default' || u.sandiStatus === 'Default' ? 'Sandi Inisial' : 'Sandi Mandiri' }}
+                                    </span>
                                     <button
                                         type="button"
                                         @click="openEditUserModal(u)"
@@ -1102,17 +1092,10 @@ const savePengumuman = () => {
                                     </button>
                                     <button
                                         type="button"
-                                        @click="handleResetPassword(u)"
-                                        class="px-3 py-1.5 rounded-xl bg-canvas border border-[#ECEAE4] text-charcoal text-xs font-bold hover:bg-white active:scale-95 transition-all cursor-pointer shadow-2xs"
-                                        title="Reset Kata Sandi"
-                                    >
-                                        Reset Sandi
-                                    </button>
-                                    <button
-                                        type="button"
                                         @click="handleToggleLockUser(u)"
                                         class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
                                         :class="u.status === 'Terkunci' ? 'bg-charcoal text-white' : 'bg-canvas border border-[#ECEAE4] text-subtext hover:text-charcoal'"
+                                        :title="u.status === 'Terkunci' ? 'Buka Kunci Akses Akun Pengguna' : 'Kunci Akses Akun Pengguna'"
                                     >
                                         {{ u.status === 'Terkunci' ? 'Buka Kunci' : 'Kunci' }}
                                     </button>
@@ -2426,6 +2409,17 @@ const savePengumuman = () => {
                     </div>
 
                     <div class="space-y-3 text-xs">
+                        <!-- Privacy Guarantee Banner -->
+                        <div class="p-3.5 rounded-2xl bg-sky-light border border-[#BAE6FD] text-sky-dark space-y-1">
+                            <div class="flex items-center gap-2 font-bold text-xs">
+                                <LmsIcon name="lock" className="w-4 h-4 text-sky-dark" />
+                                <span>Privasi &amp; Keamanan Kata Sandi</span>
+                            </div>
+                            <p class="text-[11px] leading-relaxed text-sky-dark/90">
+                                Admin tidak memiliki akses untuk membuat, mengatur, atau melihat kata sandi pengguna. Akun baru diaktifkan dengan kredensial inisial sekolah (berdasarkan NISN/NIP), dan pengguna wajib memperbarui kata sandi secara mandiri saat login.
+                            </p>
+                        </div>
+
                         <!-- Peran / Role -->
                         <div class="grid grid-cols-2 gap-3">
                             <div>
@@ -2518,72 +2512,6 @@ const savePengumuman = () => {
                             class="flex-1 py-2.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs"
                         >
                             {{ isEditingUser ? 'Simpan Perubahan' : 'Daftarkan Akun' }}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </Transition>
-
-        <!-- ============================================================ -->
-        <!-- MODAL: RESET PASSWORD PENGGUNA (KATA SANDI SEMENTARA)         -->
-        <!-- ============================================================ -->
-        <Transition
-            enter-active-class="transition-opacity duration-200"
-            enter-from-class="opacity-0"
-            enter-to-class="opacity-100"
-            leave-active-class="transition-opacity duration-150"
-            leave-from-class="opacity-100"
-            leave-to-class="opacity-0"
-        >
-            <div
-                v-if="isResetModalOpen"
-                class="fixed inset-0 bg-charcoal/50 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-                @click.self="isResetModalOpen = false"
-            >
-                <div class="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b border-[#ECEAE4]">
-                        <div>
-                            <h3 class="text-base font-extrabold text-charcoal">Reset Kata Sandi Pengguna</h3>
-                            <p class="text-xs text-subtext mt-0.5">{{ resetData.user?.name }} ({{ resetData.user?.role }})</p>
-                        </div>
-                        <button
-                            type="button"
-                            @click="isResetModalOpen = false"
-                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold text-xs cursor-pointer"
-                        >
-                            ✕
-                        </button>
-                    </div>
-
-                    <div class="space-y-3 text-xs">
-                        <p class="text-subtext leading-relaxed">
-                            Kata sandi akun telah berhasil direset. Silakan salin dan berikan kata sandi sementara berikut kepada pengguna. Pengguna dapat langsung menggunakannya untuk login ke aplikasi LMS.
-                        </p>
-
-                        <div class="p-3.5 bg-canvas rounded-2xl border border-[#ECEAE4] flex items-center justify-between gap-3">
-                            <div>
-                                <div class="text-[10px] text-subtext font-bold uppercase tracking-wider">Kata Sandi Sementara:</div>
-                                <div class="text-base font-black text-charcoal tracking-widest font-mono mt-0.5">
-                                    {{ resetData.tempPassword }}
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                @click="navigator?.clipboard?.writeText ? navigator.clipboard.writeText(resetData.tempPassword) : null; $emit('showToast', 'Kata sandi sementara berhasil disalin!')"
-                                class="px-3.5 py-1.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs"
-                            >
-                                Salin
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="pt-2">
-                        <button
-                            type="button"
-                            @click="isResetModalOpen = false; $emit('showToast', 'Status reset sandi tersimpan.')"
-                            class="w-full py-2.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs"
-                        >
-                            Selesai &amp; Tutup
                         </button>
                     </div>
                 </div>

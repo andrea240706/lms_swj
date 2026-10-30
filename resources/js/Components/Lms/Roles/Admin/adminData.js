@@ -18,28 +18,28 @@ export const adminStats = {
 
 export const initialUsersList = [
     // SISWA
-    { id: 1, role: 'siswa', name: 'Nadia Putri Maharani', identifier: '008492104', rombel: 'XII RPL 1', email: 'nadia.putri@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Default', lastLogin: 'Hari ini, 07:12' },
-    { id: 2, role: 'siswa', name: 'Fajar Nugraha Pratama', identifier: '008492105', rombel: 'XII RPL 1', email: 'fajar.nugraha@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Hari ini, 07:25' },
-    { id: 3, role: 'siswa', name: 'Aldiansyah Putra', identifier: '009112001', rombel: 'X DKV 1', email: 'aldiansyah.p@smkswj.sch.id', status: 'Pantauan', sandiStatus: 'Default', lastLogin: '3 hari lalu' },
-    { id: 4, role: 'siswa', name: 'Salsabila Azzahra', identifier: '009112002', rombel: 'X DKV 1', email: 'salsabila.a@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Hari ini, 06:55' },
-    { id: 5, role: 'siswa', name: 'Dimas Anggara Putra', identifier: '008492106', rombel: 'XII RPL 2', email: 'dimas.anggara@smkswj.sch.id', status: 'Terkunci', sandiStatus: 'Reset Dibutuhkan', lastLogin: 'Kemarin, 14:10' },
-    { id: 6, role: 'siswa', name: 'Bagas Pratama', identifier: '009112003', rombel: 'X DKV 1', email: 'bagas.pratama@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Hari ini, 06:40' },
+    { id: 1, role: 'siswa', name: 'Nadia Putri Maharani', identifier: '008492104', rombel: 'XII RPL 1', email: 'nadia.putri@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Default', lastLogin: 'Hari ini, 07:12' },
+    { id: 2, role: 'siswa', name: 'Fajar Nugraha Pratama', identifier: '008492105', rombel: 'XII RPL 1', email: 'fajar.nugraha@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Hari ini, 07:25' },
+    { id: 3, role: 'siswa', name: 'Aldiansyah Putra', identifier: '009112001', rombel: 'X DKV 1', email: 'aldiansyah.p@smkswj.sch.id', status: 'Pantauan', sandiStatus: 'Sandi Default', lastLogin: '3 hari lalu' },
+    { id: 4, role: 'siswa', name: 'Salsabila Azzahra', identifier: '009112002', rombel: 'X DKV 1', email: 'salsabila.a@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Hari ini, 06:55' },
+    { id: 5, role: 'siswa', name: 'Dimas Anggara Putra', identifier: '008492106', rombel: 'XII RPL 2', email: 'dimas.anggara@smkswj.sch.id', status: 'Terkunci', sandiStatus: 'Sandi Mandiri', lastLogin: 'Kemarin, 14:10' },
+    { id: 6, role: 'siswa', name: 'Bagas Pratama', identifier: '009112003', rombel: 'X DKV 1', email: 'bagas.pratama@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Hari ini, 06:40' },
 
     // GURU
-    { id: 101, role: 'guru', name: 'Budi Santoso, S.Kom', identifier: '19880412 201504 1 002', rombel: 'Guru Produktif RPL', email: 'budi.santoso@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Hari ini, 07:45' },
-    { id: 102, role: 'guru', name: 'Andi Saputra, S.Sn', identifier: '19870311 201602 1 003', rombel: 'Guru Fotografi DKV', email: 'andi.saputra@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Hari ini, 07:05' },
-    { id: 103, role: 'guru', name: 'Rina Kusuma, M.Kom', identifier: '19900915 201903 2 004', rombel: 'Guru Komputer Grafis', email: 'rina.kusuma@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Kemarin, 16:30' },
-    { id: 104, role: 'guru', name: 'Dra. Sri Mulyani', identifier: '19680214 199403 2 001', rombel: 'Guru Bahasa Indonesia', email: 'sri.mulyani@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Hari ini, 07:50' },
-    { id: 105, role: 'guru', name: 'Irfan Maulana, S.T', identifier: '19910522 201802 1 005', rombel: 'Guru Produktif TKJ', email: 'irfan.maulana@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Hari ini, 08:00' },
+    { id: 101, role: 'guru', name: 'Budi Santoso, S.Kom', identifier: '19880412 201504 1 002', rombel: 'Guru Produktif RPL', email: 'budi.santoso@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Hari ini, 07:45' },
+    { id: 102, role: 'guru', name: 'Andi Saputra, S.Sn', identifier: '19870311 201602 1 003', rombel: 'Guru Fotografi DKV', email: 'andi.saputra@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Hari ini, 07:05' },
+    { id: 103, role: 'guru', name: 'Rina Kusuma, M.Kom', identifier: '19900915 201903 2 004', rombel: 'Guru Komputer Grafis', email: 'rina.kusuma@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Kemarin, 16:30' },
+    { id: 104, role: 'guru', name: 'Dra. Sri Mulyani', identifier: '19680214 199403 2 001', rombel: 'Guru Bahasa Indonesia', email: 'sri.mulyani@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Hari ini, 07:50' },
+    { id: 105, role: 'guru', name: 'Irfan Maulana, S.T', identifier: '19910522 201802 1 005', rombel: 'Guru Produktif TKJ', email: 'irfan.maulana@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Hari ini, 08:00' },
 
     // WALI KELAS
-    { id: 201, role: 'wali', name: 'Siti Rahma, M.Pd', identifier: '19890520 201801 2 003', rombel: 'Wali Kelas X DKV 1', email: 'siti.rahma@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Hari ini, 06:50' },
-    { id: 202, role: 'wali', name: 'Dra. Endang Setyawati', identifier: '19700812 199702 2 002', rombel: 'Wali Kelas XII RPL 1', email: 'endang.setyawati@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Hari ini, 07:15' },
-    { id: 203, role: 'wali', name: 'Ahmad Fauzi, M.Kom', identifier: '19850614 201201 1 004', rombel: 'Wali Kelas XII RPL 2', email: 'ahmad.fauzi@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Hari ini, 07:20' },
-    { id: 204, role: 'wali', name: 'Dra. Sri Wahyuni', identifier: '19720419 199803 2 001', rombel: 'Wali Kelas XI AKL 1', email: 'sri.wahyuni@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Kemarin, 15:45' },
+    { id: 201, role: 'wali', name: 'Siti Rahma, M.Pd', identifier: '19890520 201801 2 003', rombel: 'Wali Kelas X DKV 1', email: 'siti.rahma@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Hari ini, 06:50' },
+    { id: 202, role: 'wali', name: 'Dra. Endang Setyawati', identifier: '19700812 199702 2 002', rombel: 'Wali Kelas XII RPL 1', email: 'endang.setyawati@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Hari ini, 07:15' },
+    { id: 203, role: 'wali', name: 'Ahmad Fauzi, M.Kom', identifier: '19850614 201201 1 004', rombel: 'Wali Kelas XII RPL 2', email: 'ahmad.fauzi@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Hari ini, 07:20' },
+    { id: 204, role: 'wali', name: 'Dra. Sri Wahyuni', identifier: '19720419 199803 2 001', rombel: 'Wali Kelas XI AKL 1', email: 'sri.wahyuni@smkswj.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Kemarin, 15:45' },
 
     // KEPALA SEKOLAH
-    { id: 301, role: 'kepsek', name: 'Drs. Hendra Wijaya, M.M', identifier: '19650812 199003 1 004', rombel: 'Kepala Sekolah SMK SWJ', email: 'kepsek@smk.sch.id', status: 'Aktif', sandiStatus: 'Kustom', lastLogin: 'Hari ini, 06:15' },
+    { id: 301, role: 'kepsek', name: 'Drs. Hendra Wijaya, M.M', identifier: '19650812 199003 1 004', rombel: 'Kepala Sekolah SMK SWJ', email: 'kepsek@smk.sch.id', status: 'Aktif', sandiStatus: 'Sandi Mandiri', lastLogin: 'Hari ini, 06:15' },
 ];
 
 export const masterTahunAjaran = [
