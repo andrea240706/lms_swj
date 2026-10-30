@@ -13,7 +13,9 @@ import {
     masterJurusan,
     masterMapel,
     masterRombel,
+    masterRuanganList,
     masterTahunAjaran,
+    slotJamPelajaran,
 } from './adminData';
 
 const props = defineProps({
@@ -103,16 +105,286 @@ const masterSubTab = ref('jurusan'); // 'ta' | 'jurusan' | 'rombel' | 'mapel'
 // ========================================================
 // TAB 4: PENUGASAN & JADWAL STATE & METHODS
 // ========================================================
-const penugasanMode = ref('wali'); // 'wali' | 'guruMapel' | 'jadwal'
+const penugasanMode = ref('jadwal'); // 'wali' | 'guruMapel' | 'jadwal'
+const selectedTahunAjaran = ref('2026/2027 • Ganjil');
+const jadwalViewMode = ref('rombel'); // 'rombel' | 'guru'
 const selectedHariJadwal = ref('Senin');
+const selectedRombelFilter = ref('X TBSM A'); // 'semua' | Rombel Name
+const selectedGuruFilter = ref('Hendra Gunawan, S.T');
 
 const plottingWali = ref(JSON.parse(JSON.stringify(initialPlottingWali)));
 const plottingGuruMapel = ref(JSON.parse(JSON.stringify(initialPlottingGuruMapel)));
 const jadwalMingguan = ref(JSON.parse(JSON.stringify(initialJadwalMingguan)));
 
-const filteredJadwal = computed(() => {
-    return jadwalMingguan.value.filter((j) => j.hari === selectedHariJadwal.value);
+// Guru list for selectors
+const allGuruList = computed(() => {
+    return [
+        { name: 'Hendra Gunawan, S.T', nip: '19850314 201101 1 004', bidang: 'Teknik Sepeda Motor' },
+        { name: 'Dedi Kurniawan, S.Pd', nip: '19890422 201602 1 003', bidang: 'Teknik Sepeda Motor' },
+        { name: 'Nurul Hidayah, S.E.I', nip: '19910815 201903 2 006', bidang: 'Perbankan Syariah' },
+        { name: 'Zulfa Ramadhani, M.E', nip: '19920317 202001 2 002', bidang: 'Perbankan Syariah' },
+        { name: 'Budi Santoso, S.Kom', nip: '19880412 201504 1 002', bidang: 'RPL & Informatika' },
+        { name: 'Dra. Sri Mulyani', nip: '19680214 199403 2 001', bidang: 'Bahasa Indonesia' },
+        { name: 'Agus Salim, M.Pd', nip: '19850719 201101 1 003', bidang: 'Matematika Vokasi' },
+        { name: 'Ahmad Fauzi, S.Pd.I', nip: '19850614 201201 1 004', bidang: 'Pendidikan Agama Islam' },
+        { name: 'Andi Saputra, S.Sn', nip: '19870311 201602 1 003', bidang: 'DKV & Fotografi' },
+        { name: 'Irfan Maulana, S.T', nip: '19910522 201802 1 005', bidang: 'Teknik Komputer Jaringan' },
+        { name: 'Rina Kusuma, M.Kom', nip: '19900915 201903 2 004', bidang: 'Multimedia & Desain' },
+    ];
 });
+
+// Filtered schedules for Rombel view
+const filteredJadwal = computed(() => {
+    return jadwalMingguan.value.filter((j) => {
+        const matchHari = j.hari === selectedHariJadwal.value;
+        const matchRombel = selectedRombelFilter.value === 'semua' || j.rombel === selectedRombelFilter.value;
+        const matchTa = !j.ta || j.ta === selectedTahunAjaran.value;
+        return matchHari && matchRombel && matchTa;
+    });
+});
+
+// Filtered schedules for Guru Timeline view
+const guruTimelineJadwal = computed(() => {
+    return jadwalMingguan.value.filter((j) => {
+        const matchGuru = j.guru === selectedGuruFilter.value;
+        const matchTa = !j.ta || j.ta === selectedTahunAjaran.value;
+        return matchGuru && matchTa;
+    });
+});
+
+// Jadwal Guru for selected day
+const guruDayJadwal = computed(() => {
+    return guruTimelineJadwal.value.filter((j) => j.hari === selectedHariJadwal.value);
+});
+
+// Total jam mengajar guru dalam seminggu
+const guruTotalJamMinggu = computed(() => {
+    return guruTimelineJadwal.value.length * 3;
+});
+
+// Engine Deteksi Bentrok Jadwal (Collision Detection Engine)
+const detectConflict = (form, excludeId = null) => {
+    for (const item of jadwalMingguan.value) {
+        if (excludeId && item.id === excludeId) continue;
+        if (item.hari === form.hari && item.jamKe === form.jamKe) {
+            // 1. Bentrok Guru (Guru yang sama tidak bisa di 2 kelas di jam yang sama)
+            if (form.guru && item.guru === form.guru) {
+                return {
+                    conflict: true,
+                    type: 'guru',
+                    message: `⚠️ BENTROK GURU: ${form.guru} sudah memiliki jadwal mengajar di kelas [${item.rombel}] pada ${form.hari}, ${form.jamKe}!`,
+                };
+            }
+            // 2. Bentrok Rombel (Kelas yang sama tidak bisa ada 2 mapel di jam yang sama)
+            if (form.rombel && item.rombel === form.rombel) {
+                return {
+                    conflict: true,
+                    type: 'rombel',
+                    message: `⚠️ BENTROK KELAS: Rombel [${form.rombel}] sudah memiliki jadwal [${item.mapel}] pada ${form.hari}, ${form.jamKe}!`,
+                };
+            }
+            // 3. Bentrok Ruangan (Lab / Bengkel tidak bisa dipakai 2 kelas bersamaan)
+            if (form.ruang && item.ruang === form.ruang) {
+                return {
+                    conflict: true,
+                    type: 'ruang',
+                    message: `⚠️ BENTROK RUANGAN: Ruangan [${form.ruang}] sedang digunakan oleh rombel [${item.rombel}] (${item.mapel})!`,
+                };
+            }
+        }
+    }
+    return { conflict: false, type: '', message: '' };
+};
+
+// Modal: Tambah/Edit Jadwal
+const isJadwalModalOpen = ref(false);
+const isEditingJadwal = ref(false);
+const jadwalForm = ref({
+    id: null,
+    ta: '2026/2027 • Ganjil',
+    hari: 'Senin',
+    jamKe: 'Jam 1 - 3 (07:15 - 09:30)',
+    rombel: 'X TBSM A',
+    mapel: 'Pemeliharaan Mesin Sepeda Motor',
+    guru: 'Hendra Gunawan, S.T',
+    ruang: 'Bengkel TBSM 1',
+    status: 'Terjadwal',
+});
+
+const currentConflict = computed(() => {
+    if (!isJadwalModalOpen.value) return { conflict: false, message: '' };
+    return detectConflict(jadwalForm.value, isEditingJadwal.value ? jadwalForm.value.id : null);
+});
+
+const openAddJadwalModal = (prefillHari = null, prefillRombel = null) => {
+    isEditingJadwal.value = false;
+    jadwalForm.value = {
+        id: null,
+        ta: selectedTahunAjaran.value,
+        hari: prefillHari || selectedHariJadwal.value,
+        jamKe: slotJamPelajaran[0].label,
+        rombel: prefillRombel || (selectedRombelFilter.value !== 'semua' ? selectedRombelFilter.value : masterRombel[0].name),
+        mapel: masterMapel[0].name,
+        guru: allGuruList.value[0].name,
+        ruang: masterRuanganList[0],
+        status: 'Terjadwal',
+    };
+    isJadwalModalOpen.value = true;
+};
+
+const openEditJadwalModal = (item) => {
+    isEditingJadwal.value = true;
+    jadwalForm.value = JSON.parse(JSON.stringify(item));
+    isJadwalModalOpen.value = true;
+};
+
+const saveJadwal = () => {
+    if (currentConflict.value.conflict) {
+        emit('showToast', currentConflict.value.message);
+        return;
+    }
+    if (!jadwalForm.value.mapel || !jadwalForm.value.guru || !jadwalForm.value.rombel) {
+        emit('showToast', 'Lengkapi seluruh data jadwal.');
+        return;
+    }
+
+    if (isEditingJadwal.value) {
+        const idx = jadwalMingguan.value.findIndex((j) => j.id === jadwalForm.value.id);
+        if (idx !== -1) {
+            jadwalMingguan.value[idx] = { ...jadwalForm.value };
+            emit('showToast', `Jadwal [${jadwalForm.value.mapel} - ${jadwalForm.value.rombel}] berhasil diperbarui.`);
+        }
+    } else {
+        jadwalMingguan.value.push({
+            ...jadwalForm.value,
+            id: Date.now(),
+        });
+        emit('showToast', `Jadwal baru untuk rombel ${jadwalForm.value.rombel} berhasil diplot.`);
+    }
+    isJadwalModalOpen.value = false;
+};
+
+const deleteJadwal = (id) => {
+    const item = jadwalMingguan.value.find((j) => j.id === id);
+    jadwalMingguan.value = jadwalMingguan.value.filter((j) => j.id !== id);
+    emit('showToast', `Jadwal [${item?.mapel} - ${item?.rombel}] berhasil dihapus.`);
+};
+
+// Modal: Salin Template Jadwal ke Rombel Lain (Clone)
+const isCloneModalOpen = ref(false);
+const cloneForm = ref({
+    fromRombel: 'X TBSM A',
+    toRombel: 'X TBSM B',
+    keepGuru: true,
+});
+
+const openCloneModal = () => {
+    cloneForm.value = {
+        fromRombel: selectedRombelFilter.value !== 'semua' ? selectedRombelFilter.value : 'X TBSM A',
+        toRombel: 'X TBSM B',
+        keepGuru: true,
+    };
+    isCloneModalOpen.value = true;
+};
+
+const executeCloneJadwal = () => {
+    if (cloneForm.value.fromRombel === cloneForm.value.toRombel) {
+        emit('showToast', 'Rombel tujuan tidak boleh sama dengan rombel sumber.');
+        return;
+    }
+
+    const sourceJadwal = jadwalMingguan.value.filter(
+        (j) => j.rombel === cloneForm.value.fromRombel && (!j.ta || j.ta === selectedTahunAjaran.value)
+    );
+    if (sourceJadwal.length === 0) {
+        emit('showToast', `Tidak ada jadwal di rombel ${cloneForm.value.fromRombel} untuk disalin.`);
+        return;
+    }
+
+    let clonedCount = 0;
+    sourceJadwal.forEach((src) => {
+        const newEntry = {
+            ...src,
+            id: Date.now() + Math.floor(Math.random() * 10000),
+            rombel: cloneForm.value.toRombel,
+            guru: cloneForm.value.keepGuru ? src.guru : allGuruList.value[0].name,
+            ruang: src.ruang.includes('1') ? src.ruang.replace('1', '2') : src.ruang,
+        };
+        const exists = jadwalMingguan.value.some(
+            (j) => j.rombel === cloneForm.value.toRombel && j.hari === newEntry.hari && j.jamKe === newEntry.jamKe
+        );
+        if (!exists) {
+            jadwalMingguan.value.push(newEntry);
+            clonedCount++;
+        }
+    });
+
+    selectedRombelFilter.value = cloneForm.value.toRombel;
+    isCloneModalOpen.value = false;
+    emit('showToast', `Berhasil menyalin ${clonedCount} slot jadwal dari ${cloneForm.value.fromRombel} ke ${cloneForm.value.toRombel}!`);
+};
+
+// Modal: Ubah Wali Kelas
+const isWaliModalOpen = ref(false);
+const waliForm = ref({
+    id: null,
+    rombel: '',
+    waliName: '',
+    nip: '',
+    ruang: '',
+});
+
+const openEditWaliModal = (w) => {
+    waliForm.value = JSON.parse(JSON.stringify(w));
+    isWaliModalOpen.value = true;
+};
+
+const saveWali = () => {
+    const idx = plottingWali.value.findIndex((w) => w.id === waliForm.value.id);
+    if (idx !== -1) {
+        plottingWali.value[idx] = { ...waliForm.value };
+        emit('showToast', `Wali kelas untuk ${waliForm.value.rombel} berhasil diubah menjadi ${waliForm.value.waliName}.`);
+    }
+    isWaliModalOpen.value = false;
+};
+
+// Modal: Tambah Plotting Guru Mapel
+const isGuruMapelModalOpen = ref(false);
+const guruMapelForm = ref({
+    id: null,
+    guruName: '',
+    nip: '',
+    mapel: '',
+    rombelList: [],
+    totalJam: 12,
+    ruang: '',
+});
+
+const openAddGuruMapelModal = () => {
+    guruMapelForm.value = {
+        id: null,
+        guruName: allGuruList.value[0].name,
+        nip: allGuruList.value[0].nip,
+        mapel: masterMapel[0].name,
+        rombelList: ['X TBSM A', 'X TBSM B'],
+        totalJam: 12,
+        ruang: masterRuanganList[0],
+    };
+    isGuruMapelModalOpen.value = true;
+};
+
+const saveGuruMapel = () => {
+    if (!guruMapelForm.value.guruName || !guruMapelForm.value.mapel || guruMapelForm.value.rombelList.length === 0) {
+        emit('showToast', 'Lengkapi guru, mapel, dan minimal pilih 1 rombel.');
+        return;
+    }
+    plottingGuruMapel.value.unshift({
+        ...guruMapelForm.value,
+        id: Date.now(),
+    });
+    isGuruMapelModalOpen.value = false;
+    emit('showToast', `Plotting pengampu ${guruMapelForm.value.mapel} untuk ${guruMapelForm.value.guruName} berhasil disimpan.`);
+};
 
 // ========================================================
 // TAB 5: PENGUMUMAN STATE & METHODS
@@ -749,21 +1021,23 @@ const savePengumuman = () => {
 
                         <!-- MODE 1: PLOTTING WALI KELAS -->
                         <div v-if="penugasanMode === 'wali'" class="space-y-4">
-                            <div class="hero-lavender rounded-[26px] p-4 soft-shadow flex items-center justify-between">
+                            <div class="hero-lavender rounded-[26px] p-4 soft-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <div>
-                                    <h3 class="text-base font-extrabold text-charcoal">Status Plotting Pembina Rombel</h3>
-                                    <p class="text-xs text-charcoal/75 mt-0.5">Seluruh 42 rombel telah terpetakan ke wali kelas ber-SK resmi.</p>
+                                    <h3 class="text-base font-extrabold text-charcoal">Status Plotting Pembina Rombel (Wali Kelas)</h3>
+                                    <p class="text-xs text-charcoal/75 mt-0.5">Penetapan guru wali kelas per rombel aktif tahun ajaran {{ selectedTahunAjaran }}.</p>
                                 </div>
-                                <span class="px-3 py-1 rounded-full bg-white text-charcoal text-xs font-black shadow-2xs">
-                                    100% Terplot
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-3 py-1 rounded-full bg-white text-charcoal text-xs font-black shadow-2xs">
+                                        {{ plottingWali.length }} Rombel Terplot
+                                    </span>
+                                </div>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
                                 <div
                                     v-for="w in plottingWali"
                                     :key="w.id"
-                                    class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col justify-between"
+                                    class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col justify-between hover:border-charcoal/20 transition-all"
                                 >
                                     <div>
                                         <div class="flex items-center justify-between mb-2">
@@ -778,11 +1052,11 @@ const savePengumuman = () => {
                                         <div class="text-[11px] text-subtext mt-0.5">NIP: {{ w.nip }} • {{ w.ruang }}</div>
                                     </div>
                                     <div class="mt-3 pt-2.5 border-t border-[#F2F0EC] flex items-center justify-between text-xs">
-                                        <span class="text-subtext">{{ w.siswaCount }} Siswa Binaan</span>
+                                        <span class="text-subtext font-medium">{{ w.siswaCount }} Siswa Terdaftar</span>
                                         <button
                                             type="button"
-                                            @click="$emit('showToast', `Dialog penugasan wali kelas untuk ${w.rombel} dibuka.`)"
-                                            class="text-xs font-bold text-charcoal hover:underline cursor-pointer"
+                                            @click="openEditWaliModal(w)"
+                                            class="px-2.5 py-1 rounded-lg bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:bg-white active:scale-95 transition-all cursor-pointer shadow-2xs"
                                         >
                                             Ubah Wali →
                                         </button>
@@ -792,69 +1066,323 @@ const savePengumuman = () => {
                         </div>
 
                         <!-- MODE 2: PLOTTING GURU MAPEL -->
-                        <div v-else-if="penugasanMode === 'guruMapel'" class="space-y-3">
-                            <div
-                                v-for="g in plottingGuruMapel"
-                                :key="g.id"
-                                class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                            >
+                        <div v-else-if="penugasanMode === 'guruMapel'" class="space-y-4">
+                            <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <div>
-                                    <h4 class="text-sm font-extrabold text-charcoal">{{ g.guruName }}</h4>
-                                    <div class="text-xs font-bold text-sky-dark mt-0.5">{{ g.mapel }}</div>
-                                    <div class="text-[11px] text-subtext mt-1">
-                                        Mengajar: <strong>{{ g.rombelList.join(', ') }}</strong> • Ruang: {{ g.ruang }}
-                                    </div>
+                                    <h3 class="text-sm font-extrabold text-charcoal">Distribusi Pengampu Mata Pelajaran</h3>
+                                    <p class="text-xs text-subtext mt-0.5">Menentukan guru mata pelajaran untuk tiap rombel & total beban jam mengajar mingguan.</p>
                                 </div>
-                                <div class="flex items-center gap-2 shrink-0">
-                                    <span class="px-3 py-1 rounded-xl bg-canvas border border-[#ECEAE4] text-xs font-extrabold text-charcoal">
-                                        {{ g.totalJam }} Jam/Minggu
-                                    </span>
-                                    <button
-                                        type="button"
-                                        @click="$emit('showToast', `Edit plotting mapel untuk ${g.guruName} dibuka.`)"
-                                        class="px-3 py-1 rounded-xl bg-charcoal text-white text-xs font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer"
-                                    >
-                                        Edit
-                                    </button>
+                                <button
+                                    type="button"
+                                    @click="openAddGuruMapelModal"
+                                    class="px-4 py-2 rounded-2xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs shrink-0"
+                                >
+                                    + Plot Guru Mapel
+                                </button>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div
+                                    v-for="g in plottingGuruMapel"
+                                    :key="g.id"
+                                    class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-charcoal/20 transition-all"
+                                >
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="text-sm font-extrabold text-charcoal">{{ g.guruName }}</h4>
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-canvas border border-[#ECEAE4] text-subtext">NIP: {{ g.nip }}</span>
+                                        </div>
+                                        <div class="text-xs font-extrabold text-sky-dark mt-1 flex items-center gap-1.5">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-sky-dark"></span>
+                                            {{ g.mapel }}
+                                        </div>
+                                        <div class="text-[11px] text-subtext mt-1">
+                                            Rombel Ajar: <span class="font-bold text-charcoal">{{ g.rombelList.join(', ') }}</span> • Ruang: {{ g.ruang }}
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                                        <span class="px-3 py-1.5 rounded-xl bg-canvas border border-[#ECEAE4] text-xs font-extrabold text-charcoal">
+                                            {{ g.totalJam }} Jam/Minggu
+                                        </span>
+                                        <button
+                                            type="button"
+                                            @click="openAddJadwalModal(null, g.rombelList[0])"
+                                            class="px-3 py-1.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                        >
+                                            Jadwalkan
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- MODE 3: JADWAL PELAJARAN MINGGUAN -->
+                        <!-- MODE 3: JADWAL PELAJARAN MINGGUAN (KOMPREHENSIF) -->
                         <div v-else class="space-y-4">
-                            <!-- Hari Tabs -->
-                            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-                                <button
-                                    v-for="h in ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']"
-                                    :key="h"
-                                    type="button"
-                                    @click="selectedHariJadwal = h"
-                                    class="px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0"
-                                    :class="selectedHariJadwal === h ? 'bg-charcoal text-white shadow-xs' : 'bg-white border border-[#ECEAE4] text-charcoal'"
-                                >
-                                    {{ h }}
-                                </button>
-                            </div>
-
-                            <!-- List Jadwal Hari Ini -->
-                            <div class="space-y-2.5">
-                                <div
-                                    v-for="(j, idx) in filteredJadwal"
-                                    :key="idx"
-                                    class="bg-white rounded-[22px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                                >
-                                    <div class="space-y-1">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-xs font-black px-2 py-0.5 rounded-md bg-canvas text-charcoal border border-[#ECEAE4]">{{ j.rombel }}</span>
-                                            <span class="text-xs font-extrabold text-charcoal">{{ j.mapel }}</span>
+                            <!-- Filter & Control Panel -->
+                            <div class="bg-white rounded-[26px] p-4 border border-[#ECEAE4] soft-shadow space-y-3.5">
+                                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-[#F2F0EC]">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <!-- Tahun Ajaran & Semester Switcher -->
+                                        <div class="flex items-center gap-2 bg-canvas px-3 py-1.5 rounded-2xl border border-[#ECEAE4]">
+                                            <span class="text-[11px] font-bold text-subtext">Tahun Ajaran:</span>
+                                            <select
+                                                v-model="selectedTahunAjaran"
+                                                class="bg-transparent text-xs font-black text-charcoal focus:outline-none cursor-pointer"
+                                            >
+                                                <option v-for="ta in masterTahunAjaran" :key="ta.id" :value="`${ta.tahun} • ${ta.semester}`">
+                                                    {{ ta.tahun }} • {{ ta.semester }} ({{ ta.status }})
+                                                </option>
+                                            </select>
                                         </div>
-                                        <div class="text-xs text-subtext">
-                                            Jam: <strong>{{ j.jamKe }}</strong> • Ruang: {{ j.ruang }} • Guru: {{ j.guru }}
+
+                                        <!-- Dual View Mode: Per Rombel vs Timeline Guru -->
+                                        <div class="flex items-center p-1 bg-muted/70 rounded-xl">
+                                            <button
+                                                type="button"
+                                                @click="jadwalViewMode = 'rombel'"
+                                                class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                                                :class="jadwalViewMode === 'rombel' ? 'bg-white text-charcoal shadow-2xs' : 'text-subtext hover:text-charcoal'"
+                                            >
+                                                👥 Jadwal per Rombel (Kelas)
+                                            </button>
+                                            <button
+                                                type="button"
+                                                @click="jadwalViewMode = 'guru'"
+                                                class="px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                                                :class="jadwalViewMode === 'guru' ? 'bg-white text-charcoal shadow-2xs' : 'text-subtext hover:text-charcoal'"
+                                            >
+                                                👨‍🏫 Timeline Harian Guru
+                                            </button>
                                         </div>
                                     </div>
-                                    <span class="px-3 py-1 rounded-full bg-[#E8F5E9] text-[#2E7D32] text-xs font-bold shrink-0 self-start sm:self-center">
-                                        {{ j.status }}
-                                    </span>
+
+                                    <!-- Action Buttons -->
+                                    <div class="flex items-center gap-2 self-start lg:self-auto flex-wrap">
+                                        <button
+                                            type="button"
+                                            @click="openCloneModal"
+                                            class="px-3.5 py-2 rounded-xl bg-canvas border border-[#ECEAE4] text-charcoal text-xs font-bold hover:bg-muted active:scale-95 transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+                                            title="Salin template jadwal dari satu rombel ke rombel lain"
+                                        >
+                                            <span>⚡ Salin ke Rombel Lain</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            @click="openAddJadwalModal()"
+                                            class="px-4 py-2 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs flex items-center gap-1.5"
+                                        >
+                                            <span>+ Plot Jadwal Baru</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- SUB-FILTER VIEW 1: PER ROMBEL -->
+                                <div v-if="jadwalViewMode === 'rombel'" class="space-y-3">
+                                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                                        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+                                            <span class="text-xs font-bold text-subtext mr-1 shrink-0">Pilih Rombel:</span>
+                                            <button
+                                                type="button"
+                                                @click="selectedRombelFilter = 'semua'"
+                                                class="px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0"
+                                                :class="selectedRombelFilter === 'semua' ? 'bg-charcoal text-white' : 'bg-canvas text-subtext border border-[#ECEAE4] hover:text-charcoal'"
+                                            >
+                                                Semua
+                                            </button>
+                                            <button
+                                                v-for="r in masterRombel"
+                                                :key="r.code"
+                                                type="button"
+                                                @click="selectedRombelFilter = r.name"
+                                                class="px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0"
+                                                :class="selectedRombelFilter === r.name ? 'bg-charcoal text-white shadow-2xs' : 'bg-canvas text-charcoal border border-[#ECEAE4] hover:bg-muted'"
+                                            >
+                                                {{ r.name }}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Hari Selector -->
+                                    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1">
+                                        <button
+                                            v-for="h in ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']"
+                                            :key="h"
+                                            type="button"
+                                            @click="selectedHariJadwal = h"
+                                            class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
+                                            :class="selectedHariJadwal === h ? 'bg-sage-light text-sage-dark border border-[#C8DFCD] font-black' : 'bg-canvas border border-[#ECEAE4] text-subtext hover:text-charcoal'"
+                                        >
+                                            {{ h }}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- SUB-FILTER VIEW 2: PER GURU (TIMELINE HARIAN) -->
+                                <div v-else class="space-y-3">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-canvas p-3 rounded-2xl border border-[#ECEAE4]">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold text-subtext shrink-0">Pilih Guru:</span>
+                                            <select
+                                                v-model="selectedGuruFilter"
+                                                class="bg-white border border-[#ECEAE4] rounded-xl px-3 py-1.5 text-xs font-extrabold text-charcoal focus:outline-none cursor-pointer"
+                                            >
+                                                <option v-for="g in allGuruList" :key="g.nip" :value="g.name">
+                                                    {{ g.name }} ({{ g.bidang }})
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="flex items-center gap-2 text-xs">
+                                            <span class="text-subtext">Total Beban Mengajar:</span>
+                                            <span class="font-black px-2.5 py-0.5 rounded-lg bg-sage-light text-sage-dark">
+                                                {{ guruTotalJamMinggu }} Jam / Minggu ({{ guruTimelineJadwal.length }} Sesi)
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Hari Selector for Guru View -->
+                                    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1">
+                                        <button
+                                            v-for="h in ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']"
+                                            :key="h"
+                                            type="button"
+                                            @click="selectedHariJadwal = h"
+                                            class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
+                                            :class="selectedHariJadwal === h ? 'bg-sky-light text-sky-dark border border-[#BAE6FD] font-black' : 'bg-canvas border border-[#ECEAE4] text-subtext hover:text-charcoal'"
+                                        >
+                                            {{ h }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- BANNER INFO JADWAL -->
+                            <div class="px-2 flex items-center justify-between text-xs text-subtext">
+                                <span v-if="jadwalViewMode === 'rombel'">
+                                    Jadwal <strong>{{ selectedHariJadwal }}</strong> • Rombel: <strong>{{ selectedRombelFilter }}</strong> • {{ filteredJadwal.length }} Mata Pelajaran Terjadwal
+                                </span>
+                                <span v-else>
+                                    Timeline Mengajar <strong>{{ selectedGuruFilter }}</strong> pada hari <strong>{{ selectedHariJadwal }}</strong> • {{ guruDayJadwal.length }} Kelas
+                                </span>
+                                <span class="text-[11px] font-bold text-sage-dark flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-[#2E7D32]"></span>
+                                    Sistem Anti-Bentrok Aktif
+                                </span>
+                            </div>
+
+                            <!-- LIST JADWAL: MODE ROMBEL -->
+                            <div v-if="jadwalViewMode === 'rombel'" class="space-y-3">
+                                <div
+                                    v-if="filteredJadwal.length === 0"
+                                    class="bg-white rounded-[26px] p-8 text-center border border-dashed border-[#ECEAE4] space-y-3"
+                                >
+                                    <div class="w-12 h-12 rounded-full bg-canvas mx-auto flex items-center justify-center text-subtext text-xl font-bold">
+                                        🗓️
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-extrabold text-charcoal">Belum Ada Jadwal di Hari {{ selectedHariJadwal }}</h4>
+                                        <p class="text-xs text-subtext mt-0.5">Rombel {{ selectedRombelFilter }} belum memiliki mata pelajaran di hari ini.</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        @click="openAddJadwalModal(selectedHariJadwal, selectedRombelFilter !== 'semua' ? selectedRombelFilter : null)"
+                                        class="px-4 py-2 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs inline-block"
+                                    >
+                                        + Plot Jadwal {{ selectedHariJadwal }}
+                                    </button>
+                                </div>
+
+                                <div
+                                    v-for="j in filteredJadwal"
+                                    :key="j.id"
+                                    class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-charcoal/25 transition-all"
+                                >
+                                    <div class="flex items-start gap-3.5 min-w-0">
+                                        <div class="px-3 py-2 rounded-2xl bg-canvas border border-[#ECEAE4] text-center shrink-0">
+                                            <div class="text-[10px] font-extrabold text-subtext uppercase">{{ j.hari }}</div>
+                                            <div class="text-xs font-black text-charcoal whitespace-nowrap">{{ j.jamKe.split('(')[0] }}</div>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <span class="text-xs font-black px-2.5 py-0.5 rounded-lg bg-charcoal text-white">
+                                                    {{ j.rombel }}
+                                                </span>
+                                                <h4 class="text-sm font-extrabold text-charcoal">{{ j.mapel }}</h4>
+                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sage-light text-sage-dark">
+                                                    {{ j.status }}
+                                                </span>
+                                            </div>
+                                            <div class="text-xs text-subtext mt-1.5 flex items-center gap-3 flex-wrap">
+                                                <span>👨‍🏫 Guru: <strong class="text-charcoal">{{ j.guru }}</strong></span>
+                                                <span>📍 Ruang: <strong class="text-charcoal">{{ j.ruang }}</strong></span>
+                                                <span>⏰ Waktu: {{ j.jamKe.includes('(') ? j.jamKe.split('(')[1].replace(')', '') : '' }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-2 shrink-0 self-end md:self-auto">
+                                        <button
+                                            type="button"
+                                            @click="openEditJadwalModal(j)"
+                                            class="px-3 py-1.5 rounded-xl bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:bg-white active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            type="button"
+                                            @click="deleteJadwal(j.id)"
+                                            class="px-3 py-1.5 rounded-xl bg-canvas border border-[#ECEAE4] text-xs font-bold text-blossom-dark hover:bg-blossom-light active:scale-95 transition-all cursor-pointer"
+                                            title="Hapus jadwal ini"
+                                        >
+                                            Hapus
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- LIST JADWAL: MODE GURU (TIMELINE HARIAN) -->
+                            <div v-else class="space-y-3">
+                                <div
+                                    v-if="guruDayJadwal.length === 0"
+                                    class="bg-white rounded-[26px] p-8 text-center border border-dashed border-[#ECEAE4] space-y-2"
+                                >
+                                    <div class="text-2xl">☕</div>
+                                    <h4 class="text-sm font-extrabold text-charcoal">Guru Bebas Tugas di Hari {{ selectedHariJadwal }}</h4>
+                                    <p class="text-xs text-subtext">Tidak ada jadwal mengajar untuk {{ selectedGuruFilter }} pada hari {{ selectedHariJadwal }}.</p>
+                                </div>
+
+                                <div
+                                    v-for="j in guruDayJadwal"
+                                    :key="j.id"
+                                    class="bg-white rounded-[24px] p-4 border border-[#ECEAE4] soft-shadow flex flex-col md:flex-row md:items-center justify-between gap-3"
+                                >
+                                    <div class="flex items-start gap-3 min-w-0">
+                                        <div class="px-3 py-2 rounded-2xl bg-sky-light text-sky-dark border border-[#BAE6FD] text-center shrink-0">
+                                            <div class="text-[10px] font-bold uppercase">{{ j.hari }}</div>
+                                            <div class="text-xs font-black">{{ j.jamKe.split('(')[0] }}</div>
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-xs font-black px-2.5 py-0.5 rounded-lg bg-canvas border border-[#ECEAE4] text-charcoal">
+                                                    Kelas: {{ j.rombel }}
+                                                </span>
+                                                <h4 class="text-sm font-extrabold text-charcoal">{{ j.mapel }}</h4>
+                                            </div>
+                                            <div class="text-xs text-subtext mt-1">
+                                                Lokasi: <strong>{{ j.ruang }}</strong> • Durasi: {{ j.jamKe }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-2 shrink-0 self-end md:self-auto">
+                                        <button
+                                            type="button"
+                                            @click="openEditJadwalModal(j)"
+                                            class="px-3 py-1.5 rounded-xl bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:bg-white active:scale-95 transition-all cursor-pointer shadow-2xs"
+                                        >
+                                            Ubah
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1013,6 +1541,451 @@ const savePengumuman = () => {
                             class="flex-1 py-2.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs"
                         >
                             Publikasikan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+
+        <!-- ============================================================ -->
+        <!-- MODAL: TAMBAH / EDIT JADWAL PELAJARAN (DENGAN ANTI-BENTROK)   -->
+        <!-- ============================================================ -->
+        <Transition
+            enter-active-class="transition-opacity duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-150"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="isJadwalModalOpen"
+                class="fixed inset-0 bg-charcoal/50 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+                @click.self="isJadwalModalOpen = false"
+            >
+                <div class="bg-white w-full max-w-lg rounded-t-[32px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
+                    <div class="flex items-center justify-between pb-3 border-b border-[#ECEAE4]">
+                        <div>
+                            <h3 class="text-base font-extrabold text-charcoal">
+                                {{ isEditingJadwal ? 'Edit Jadwal Pelajaran' : 'Plot Jadwal Pelajaran Baru' }}
+                            </h3>
+                            <p class="text-xs text-subtext mt-0.5">Tahun Ajaran: {{ jadwalForm.ta }}</p>
+                        </div>
+                        <button
+                            type="button"
+                            @click="isJadwalModalOpen = false"
+                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold text-xs cursor-pointer"
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    <!-- BENTROK ALERT (LIVE COLLISION DETECTION) -->
+                    <div
+                        v-if="currentConflict.conflict"
+                        class="p-3.5 rounded-2xl bg-blossom-light border border-[#F8B4B4] text-blossom-dark space-y-1 animate-pulse"
+                    >
+                        <div class="flex items-center gap-2 font-black text-xs">
+                            <span>🚫 TERDETEKSI BENTROK JADWAL!</span>
+                        </div>
+                        <p class="text-xs font-semibold leading-relaxed">
+                            {{ currentConflict.message }}
+                        </p>
+                        <div class="text-[11px] text-blossom-dark/80 pt-0.5">
+                            *Ubah guru, kelas, hari, atau slot jam untuk menghindari tabrakan waktu KBM.
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <!-- Rombel & Hari -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Target Rombel (Kelas)</label>
+                                <select
+                                    v-model="jadwalForm.rombel"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                >
+                                    <option v-for="r in masterRombel" :key="r.code" :value="r.name">
+                                        {{ r.name }} ({{ r.jurusan }})
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Hari Belajar</label>
+                                <select
+                                    v-model="jadwalForm.hari"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                >
+                                    <option v-for="h in ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']" :key="h" :value="h">
+                                        {{ h }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Slot Jam Pelajaran -->
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Sesi / Slot Jam Pelajaran</label>
+                            <select
+                                v-model="jadwalForm.jamKe"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            >
+                                <option v-for="s in slotJamPelajaran" :key="s.id" :value="s.label">
+                                    {{ s.label }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Mata Pelajaran -->
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Mata Pelajaran</label>
+                            <select
+                                v-model="jadwalForm.mapel"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            >
+                                <option v-for="m in masterMapel" :key="m.code" :value="m.name">
+                                    [{{ m.code }}] {{ m.name }} • ({{ m.jurusan }})
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Guru Pengampu -->
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Guru Pengampu</label>
+                            <select
+                                v-model="jadwalForm.guru"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            >
+                                <option v-for="g in allGuruList" :key="g.nip" :value="g.name">
+                                    {{ g.name }} — {{ g.bidang }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Ruangan / Bengkel / Lab -->
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Ruangan / Bengkel / Laboratorium</label>
+                            <select
+                                v-model="jadwalForm.ruang"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            >
+                                <option v-for="ruang in masterRuanganList" :key="ruang" :value="ruang">
+                                    {{ ruang }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <button
+                            type="button"
+                            @click="isJadwalModalOpen = false"
+                            class="flex-1 py-2.5 rounded-xl bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:bg-muted active:scale-95 transition-all cursor-pointer"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            @click="saveJadwal"
+                            :disabled="currentConflict.conflict"
+                            class="flex-1 py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-all cursor-pointer shadow-xs"
+                            :class="currentConflict.conflict ? 'bg-muted text-subtext cursor-not-allowed' : 'bg-charcoal text-white hover:bg-black'"
+                        >
+                            {{ isEditingJadwal ? 'Simpan Perubahan' : 'Tetapkan Jadwal' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+
+        <!-- ============================================================ -->
+        <!-- MODAL: SALIN TEMPLATE JADWAL KE ROMBEL LAIN (CLONE SCHEDULE) -->
+        <!-- ============================================================ -->
+        <Transition
+            enter-active-class="transition-opacity duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-150"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="isCloneModalOpen"
+                class="fixed inset-0 bg-charcoal/50 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+                @click.self="isCloneModalOpen = false"
+            >
+                <div class="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-[#ECEAE4]">
+                        <div>
+                            <h3 class="text-base font-extrabold text-charcoal">⚡ Salin Template Jadwal</h3>
+                            <p class="text-xs text-subtext mt-0.5">Duplikasi seluruh susunan mapel antar rombel paralel.</p>
+                        </div>
+                        <button
+                            type="button"
+                            @click="isCloneModalOpen = false"
+                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold text-xs cursor-pointer"
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="p-3 bg-sage-light text-sage-dark rounded-2xl text-xs space-y-1">
+                        <div class="font-bold">Contoh Penggunaan:</div>
+                        <p class="leading-relaxed">
+                            Jika jadwal <strong>X TBSM A</strong> sudah selesai disusun, Anda bisa langsung menyalinnya ke <strong>X TBSM B</strong> tanpa perlu input satu per satu!
+                        </p>
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Rombel Sumber (Asal)</label>
+                            <select
+                                v-model="cloneForm.fromRombel"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            >
+                                <option v-for="r in masterRombel" :key="r.code" :value="r.name">
+                                    {{ r.name }} ({{ r.jurusan }})
+                                </option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Rombel Tujuan (Sasaran Duplikasi)</label>
+                            <select
+                                v-model="cloneForm.toRombel"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            >
+                                <option v-for="r in masterRombel" :key="r.code" :value="r.name">
+                                    {{ r.name }} ({{ r.jurusan }})
+                                </option>
+                            </select>
+                        </div>
+
+                        <label class="flex items-center gap-2 cursor-pointer pt-1">
+                            <input
+                                v-model="cloneForm.keepGuru"
+                                type="checkbox"
+                                class="rounded border-[#ECEAE4] text-charcoal focus:ring-0"
+                            />
+                            <span class="text-xs text-charcoal font-medium">Gunakan guru pengampu yang sama dengan rombel asal</span>
+                        </label>
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <button
+                            type="button"
+                            @click="isCloneModalOpen = false"
+                            class="flex-1 py-2.5 rounded-xl bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:bg-muted active:scale-95 transition-all cursor-pointer"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            @click="executeCloneJadwal"
+                            class="flex-1 py-2.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs"
+                        >
+                            Duplikasi Jadwal Sekarang
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+
+        <!-- ============================================================ -->
+        <!-- MODAL: UBAH WALI KELAS                                        -->
+        <!-- ============================================================ -->
+        <Transition
+            enter-active-class="transition-opacity duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-150"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="isWaliModalOpen"
+                class="fixed inset-0 bg-charcoal/50 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+                @click.self="isWaliModalOpen = false"
+            >
+                <div class="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-[#ECEAE4]">
+                        <h3 class="text-base font-extrabold text-charcoal">Penetapan Wali Kelas</h3>
+                        <button
+                            type="button"
+                            @click="isWaliModalOpen = false"
+                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold text-xs cursor-pointer"
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <label class="block font-bold text-subtext mb-1">Rombel Target</label>
+                            <input
+                                :value="waliForm.rombel"
+                                disabled
+                                class="w-full bg-muted/60 border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal font-black"
+                            />
+                        </div>
+
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Pilih Guru Pembina (Wali Kelas)</label>
+                            <select
+                                v-model="waliForm.waliName"
+                                @change="waliForm.nip = allGuruList.find(g => g.name === waliForm.waliName)?.nip || ''"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            >
+                                <option v-for="g in allGuruList" :key="g.nip" :value="g.name">
+                                    {{ g.name }} — NIP: {{ g.nip }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Ruang Homebase Kelas</label>
+                            <select
+                                v-model="waliForm.ruang"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            >
+                                <option v-for="r in masterRuanganList" :key="r" :value="r">
+                                    {{ r }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <button
+                            type="button"
+                            @click="isWaliModalOpen = false"
+                            class="flex-1 py-2.5 rounded-xl bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:bg-muted active:scale-95 transition-all cursor-pointer"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            @click="saveWali"
+                            class="flex-1 py-2.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs"
+                        >
+                            Simpan SK Wali
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+
+        <!-- ============================================================ -->
+        <!-- MODAL: TAMBAH PLOTTING GURU MAPEL                             -->
+        <!-- ============================================================ -->
+        <Transition
+            enter-active-class="transition-opacity duration-200"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-150"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="isGuruMapelModalOpen"
+                class="fixed inset-0 bg-charcoal/50 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+                @click.self="isGuruMapelModalOpen = false"
+            >
+                <div class="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-[#ECEAE4]">
+                        <h3 class="text-base font-extrabold text-charcoal">Plotting Pengampu Mata Pelajaran</h3>
+                        <button
+                            type="button"
+                            @click="isGuruMapelModalOpen = false"
+                            class="w-8 h-8 rounded-full bg-canvas text-charcoal flex items-center justify-center hover:bg-muted font-bold text-xs cursor-pointer"
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Guru Pengampu</label>
+                            <select
+                                v-model="guruMapelForm.guruName"
+                                @change="guruMapelForm.nip = allGuruList.find(g => g.name === guruMapelForm.guruName)?.nip || ''"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            >
+                                <option v-for="g in allGuruList" :key="g.nip" :value="g.name">
+                                    {{ g.name }} ({{ g.bidang }})
+                                </option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Mata Pelajaran</label>
+                            <select
+                                v-model="guruMapelForm.mapel"
+                                class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                            >
+                                <option v-for="m in masterMapel" :key="m.code" :value="m.name">
+                                    [{{ m.code }}] {{ m.name }} ({{ m.jurusan }})
+                                </option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-extrabold text-charcoal mb-1">Target Rombel yang Diajar (Pilih minimal 1)</label>
+                            <div class="grid grid-cols-2 gap-2 bg-canvas p-2.5 rounded-2xl border border-[#ECEAE4] max-h-36 overflow-y-auto no-scrollbar">
+                                <label
+                                    v-for="r in masterRombel"
+                                    :key="r.code"
+                                    class="flex items-center gap-2 p-1.5 rounded-xl hover:bg-white cursor-pointer"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        :value="r.name"
+                                        v-model="guruMapelForm.rombelList"
+                                        class="rounded text-charcoal focus:ring-0"
+                                    />
+                                    <span class="text-xs font-bold text-charcoal">{{ r.name }}</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Total Jam / Minggu</label>
+                                <input
+                                    type="number"
+                                    v-model="guruMapelForm.totalJam"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                />
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-charcoal mb-1">Ruangan Praktek</label>
+                                <select
+                                    v-model="guruMapelForm.ruang"
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-charcoal/40 font-bold"
+                                >
+                                    <option v-for="r in masterRuanganList" :key="r" :value="r">
+                                        {{ r }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <button
+                            type="button"
+                            @click="isGuruMapelModalOpen = false"
+                            class="flex-1 py-2.5 rounded-xl bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:bg-muted active:scale-95 transition-all cursor-pointer"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            @click="saveGuruMapel"
+                            class="flex-1 py-2.5 rounded-xl bg-charcoal text-white text-xs font-bold hover:bg-black active:scale-95 transition-all cursor-pointer shadow-xs"
+                        >
+                            Simpan Penugasan
                         </button>
                     </div>
                 </div>

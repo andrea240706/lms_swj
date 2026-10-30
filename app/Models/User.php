@@ -9,6 +9,8 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -70,6 +72,32 @@ class User extends Authenticatable implements FilamentUser
             'super_admin' => 'super_admin',
             default => 'admin',
         };
+    }
+
+    /**
+     * Rombel di mana siswa ini terdaftar (Auto-Inherit).
+     */
+    public function rombels(): BelongsToMany
+    {
+        return $this->belongsToMany(Rombel::class, 'rombel_students', 'student_id', 'rombel_id')
+            ->withPivot('enrollment_status')
+            ->withTimestamps();
+    }
+
+    /**
+     * Rombel yang dibina sebagai Wali Kelas.
+     */
+    public function homeroomRombels(): HasMany
+    {
+        return $this->hasMany(Rombel::class, 'homeroom_teacher_id');
+    }
+
+    /**
+     * Plotting mata pelajaran yang diampu guru ini.
+     */
+    public function teachingAssignments(): HasMany
+    {
+        return $this->hasMany(TeachingAssignment::class, 'teacher_id');
     }
 
     /**

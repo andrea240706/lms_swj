@@ -46,6 +46,8 @@ export const masterTahunAjaran = [
 ];
 
 export const masterJurusan = [
+    { code: 'TBSM', name: 'Teknik & Bisnis Sepeda Motor', tingkat: '3 Tingkat (X, XI, XII)', rombelCount: 8, siswaCount: 280, kepalaLab: 'Hendra Gunawan, S.T' },
+    { code: 'PBS', name: 'Perbankan Syariah', tingkat: '3 Tingkat (X, XI, XII)', rombelCount: 6, siswaCount: 210, kepalaLab: 'Nurul Hidayah, S.E.I' },
     { code: 'RPL', name: 'Rekayasa Perangkat Lunak', tingkat: '3 Tingkat (X, XI, XII)', rombelCount: 12, siswaCount: 412, kepalaLab: 'Budi Santoso, S.Kom' },
     { code: 'TKJ', name: 'Teknik Komputer & Jaringan', tingkat: '3 Tingkat (X, XI, XII)', rombelCount: 12, siswaCount: 398, kepalaLab: 'Irfan Maulana, S.T' },
     { code: 'DKV', name: 'Desain Komunikasi Visual', tingkat: '3 Tingkat (X, XI, XII)', rombelCount: 10, siswaCount: 345, kepalaLab: 'Andi Saputra, S.Sn' },
@@ -53,58 +55,120 @@ export const masterJurusan = [
 ];
 
 export const masterRombel = [
+    // TINGKAT X
+    { code: 'X-TBSM-A', name: 'X TBSM A', jurusan: 'TBSM', tingkat: 'Kelas X', kapasitas: 36, terisi: 35, ruang: 'Bengkel TBSM 1', wali: 'Hendra Gunawan, S.T' },
+    { code: 'X-TBSM-B', name: 'X TBSM B', jurusan: 'TBSM', tingkat: 'Kelas X', kapasitas: 36, terisi: 34, ruang: 'Bengkel TBSM 2', wali: 'Dedi Kurniawan, S.Pd' },
+    { code: 'X-PBS', name: 'X PBS', jurusan: 'PBS', tingkat: 'Kelas X', kapasitas: 36, terisi: 35, ruang: 'Mini Bank Syariah', wali: 'Nurul Hidayah, S.E.I' },
     { code: 'X-DKV-1', name: 'X DKV 1', jurusan: 'DKV', tingkat: 'Kelas X', kapasitas: 36, terisi: 36, ruang: 'Studio DKV 1', wali: 'Siti Rahma, M.Pd' },
-    { code: 'X-DKV-2', name: 'X DKV 2', jurusan: 'DKV', tingkat: 'Kelas X', kapasitas: 36, terisi: 35, ruang: 'Studio DKV 2', wali: 'Rina Kusuma, M.Kom' },
     { code: 'X-RPL-1', name: 'X RPL 1', jurusan: 'RPL', tingkat: 'Kelas X', kapasitas: 36, terisi: 35, ruang: 'Ruang Teori 1', wali: 'Fajar Nugroho, S.Pd' },
-    { code: 'X-TKJ-1', name: 'X TKJ 1', jurusan: 'TKJ', tingkat: 'Kelas X', kapasitas: 36, terisi: 34, ruang: 'Lab Komputer 3', wali: 'Irfan Maulana, S.T' },
+
+    // TINGKAT XI
+    { code: 'XI-TBSM', name: 'XI TBSM', jurusan: 'TBSM', tingkat: 'Kelas XI', kapasitas: 36, terisi: 35, ruang: 'Bengkel TBSM 1', wali: 'Aris Munandar, S.T' },
+    { code: 'XI-PBS', name: 'XI PBS', jurusan: 'PBS', tingkat: 'Kelas XI', kapasitas: 36, terisi: 34, ruang: 'Mini Bank Syariah', wali: 'Zulfa Ramadhani, M.E' },
     { code: 'XI-RPL-1', name: 'XI RPL 1', jurusan: 'RPL', tingkat: 'Kelas XI', kapasitas: 36, terisi: 35, ruang: 'Lab RPL 1', wali: 'Hendra Setiawan, M.T' },
     { code: 'XI-AKL-1', name: 'XI AKL 1', jurusan: 'AKL', tingkat: 'Kelas XI', kapasitas: 36, terisi: 36, ruang: 'Ruang Teori 4', wali: 'Dra. Sri Wahyuni' },
+
+    // TINGKAT XII
+    { code: 'XII-TBSM', name: 'XII TBSM', jurusan: 'TBSM', tingkat: 'Kelas XII', kapasitas: 36, terisi: 33, ruang: 'Bengkel TBSM 2', wali: 'Agus Salim, M.Pd' },
+    { code: 'XII-PBS', name: 'XII PBS', jurusan: 'PBS', tingkat: 'Kelas XII', kapasitas: 36, terisi: 35, ruang: 'Ruang Teori 6', wali: 'Ratna Dewi, S.Pd' },
     { code: 'XII-RPL-1', name: 'XII RPL 1', jurusan: 'RPL', tingkat: 'Kelas XII', kapasitas: 36, terisi: 34, ruang: 'Lab RPL 2', wali: 'Dra. Endang Setyawati' },
     { code: 'XII-RPL-2', name: 'XII RPL 2', jurusan: 'RPL', tingkat: 'Kelas XII', kapasitas: 36, terisi: 33, ruang: 'Lab RPL 1', wali: 'Ahmad Fauzi, M.Kom' },
-    { code: 'XII-TKJ-1', name: 'XII TKJ 1', jurusan: 'TKJ', tingkat: 'Kelas XII', kapasitas: 36, terisi: 34, ruang: 'Lab Jaringan 1', wali: 'Bambang Irawan, S.T' },
 ];
 
 export const masterMapel = [
-    { code: 'PWPB', name: 'Pemrograman Web & Perangkat Bergerak', kategori: 'Kejuruan Produktif', rombelTingkat: 'Kelas XII RPL', jamPerMinggu: 8, kkm: 78 },
-    { code: 'PBO', name: 'Pemrograman Berorientasi Objek', kategori: 'Kejuruan Produktif', rombelTingkat: 'Kelas XI RPL', jamPerMinggu: 6, kkm: 75 },
-    { code: 'DKV', name: 'Dasar Desain Komunikasi Visual', kategori: 'Kejuruan Produktif', rombelTingkat: 'Kelas X DKV', jamPerMinggu: 6, kkm: 75 },
-    { code: 'FTC', name: 'Fotografi & Tata Cahaya', kategori: 'Kejuruan Produktif', rombelTingkat: 'Kelas X & XI DKV', jamPerMinggu: 6, kkm: 75 },
-    { code: 'AIJ', name: 'Administrasi Infrastruktur Jaringan', kategori: 'Kejuruan Produktif', rombelTingkat: 'Kelas XII TKJ', jamPerMinggu: 8, kkm: 75 },
-    { code: 'BIN', name: 'Bahasa Indonesia', kategori: 'Muatan Umum', rombelTingkat: 'Semua Tingkat', jamPerMinggu: 4, kkm: 75 },
-    { code: 'MTK', name: 'Matematika Terapan Vokasi', kategori: 'Muatan Umum', rombelTingkat: 'Semua Tingkat', jamPerMinggu: 4, kkm: 70 },
-    { code: 'BIG', name: 'Bahasa Inggris Kejuruan', kategori: 'Muatan Umum', rombelTingkat: 'Semua Tingkat', jamPerMinggu: 3, kkm: 75 },
+    // PRODUKTIF TBSM
+    { code: 'PMSM', name: 'Pemeliharaan Mesin Sepeda Motor', jurusan: 'TBSM', kategori: 'Kejuruan Produktif', rombelTingkat: 'Kelas X & XI TBSM', jamPerMinggu: 6, kkm: 75 },
+    { code: 'PKSM', name: 'Pemeliharaan Listrik Sepeda Motor', jurusan: 'TBSM', kategori: 'Kejuruan Produktif', rombelTingkat: 'Kelas XI & XII TBSM', jamPerMinggu: 6, kkm: 75 },
+    { code: 'PSSM', name: 'Pemeliharaan Sasis Sepeda Motor', jurusan: 'TBSM', kategori: 'Kejuruan Produktif', rombelTingkat: 'Kelas X & XII TBSM', jamPerMinggu: 6, kkm: 75 },
+
+    // PRODUKTIF PBS
+    { code: 'LPS', name: 'Layanan Lembaga Perbankan Syariah', jurusan: 'PBS', kategori: 'Kejuruan Produktif', rombelTingkat: 'Kelas X & XI PBS', jamPerMinggu: 6, kkm: 78 },
+    { code: 'APS', name: 'Akuntansi Perbankan Syariah', jurusan: 'PBS', kategori: 'Kejuruan Produktif', rombelTingkat: 'Kelas XI & XII PBS', jamPerMinggu: 6, kkm: 75 },
+    { code: 'PKS', name: 'Pengelolaan Kas & Kliring Perbankan', jurusan: 'PBS', kategori: 'Kejuruan Produktif', rombelTingkat: 'Kelas X & XII PBS', jamPerMinggu: 6, kkm: 75 },
+
+    // PRODUKTIF LAIN
+    { code: 'PWPB', name: 'Pemrograman Web & Perangkat Bergerak', jurusan: 'RPL', kategori: 'Kejuruan Produktif', rombelTingkat: 'Kelas XII RPL', jamPerMinggu: 8, kkm: 78 },
+    { code: 'DKV', name: 'Dasar Desain Komunikasi Visual', jurusan: 'DKV', kategori: 'Kejuruan Produktif', rombelTingkat: 'Kelas X DKV', jamPerMinggu: 6, kkm: 75 },
+    { code: 'AIJ', name: 'Administrasi Infrastruktur Jaringan', jurusan: 'TKJ', kategori: 'Kejuruan Produktif', rombelTingkat: 'Kelas XII TKJ', jamPerMinggu: 8, kkm: 75 },
+
+    // MUATAN UMUM
+    { code: 'BIN', name: 'Bahasa Indonesia', jurusan: 'Umum', kategori: 'Muatan Umum', rombelTingkat: 'Semua Tingkat', jamPerMinggu: 4, kkm: 75 },
+    { code: 'MTK', name: 'Matematika Terapan Vokasi', jurusan: 'Umum', kategori: 'Muatan Umum', rombelTingkat: 'Semua Tingkat', jamPerMinggu: 4, kkm: 70 },
+    { code: 'BIG', name: 'Bahasa Inggris Kejuruan', jurusan: 'Umum', kategori: 'Muatan Umum', rombelTingkat: 'Semua Tingkat', jamPerMinggu: 3, kkm: 75 },
+    { code: 'PAI', name: 'Pendidikan Agama & Budi Pekerti', jurusan: 'Umum', kategori: 'Muatan Umum', rombelTingkat: 'Semua Tingkat', jamPerMinggu: 3, kkm: 75 },
+];
+
+export const masterRuanganList = [
+    'Bengkel TBSM 1',
+    'Bengkel TBSM 2',
+    'Mini Bank Syariah',
+    'Lab Komputer RPL 1',
+    'Lab RPL 2',
+    'Lab Komputer DKV',
+    'Studio DKV 1',
+    'Lab Jaringan TKJ',
+    'Ruang Teori 1',
+    'Ruang Teori 4',
+    'Ruang Teori 6',
+    'Ruang Teori 12',
+];
+
+export const slotJamPelajaran = [
+    { id: 1, label: 'Jam 1 - 3 (07:15 - 09:30)', waktu: '07:15 - 09:30', durasiJam: 3 },
+    { id: 2, label: 'Jam 4 - 6 (09:45 - 12:00)', waktu: '09:45 - 12:00', durasiJam: 3 },
+    { id: 3, label: 'Jam 7 - 8 (12:45 - 14:15)', waktu: '12:45 - 14:15', durasiJam: 2 },
+    { id: 4, label: 'Jam 9 - 10 (14:15 - 15:45)', waktu: '14:15 - 15:45', durasiJam: 2 },
 ];
 
 export const initialPlottingWali = [
-    { id: 1, rombel: 'X DKV 1', jurusan: 'DKV', tingkat: 'Kelas X', waliName: 'Siti Rahma, M.Pd', nip: '19890520 201801 2 003', siswaCount: 36, ruang: 'Studio DKV 1', status: 'Terplot' },
-    { id: 2, rombel: 'X DKV 2', jurusan: 'DKV', tingkat: 'Kelas X', waliName: 'Rina Kusuma, M.Kom', nip: '19900915 201903 2 004', siswaCount: 35, ruang: 'Studio DKV 2', status: 'Terplot' },
-    { id: 3, rombel: 'X RPL 1', jurusan: 'RPL', tingkat: 'Kelas X', waliName: 'Fajar Nugroho, S.Pd', nip: '19860314 201402 1 002', siswaCount: 35, ruang: 'Ruang Teori 1', status: 'Terplot' },
-    { id: 4, rombel: 'X TKJ 1', jurusan: 'TKJ', tingkat: 'Kelas X', waliName: 'Irfan Maulana, S.T', nip: '19910522 201802 1 005', siswaCount: 34, ruang: 'Lab Komputer 3', status: 'Terplot' },
-    { id: 5, rombel: 'XI RPL 1', jurusan: 'RPL', tingkat: 'Kelas XI', waliName: 'Hendra Setiawan, M.T', nip: '19820411 200801 1 007', siswaCount: 35, ruang: 'Lab RPL 1', status: 'Terplot' },
-    { id: 6, rombel: 'XI AKL 1', jurusan: 'AKL', tingkat: 'Kelas XI', waliName: 'Dra. Sri Wahyuni', nip: '19720419 199803 2 001', siswaCount: 36, ruang: 'Ruang Teori 4', status: 'Terplot' },
-    { id: 7, rombel: 'XII RPL 1', jurusan: 'RPL', tingkat: 'Kelas XII', waliName: 'Dra. Endang Setyawati', nip: '19700812 199702 2 002', siswaCount: 34, ruang: 'Lab RPL 2', status: 'Terplot' },
-    { id: 8, rombel: 'XII RPL 2', jurusan: 'RPL', tingkat: 'Kelas XII', waliName: 'Ahmad Fauzi, M.Kom', nip: '19850614 201201 1 004', siswaCount: 33, ruang: 'Lab RPL 1', status: 'Terplot' },
+    { id: 1, rombel: 'X TBSM A', jurusan: 'TBSM', tingkat: 'Kelas X', waliName: 'Hendra Gunawan, S.T', nip: '19850314 201101 1 004', siswaCount: 35, ruang: 'Bengkel TBSM 1', status: 'Terplot' },
+    { id: 2, rombel: 'X TBSM B', jurusan: 'TBSM', tingkat: 'Kelas X', waliName: 'Dedi Kurniawan, S.Pd', nip: '19890422 201602 1 003', siswaCount: 34, ruang: 'Bengkel TBSM 2', status: 'Terplot' },
+    { id: 3, rombel: 'X PBS', jurusan: 'PBS', tingkat: 'Kelas X', waliName: 'Nurul Hidayah, S.E.I', nip: '19910815 201903 2 006', siswaCount: 35, ruang: 'Mini Bank Syariah', status: 'Terplot' },
+    { id: 4, rombel: 'XI TBSM', jurusan: 'TBSM', tingkat: 'Kelas XI', waliName: 'Aris Munandar, S.T', nip: '19870611 201402 1 005', siswaCount: 35, ruang: 'Bengkel TBSM 1', status: 'Terplot' },
+    { id: 5, rombel: 'XI PBS', jurusan: 'PBS', tingkat: 'Kelas XI', waliName: 'Zulfa Ramadhani, M.E', nip: '19920317 202001 2 002', siswaCount: 34, ruang: 'Mini Bank Syariah', status: 'Terplot' },
+    { id: 6, rombel: 'XII TBSM', jurusan: 'TBSM', tingkat: 'Kelas XII', waliName: 'Agus Salim, M.Pd', nip: '19850719 201101 1 003', siswaCount: 33, ruang: 'Bengkel TBSM 2', status: 'Terplot' },
+    { id: 7, rombel: 'XII PBS', jurusan: 'PBS', tingkat: 'Kelas XII', waliName: 'Ratna Dewi, S.Pd', nip: '19881120 201503 2 004', siswaCount: 35, ruang: 'Ruang Teori 6', status: 'Terplot' },
+    { id: 8, rombel: 'XII RPL 1', jurusan: 'RPL', tingkat: 'Kelas XII', waliName: 'Dra. Endang Setyawati', nip: '19700812 199702 2 002', siswaCount: 34, ruang: 'Lab RPL 2', status: 'Terplot' },
 ];
 
 export const initialPlottingGuruMapel = [
-    { id: 1, guruName: 'Budi Santoso, S.Kom', nip: '19880412 201504 1 002', mapel: 'Pemrograman Web & Perangkat Bergerak', rombelList: ['XII RPL 1', 'XII RPL 2'], totalJam: 16, ruang: 'Lab RPL 1 & 2' },
-    { id: 2, guruName: 'Andi Saputra, S.Sn', nip: '19870311 201602 1 003', mapel: 'Fotografi & Tata Cahaya', rombelList: ['X DKV 1', 'X DKV 2', 'XI DKV 1'], totalJam: 18, ruang: 'Studio Fotografi' },
-    { id: 3, guruName: 'Rina Kusuma, M.Kom', nip: '19900915 201903 2 004', mapel: 'Komputer Grafis & Tipografi', rombelList: ['X DKV 1', 'X DKV 2'], totalJam: 12, ruang: 'Lab Komputer DKV' },
-    { id: 4, guruName: 'Dra. Sri Mulyani', nip: '19680214 199403 2 001', mapel: 'Bahasa Indonesia', rombelList: ['X DKV 1', 'XII RPL 1', 'XII RPL 2'], totalJam: 12, ruang: 'Ruang Teori' },
-    { id: 5, guruName: 'Irfan Maulana, S.T', nip: '19910522 201802 1 005', mapel: 'Administrasi Infrastruktur Jaringan', rombelList: ['XII TKJ 1', 'XII TKJ 2'], totalJam: 16, ruang: 'Lab Komputer TKJ' },
-    { id: 6, guruName: 'Agus Salim, M.Pd', nip: '19850719 201101 1 003', mapel: 'Matematika Terapan Vokasi', rombelList: ['X DKV 1', 'XI RPL 1', 'XII RPL 1'], totalJam: 12, ruang: 'Ruang Teori' },
+    { id: 1, guruName: 'Hendra Gunawan, S.T', nip: '19850314 201101 1 004', mapel: 'Pemeliharaan Mesin Sepeda Motor', rombelList: ['X TBSM A', 'X TBSM B', 'XI TBSM'], totalJam: 18, ruang: 'Bengkel TBSM 1' },
+    { id: 2, guruName: 'Dedi Kurniawan, S.Pd', nip: '19890422 201602 1 003', mapel: 'Pemeliharaan Listrik Sepeda Motor', rombelList: ['XI TBSM', 'XII TBSM'], totalJam: 12, ruang: 'Bengkel TBSM 2' },
+    { id: 3, guruName: 'Nurul Hidayah, S.E.I', nip: '19910815 201903 2 006', mapel: 'Layanan Lembaga Perbankan Syariah', rombelList: ['X PBS', 'XI PBS'], totalJam: 12, ruang: 'Mini Bank Syariah' },
+    { id: 4, guruName: 'Zulfa Ramadhani, M.E', nip: '19920317 202001 2 002', mapel: 'Akuntansi Perbankan Syariah', rombelList: ['XI PBS', 'XII PBS'], totalJam: 12, ruang: 'Mini Bank Syariah' },
+    { id: 5, guruName: 'Budi Santoso, S.Kom', nip: '19880412 201504 1 002', mapel: 'Pemrograman Web & Perangkat Bergerak', rombelList: ['XII RPL 1', 'XII RPL 2'], totalJam: 16, ruang: 'Lab RPL 1 & 2' },
+    { id: 6, guruName: 'Dra. Sri Mulyani', nip: '19680214 199403 2 001', mapel: 'Bahasa Indonesia', rombelList: ['X TBSM A', 'X TBSM B', 'X PBS', 'XII RPL 1'], totalJam: 16, ruang: 'Ruang Teori' },
+    { id: 7, guruName: 'Agus Salim, M.Pd', nip: '19850719 201101 1 003', mapel: 'Matematika Terapan Vokasi', rombelList: ['X TBSM A', 'XI TBSM', 'XII TBSM'], totalJam: 12, ruang: 'Bengkel TBSM 1' },
 ];
 
 export const initialJadwalMingguan = [
-    { hari: 'Senin', jamKe: '1 - 3 (07:15 - 09:30)', mapel: 'Pemrograman Web & Perangkat Bergerak', rombel: 'XII RPL 1', guru: 'Budi Santoso, S.Kom', ruang: 'Lab RPL 2', status: 'Terjadwal' },
-    { hari: 'Senin', jamKe: '4 - 6 (09:45 - 12:00)', mapel: 'Fotografi & Tata Cahaya', rombel: 'X DKV 1', guru: 'Andi Saputra, S.Sn', ruang: 'Studio Fotografi', status: 'Terjadwal' },
-    { hari: 'Senin', jamKe: '7 - 8 (12:30 - 14:00)', mapel: 'Bahasa Indonesia', rombel: 'XII RPL 2', guru: 'Dra. Sri Mulyani', ruang: 'Ruang Teori 12', status: 'Terjadwal' },
-    { hari: 'Selasa', jamKe: '1 - 3 (07:15 - 09:30)', mapel: 'Administrasi Infrastruktur Jaringan', rombel: 'XII TKJ 1', guru: 'Irfan Maulana, S.T', ruang: 'Lab Jaringan 1', status: 'Terjadwal' },
-    { hari: 'Selasa', jamKe: '4 - 6 (09:45 - 12:00)', mapel: 'Dasar Desain Komunikasi Visual', rombel: 'X DKV 1', guru: 'Siti Rahma, M.Pd', ruang: 'Studio DKV 1', status: 'Terjadwal' },
-    { hari: 'Rabu', jamKe: '1 - 3 (07:15 - 09:30)', mapel: 'Pemrograman Web & Perangkat Bergerak', rombel: 'XII RPL 2', guru: 'Budi Santoso, S.Kom', ruang: 'Lab RPL 1', status: 'Terjadwal' },
-    { hari: 'Rabu', jamKe: '4 - 6 (09:45 - 12:00)', mapel: 'Matematika Terapan Vokasi', rombel: 'X DKV 1', guru: 'Agus Salim, M.Pd', ruang: 'Ruang Teori 12', status: 'Terjadwal' },
-    { hari: 'Kamis', jamKe: '1 - 3 (07:15 - 09:30)', mapel: 'Komputer Grafis & Tipografi', rombel: 'X DKV 1', guru: 'Rina Kusuma, M.Kom', ruang: 'Lab Komputer DKV', status: 'Terjadwal' },
-    { hari: 'Jumat', jamKe: '1 - 2 (07:15 - 08:45)', mapel: 'Pendidikan Agama & Budi Pekerti', rombel: 'XII RPL 1', guru: 'Ahmad Fauzi, S.Pd.I', ruang: 'Masjid & Ruang 10', status: 'Terjadwal' },
+    // SENIN
+    { id: 101, ta: '2026/2027 • Ganjil', hari: 'Senin', jamKe: 'Jam 1 - 3 (07:15 - 09:30)', mapel: 'Pemeliharaan Mesin Sepeda Motor', rombel: 'X TBSM A', guru: 'Hendra Gunawan, S.T', ruang: 'Bengkel TBSM 1', status: 'Terjadwal' },
+    { id: 102, ta: '2026/2027 • Ganjil', hari: 'Senin', jamKe: 'Jam 1 - 3 (07:15 - 09:30)', mapel: 'Layanan Lembaga Perbankan Syariah', rombel: 'X PBS', guru: 'Nurul Hidayah, S.E.I', ruang: 'Mini Bank Syariah', status: 'Terjadwal' },
+    { id: 103, ta: '2026/2027 • Ganjil', hari: 'Senin', jamKe: 'Jam 4 - 6 (09:45 - 12:00)', mapel: 'Pemeliharaan Mesin Sepeda Motor', rombel: 'X TBSM B', guru: 'Hendra Gunawan, S.T', ruang: 'Bengkel TBSM 2', status: 'Terjadwal' },
+    { id: 104, ta: '2026/2027 • Ganjil', hari: 'Senin', jamKe: 'Jam 4 - 6 (09:45 - 12:00)', mapel: 'Bahasa Indonesia', rombel: 'X PBS', guru: 'Dra. Sri Mulyani', ruang: 'Mini Bank Syariah', status: 'Terjadwal' },
+    { id: 105, ta: '2026/2027 • Ganjil', hari: 'Senin', jamKe: 'Jam 7 - 8 (12:45 - 14:15)', mapel: 'Bahasa Indonesia', rombel: 'X TBSM A', guru: 'Dra. Sri Mulyani', ruang: 'Ruang Teori 1', status: 'Terjadwal' },
+
+    // SELASA
+    { id: 106, ta: '2026/2027 • Ganjil', hari: 'Selasa', jamKe: 'Jam 1 - 3 (07:15 - 09:30)', mapel: 'Pemeliharaan Listrik Sepeda Motor', rombel: 'XI TBSM', guru: 'Dedi Kurniawan, S.Pd', ruang: 'Bengkel TBSM 2', status: 'Terjadwal' },
+    { id: 107, ta: '2026/2027 • Ganjil', hari: 'Selasa', jamKe: 'Jam 1 - 3 (07:15 - 09:30)', mapel: 'Akuntansi Perbankan Syariah', rombel: 'XI PBS', guru: 'Zulfa Ramadhani, M.E', ruang: 'Mini Bank Syariah', status: 'Terjadwal' },
+    { id: 108, ta: '2026/2027 • Ganjil', hari: 'Selasa', jamKe: 'Jam 4 - 6 (09:45 - 12:00)', mapel: 'Matematika Terapan Vokasi', rombel: 'X TBSM A', guru: 'Agus Salim, M.Pd', ruang: 'Bengkel TBSM 1', status: 'Terjadwal' },
+    { id: 109, ta: '2026/2027 • Ganjil', hari: 'Selasa', jamKe: 'Jam 4 - 6 (09:45 - 12:00)', mapel: 'Pengelolaan Kas & Kliring Perbankan', rombel: 'X PBS', guru: 'Nurul Hidayah, S.E.I', ruang: 'Mini Bank Syariah', status: 'Terjadwal' },
+
+    // RABU
+    { id: 110, ta: '2026/2027 • Ganjil', hari: 'Rabu', jamKe: 'Jam 1 - 3 (07:15 - 09:30)', mapel: 'Pemeliharaan Mesin Sepeda Motor', rombel: 'XI TBSM', guru: 'Hendra Gunawan, S.T', ruang: 'Bengkel TBSM 1', status: 'Terjadwal' },
+    { id: 111, ta: '2026/2027 • Ganjil', hari: 'Rabu', jamKe: 'Jam 1 - 3 (07:15 - 09:30)', mapel: 'Pemeliharaan Listrik Sepeda Motor', rombel: 'XII TBSM', guru: 'Dedi Kurniawan, S.Pd', ruang: 'Bengkel TBSM 2', status: 'Terjadwal' },
+    { id: 112, ta: '2026/2027 • Ganjil', hari: 'Rabu', jamKe: 'Jam 4 - 6 (09:45 - 12:00)', mapel: 'Akuntansi Perbankan Syariah', rombel: 'XII PBS', guru: 'Zulfa Ramadhani, M.E', ruang: 'Ruang Teori 6', status: 'Terjadwal' },
+    { id: 113, ta: '2026/2027 • Ganjil', hari: 'Rabu', jamKe: 'Jam 4 - 6 (09:45 - 12:00)', mapel: 'Matematika Terapan Vokasi', rombel: 'XI TBSM', guru: 'Agus Salim, M.Pd', ruang: 'Bengkel TBSM 1', status: 'Terjadwal' },
+
+    // KAMIS
+    { id: 114, ta: '2026/2027 • Ganjil', hari: 'Kamis', jamKe: 'Jam 1 - 3 (07:15 - 09:30)', mapel: 'Pemeliharaan Sasis Sepeda Motor', rombel: 'X TBSM A', guru: 'Hendra Gunawan, S.T', ruang: 'Bengkel TBSM 1', status: 'Terjadwal' },
+    { id: 115, ta: '2026/2027 • Ganjil', hari: 'Kamis', jamKe: 'Jam 1 - 3 (07:15 - 09:30)', mapel: 'Layanan Lembaga Perbankan Syariah', rombel: 'XI PBS', guru: 'Nurul Hidayah, S.E.I', ruang: 'Mini Bank Syariah', status: 'Terjadwal' },
+    { id: 116, ta: '2026/2027 • Ganjil', hari: 'Kamis', jamKe: 'Jam 4 - 6 (09:45 - 12:00)', mapel: 'Bahasa Indonesia', rombel: 'X TBSM B', guru: 'Dra. Sri Mulyani', ruang: 'Bengkel TBSM 2', status: 'Terjadwal' },
+
+    // JUMAT
+    { id: 117, ta: '2026/2027 • Ganjil', hari: 'Jumat', jamKe: 'Jam 1 - 2 (07:15 - 08:45)', mapel: 'Pendidikan Agama & Budi Pekerti', rombel: 'X TBSM A', guru: 'Ahmad Fauzi, S.Pd.I', ruang: 'Bengkel TBSM 1', status: 'Terjadwal' },
+    { id: 118, ta: '2026/2027 • Ganjil', hari: 'Jumat', jamKe: 'Jam 1 - 2 (07:15 - 08:45)', mapel: 'Pendidikan Agama & Budi Pekerti', rombel: 'X PBS', guru: 'Zulfa Ramadhani, M.E', ruang: 'Mini Bank Syariah', status: 'Terjadwal' },
 ];
 
 export const initialPengumumanList = [
