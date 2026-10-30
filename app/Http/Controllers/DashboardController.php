@@ -99,7 +99,7 @@ class DashboardController extends Controller
                     [
                         'title' => 'Menu Utama',
                         'tabs' => [
-                            ['id' => 'home', 'label' => 'Operasional', 'icon' => 'home'],
+                            ['id' => 'home', 'label' => 'Home', 'icon' => 'home'],
                             ['id' => 'pengguna', 'label' => 'Pengguna', 'icon' => 'user'],
                         ],
                     ],
@@ -129,7 +129,7 @@ class DashboardController extends Controller
                     ],
                 ],
                 'tabs' => [
-                    ['id' => 'home', 'label' => 'Operasional', 'icon' => 'home'],
+                    ['id' => 'home', 'label' => 'Home', 'icon' => 'home'],
                     ['id' => 'pengguna', 'label' => 'Pengguna', 'icon' => 'user'],
                     ['id' => 'master', 'label' => 'Data Master', 'icon' => 'book'],
                     ['id' => 'penugasan', 'label' => 'Penugasan & Jadwal', 'icon' => 'clock'],

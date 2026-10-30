@@ -84,8 +84,8 @@ watch(
 // Dynamic Page Titles
 const pageTitle = computed(() => {
     const map = {
-        home: 'Operasional Akademik Sekolah',
-        operasional: 'Operasional Akademik Sekolah',
+        home: 'Home • Operasional Akademik Sekolah',
+        operasional: 'Home • Operasional Akademik Sekolah',
         pengguna: 'Manajemen Pengguna (Siswa, Guru, Wali, Kepsek)',
         master: 'Data Master (TA, Jurusan, Kelas, Mapel)',
         master_ta: 'Data Master • Tahun Ajaran',
