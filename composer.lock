@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "64bd2c680b31ffd7b438ae5945e029ce",
+    "content-hash": "fe825ac0659a5f73576ef8a99ba4618d",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -3672,6 +3672,154 @@
                 "source": "https://github.com/Masterminds/html5-php/tree/2.11.0"
             },
             "time": "2026-08-18T06:18:41+00:00"
+        },
+        {
+            "name": "mckenziearts/blade-untitledui-icons",
+            "version": "v1.5.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mckenziearts/blade-untitledui-icons.git",
+                "reference": "a3cb8822a7dd95d9ae7d4a75dd4893ea67c32c90"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mckenziearts/blade-untitledui-icons/zipball/a3cb8822a7dd95d9ae7d4a75dd4893ea67c32c90",
+                "reference": "a3cb8822a7dd95d9ae7d4a75dd4893ea67c32c90",
+                "shasum": ""
+            },
+            "require": {
+                "blade-ui-kit/blade-icons": "^1.9",
+                "illuminate/support": "^9.0|^10.0|^11.0|^12.0|^13.0",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^7.0|^8.0|^9.0|^10.0|^11.0",
+                "phpunit/phpunit": "^9.0|^10.5|^11.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Mckenziearts\\BladeUntitledUIIcons\\BladeUntitledUIIconsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Mckenziearts\\BladeUntitledUIIcons\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Arthur Monney",
+                    "homepage": "https://arthurmonney.me"
+                }
+            ],
+            "description": "A package to easily make use of UntitledUI icons in your Laravel Blade views.",
+            "homepage": "https://github.com/mckenziearts/blade-untitledui-icons",
+            "keywords": [
+                "Untitled UI",
+                "blade",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/mckenziearts/blade-untitledui-icons/issues",
+                "source": "https://github.com/mckenziearts/blade-untitledui-icons/tree/v1.5.0"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.me/monneyarthur",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/mckenziearts",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-03-03T09:57:46+00:00"
+        },
+        {
+            "name": "mckenziearts/laravel-notify",
+            "version": "v3.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mckenziearts/laravel-notify.git",
+                "reference": "b4a2910208cea887242736370ad453bf1e61b5f9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mckenziearts/laravel-notify/zipball/b4a2910208cea887242736370ad453bf1e61b5f9",
+                "reference": "b4a2910208cea887242736370ad453bf1e61b5f9",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/contracts": "^11.0|^12.0|^13.0",
+                "illuminate/session": "^11.0|^12.0|^13.0",
+                "illuminate/support": "^11.0|^12.0|^13.0",
+                "mckenziearts/blade-untitledui-icons": "v1.5.0",
+                "php": "^8.3"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.25.0",
+                "mockery/mockery": "^1.6",
+                "orchestra/testbench": "^10.6.0|^11.0",
+                "pestphp/pest": "^3.8.4|^4.4",
+                "pestphp/pest-plugin-type-coverage": "^3.6.1|^4.0",
+                "phpstan/phpstan": "^2.1.27",
+                "rector/rector": "^2.1.7"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Mckenziearts\\Notify\\NotifyServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "Mckenziearts\\Notify\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Arthur Monney",
+                    "email": "monneylobe@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Flexible flash notifications for Laravel",
+            "keywords": [
+                "laravel",
+                "laravel-notify",
+                "notification"
+            ],
+            "support": {
+                "issues": "https://github.com/mckenziearts/laravel-notify/issues",
+                "source": "https://github.com/mckenziearts/laravel-notify"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.com/paypalme/monneyarthur",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/mckenziearts",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-03-03T10:26:29+00:00"
         },
         {
             "name": "monolog/monolog",
