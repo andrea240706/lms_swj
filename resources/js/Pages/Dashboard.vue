@@ -9,6 +9,7 @@ import GuruView from '@/Components/Lms/Roles/Guru/GuruView.vue';
 import WaliKelasView from '@/Components/Lms/Roles/WaliKelas/WaliKelasView.vue';
 import KepsekView from '@/Components/Lms/Roles/Kepsek/KepsekView.vue';
 import AdminView from '@/Components/Lms/Roles/Admin/AdminView.vue';
+import { notify } from '@/Utils/notify';
 
 const props = defineProps({
     roles: {
@@ -183,8 +184,8 @@ const toggleMaterialLock = (id) => {
     materialsLock.value[id] = !materialsLock.value[id];
 };
 
-const handleShowToast = (message) => {
-    openActionSheet('toast', { message });
+const handleShowToast = (message, title = 'Berhasil', type = 'success') => {
+    notify.show({ message, title, type, model: 'toast' });
 };
 
 const handleLogout = () => {

@@ -48,6 +48,8 @@ class MaterialController extends Controller
             throw $exception;
         }
 
+        notify()->success()->title('Berhasil')->message('Materi berhasil ditambahkan.')->send();
+
         return back()->with('success', 'Materi berhasil ditambahkan.');
     }
 
@@ -60,6 +62,8 @@ class MaterialController extends Controller
         $data['updated_by'] = $request->user()->id;
 
         $material->update($data);
+
+        notify()->success()->title('Berhasil')->message('Materi berhasil diperbarui.')->send();
 
         return back()->with('success', 'Materi berhasil diperbarui.');
     }
@@ -81,6 +85,8 @@ class MaterialController extends Controller
 
         $material->delete();
         $this->deleteStoredFiles($storedFiles);
+
+        notify()->success()->title('Berhasil')->message('Materi berhasil dihapus.')->send();
 
         return back()->with('success', 'Materi berhasil dihapus.');
     }
@@ -104,6 +110,8 @@ class MaterialController extends Controller
             throw $exception;
         }
 
+        notify()->success()->title('Berhasil')->message('File materi berhasil ditambahkan.')->send();
+
         return back()->with('success', 'File materi berhasil ditambahkan.');
     }
 
@@ -126,6 +134,8 @@ class MaterialController extends Controller
         $file->delete();
 
         $material->update(['updated_by' => $request->user()->id]);
+
+        notify()->success()->title('Berhasil')->message('File materi berhasil dihapus.')->send();
 
         return back()->with('success', 'File materi berhasil dihapus.');
     }

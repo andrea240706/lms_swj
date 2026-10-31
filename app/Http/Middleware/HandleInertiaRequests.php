@@ -37,6 +37,22 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
+                'notify' => function () use ($request) {
+                    $notify = $request->session()->get('notify');
+                    if (! $notify) {
+                        return null;
+                    }
+
+                    return [
+                        'type' => $notify['type'] instanceof \BackedEnum ? $notify['type']->value : (string) ($notify['type'] ?? 'info'),
+                        'model' => $notify['model'] instanceof \BackedEnum ? $notify['model']->value : (string) ($notify['model'] ?? 'toast'),
+                        'title' => $notify['title'] ?? null,
+                        'message' => $notify['message'] ?? null,
+                        'icon' => $notify['icon'] ?? null,
+                        'duration' => (int) ($notify['duration'] ?? config('notify.timeout', 5000)),
+                        'actions' => $notify['actions'] ?? [],
+                    ];
+                },
             ],
         ];
     }

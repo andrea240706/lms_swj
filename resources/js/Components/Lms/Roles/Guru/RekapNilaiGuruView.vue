@@ -4,6 +4,7 @@ import LmsIcon from '@/Components/Lms/LmsIcon.vue';
 import LmsSkeletonLoader from '@/Components/Lms/LmsSkeletonLoader.vue';
 import LmsTopBar from '@/Components/Lms/LmsTopBar.vue';
 import { guruMapelList } from './mapelGuruData';
+import { notify } from '@/Utils/notify';
 
 const props = defineProps({
     role: { type: Object, required: true },
@@ -120,13 +121,9 @@ const avgRingColor = (avg, kkm) => {
     return 'bg-blossom-light text-blossom-dark';
 };
 
-// Toast
-const toastMessage = ref('');
-let toastTimer = null;
-const showToast = (msg) => {
-    toastMessage.value = msg;
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { toastMessage.value = ''; }, 2800);
+// Toast via Laravel Notify
+const showToast = (msg, type = 'success', title = 'Berhasil') => {
+    notify.show({ message: msg, type, title, model: 'toast' });
 };
 </script>
 

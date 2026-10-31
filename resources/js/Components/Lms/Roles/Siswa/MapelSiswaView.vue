@@ -5,6 +5,7 @@ import LmsIcon from '@/Components/Lms/LmsIcon.vue';
 import LmsSkeletonLoader from '@/Components/Lms/LmsSkeletonLoader.vue';
 import LmsTopBar from '@/Components/Lms/LmsTopBar.vue';
 import { initialMapelList } from './mapelData';
+import { notify } from '@/Utils/notify';
 
 const props = defineProps({
     role: {
@@ -47,15 +48,9 @@ const selectedMeetingId = ref(null);
 // Search filter on Mapel list
 const searchQuery = ref('');
 
-// Toast feedback
-const toastMessage = ref('');
-let toastTimer = null;
-const showToast = (msg) => {
-    toastMessage.value = msg;
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => {
-        toastMessage.value = '';
-    }, 2800);
+// Toast feedback via Laravel Notify
+const showToast = (msg, type = 'success', title = 'Berhasil') => {
+    notify.show({ message: msg, type, title, model: 'toast' });
 };
 
 // Upload Modal state

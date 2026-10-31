@@ -227,25 +227,6 @@ defineEmits([
                     </button>
                 </div>
             </div>
-
-            <!-- 7. TOAST NOTIFICATION SHEET -->
-            <div v-else-if="sheetType === 'toast'" class="text-center">
-                <div
-                    class="w-11 h-11 rounded-full bg-sage-light text-sage-dark mx-auto flex items-center justify-center mb-3"
-                >
-                    <LmsIcon name="check" className="w-5 h-5" />
-                </div>
-                <p class="text-sm font-bold text-charcoal">
-                    {{ sheetData.message }}
-                </p>
-                <button
-                    type="button"
-                    @click="$emit('close')"
-                    class="mt-4 w-full py-3 rounded-full bg-charcoal text-white text-xs font-bold cursor-pointer hover:opacity-90"
-                >
-                    Tutup
-                </button>
-            </div>
         </div>
     </div>
 </template>
