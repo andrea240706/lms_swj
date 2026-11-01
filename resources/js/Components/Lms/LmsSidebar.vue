@@ -70,14 +70,6 @@ const getTabBadge = (tabId) => {
     if (tabId === 'tugas') return '1 Baru';
     if (tabId === 'presensiPagi') return 'Hari Ini';
     if (tabId === 'siswaPerwalian') return '36 Siswa';
-    if (tabId === 'pengguna') return '1.3K';
-    if (tabId === 'master_ta') return 'Aktif';
-    if (tabId === 'master_jurusan') return '4';
-    if (tabId === 'master_rombel') return '42';
-    if (tabId === 'penugasan_wali') return '100%';
-    if (tabId === 'penugasan_jadwal') return 'Mingguan';
-    if (tabId === 'pengumuman') return '4 Aktif';
-    if (tabId === 'sistem') return 'Global';
     return null;
 };
 </script>

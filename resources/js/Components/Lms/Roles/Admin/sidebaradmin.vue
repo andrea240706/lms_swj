@@ -31,31 +31,31 @@ const adminSections = [
         title: 'Menu Utama',
         tabs: [
             { id: 'dashboard', label: 'Dashboard', icon: 'home' },
-            { id: 'pengguna', label: 'Pengguna', icon: 'user', badge: '1.3K' },
+            { id: 'pengguna', label: 'Pengguna', icon: 'user' },
         ],
     },
     {
         title: 'Data Master',
         tabs: [
-            { id: 'tahunajaran', label: 'Tahun Ajaran', icon: 'clock', badge: 'Aktif' },
-            { id: 'jurusan', label: 'Jurusan (Keahlian)', icon: 'folder', badge: '6' },
-            { id: 'rombel', label: 'Rombel (Kelas)', icon: 'book', badge: '42' },
-            { id: 'matapelajaran', label: 'Mata Pelajaran', icon: 'task', badge: '58' },
+            { id: 'tahunajaran', label: 'Tahun Ajaran', icon: 'clock' },
+            { id: 'jurusan', label: 'Jurusan (Keahlian)', icon: 'folder' },
+            { id: 'rombel', label: 'Rombel (Kelas)', icon: 'book' },
+            { id: 'matapelajaran', label: 'Mata Pelajaran', icon: 'task' },
         ],
     },
     {
         title: 'Penugasan & Jadwal',
         tabs: [
-            { id: 'jadwalpelajaran', label: 'Jadwal Pelajaran', icon: 'clock', badge: 'Mingguan' },
+            { id: 'jadwalpelajaran', label: 'Jadwal Pelajaran', icon: 'clock' },
             { id: 'plottingguru', label: 'Plotting Guru Mapel', icon: 'user' },
-            { id: 'walikelas', label: 'Penetapan Wali Kelas', icon: 'shield', badge: '100%' },
+            { id: 'walikelas', label: 'Penetapan Wali Kelas', icon: 'shield' },
         ],
     },
     {
         title: 'Informasi & Sistem',
         tabs: [
-            { id: 'pengumuman', label: 'Pengumuman', icon: 'task', badge: '4 Aktif' },
-            { id: 'pengaturansistem', label: 'Pengaturan Sistem', icon: 'settings', badge: 'Global' },
+            { id: 'pengumuman', label: 'Pengumuman', icon: 'task' },
+            { id: 'pengaturansistem', label: 'Pengaturan Sistem', icon: 'settings' },
         ],
     },
 ];
@@ -170,21 +170,6 @@ const handleTabClick = (t) => {
                                 class="text-xs whitespace-nowrap overflow-hidden text-ellipsis text-left"
                             >
                                 {{ t.label }}
-                            </span>
-                        </div>
-
-                        <!-- Right Badge indicator (Expanded Only) -->
-                        <div v-if="!isCollapsed" class="shrink-0 ml-2">
-                            <span
-                                v-if="t.badge"
-                                class="text-[9px] font-bold px-2 py-0.5 rounded-full"
-                                :class="
-                                    isTabActive(t)
-                                        ? 'bg-white/20 text-white'
-                                        : 'bg-canvas border border-[#ECEAE4] text-subtext'
-                                "
-                            >
-                                {{ t.badge }}
                             </span>
                         </div>
 
