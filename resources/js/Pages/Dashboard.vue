@@ -8,7 +8,19 @@ import SiswaView from '@/Components/Lms/Roles/Siswa/SiswaView.vue';
 import GuruView from '@/Components/Lms/Roles/Guru/GuruView.vue';
 import WaliKelasView from '@/Components/Lms/Roles/WaliKelas/WaliKelasView.vue';
 import KepsekView from '@/Components/Lms/Roles/Kepsek/KepsekView.vue';
-import AdminView from '@/Components/Lms/Roles/Admin/AdminView.vue';
+import sidebaradmin from '@/Components/Lms/Roles/Admin/sidebaradmin.vue';
+import dashboardadmin from '@/Components/Lms/Roles/Admin/dashboardadmin.vue';
+import penggunaadmin from '@/Components/Lms/Roles/Admin/penggunaadmin.vue';
+import tahunajaranadmin from '@/Components/Lms/Roles/Admin/tahunajaranadmin.vue';
+import jurusanadmin from '@/Components/Lms/Roles/Admin/jurusanadmin.vue';
+import rombeladmin from '@/Components/Lms/Roles/Admin/rombeladmin.vue';
+import matapelajaranadmin from '@/Components/Lms/Roles/Admin/matapelajaranadmin.vue';
+import jadwalpelajaranadmin from '@/Components/Lms/Roles/Admin/jadwalpelajaranadmin.vue';
+import plottingguruadmin from '@/Components/Lms/Roles/Admin/plottingguruadmin.vue';
+import walikelasadmin from '@/Components/Lms/Roles/Admin/walikelasadmin.vue';
+import pengumumanadmin from '@/Components/Lms/Roles/Admin/pengumumanadmin.vue';
+import pengaturansistemadmin from '@/Components/Lms/Roles/Admin/pengaturansistemadmin.vue';
+import LmsTopBar from '@/Components/Lms/LmsTopBar.vue';
 import { notify } from '@/Utils/notify';
 
 const props = defineProps({
@@ -191,6 +203,34 @@ const handleShowToast = (message, title = 'Berhasil', type = 'success') => {
 const handleLogout = () => {
     router.post(route('logout'));
 };
+
+const adminPageTitle = computed(() => {
+    const map = {
+        dashboard: 'Dashboard • Operasional Akademik Sekolah',
+        home: 'Dashboard • Operasional Akademik Sekolah',
+        pengguna: 'Manajemen Pengguna (Siswa, Guru, Wali, Kepsek)',
+        tahunajaran: 'Data Master • Tahun Ajaran',
+        master_ta: 'Data Master • Tahun Ajaran',
+        jurusan: 'Data Master • Kompetensi Keahlian (Jurusan)',
+        master_jurusan: 'Data Master • Kompetensi Keahlian (Jurusan)',
+        master: 'Data Master • Kompetensi Keahlian (Jurusan)',
+        rombel: 'Data Master • Rombongan Belajar (Kelas)',
+        master_rombel: 'Data Master • Rombongan Belajar (Kelas)',
+        matapelajaran: 'Data Master • Mata Pelajaran Kurikulum',
+        master_mapel: 'Data Master • Mata Pelajaran Kurikulum',
+        jadwalpelajaran: 'Penugasan • Jadwal Pelajaran Mingguan',
+        penugasan_jadwal: 'Penugasan • Jadwal Pelajaran Mingguan',
+        penugasan: 'Penugasan • Jadwal Pelajaran Mingguan',
+        plottingguru: 'Penugasan • Plotting Guru Pengampu Mapel',
+        penugasan_guru: 'Penugasan • Plotting Guru Pengampu Mapel',
+        walikelas: 'Penugasan • Penetapan Wali Kelas',
+        penugasan_wali: 'Penugasan • Penetapan Wali Kelas',
+        pengumuman: 'Pengumuman & Broadcast Sekolah',
+        pengaturansistem: 'Pengaturan Sistem & Pemeliharaan LMS',
+        sistem: 'Pengaturan Sistem & Pemeliharaan LMS',
+    };
+    return map[activeTab.value] || 'Operasional Akademik Sekolah';
+});
 </script>
 
 <template>
@@ -206,7 +246,21 @@ const handleLogout = () => {
         ></div>
 
         <!-- Desktop Sidebar (Hidden on mobile, visible on lg screens) -->
+        <sidebaradmin
+            v-if="currentRoleKey === 'admin'"
+            class="hidden lg:flex"
+            :role="currentRole"
+            :activeTab="activeTab"
+            :isCollapsed="isSidebarCollapsed"
+            @selectTab="selectTab"
+            @toggleCollapse="toggleSidebar"
+            @openProfile="openActionSheet('profile', currentRole)"
+            @openMenu="openActionSheet('role_switcher')"
+            @openSettings="openActionSheet('settings', currentRole)"
+            @logout="handleLogout"
+        />
         <LmsSidebar
+            v-else
             class="hidden lg:flex"
             :role="currentRole"
             :activeTab="activeTab"
@@ -294,18 +348,70 @@ const handleLogout = () => {
                 />
 
                 <!-- 5. ADMINISTRATOR -->
-                <AdminView
+                <div
                     v-else-if="currentRoleKey === 'admin'"
-                    :role="currentRole"
-                    :activeTab="activeTab"
-                    :isSidebarCollapsed="isSidebarCollapsed"
-                    @selectTab="selectTab"
-                    @toggleSidebar="toggleSidebar"
-                    @openMenu="openActionSheet('role_switcher')"
-                    @openProfile="openActionSheet('profile', currentRole)"
-                    @openSettings="openActionSheet('settings', currentRole)"
-                    @showToast="handleShowToast"
-                />
+                    class="flex-1 flex flex-col overflow-hidden"
+                >
+                    <LmsTopBar
+                        :role="currentRole"
+                        :isSidebarCollapsed="isSidebarCollapsed"
+                        :title="adminPageTitle"
+                        @openMenu="openActionSheet('role_switcher')"
+                        @openProfile="openActionSheet('profile', currentRole)"
+                        @openSettings="openActionSheet('settings', currentRole)"
+                        @toggleSidebar="toggleSidebar"
+                    />
+
+                    <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 lg:pb-8">
+                        <div class="w-full max-w-[1800px] mx-auto">
+                            <dashboardadmin
+                                v-if="activeTab === 'dashboard' || activeTab === 'home'"
+                                @selectTab="selectTab"
+                                @showToast="handleShowToast"
+                            />
+                            <penggunaadmin
+                                v-else-if="activeTab === 'pengguna'"
+                                @showToast="handleShowToast"
+                            />
+                            <tahunajaranadmin
+                                v-else-if="activeTab === 'tahunajaran' || activeTab === 'master_ta'"
+                                @showToast="handleShowToast"
+                            />
+                            <jurusanadmin
+                                v-else-if="activeTab === 'jurusan' || activeTab === 'master_jurusan' || activeTab === 'master'"
+                                @showToast="handleShowToast"
+                            />
+                            <rombeladmin
+                                v-else-if="activeTab === 'rombel' || activeTab === 'master_rombel'"
+                                @showToast="handleShowToast"
+                            />
+                            <matapelajaranadmin
+                                v-else-if="activeTab === 'matapelajaran' || activeTab === 'master_mapel'"
+                                @showToast="handleShowToast"
+                            />
+                            <jadwalpelajaranadmin
+                                v-else-if="activeTab === 'jadwalpelajaran' || activeTab === 'penugasan_jadwal' || activeTab === 'penugasan'"
+                                @showToast="handleShowToast"
+                            />
+                            <plottingguruadmin
+                                v-else-if="activeTab === 'plottingguru' || activeTab === 'penugasan_guru'"
+                                @showToast="handleShowToast"
+                            />
+                            <walikelasadmin
+                                v-else-if="activeTab === 'walikelas' || activeTab === 'penugasan_wali'"
+                                @showToast="handleShowToast"
+                            />
+                            <pengumumanadmin
+                                v-else-if="activeTab === 'pengumuman'"
+                                @showToast="handleShowToast"
+                            />
+                            <pengaturansistemadmin
+                                v-else-if="activeTab === 'pengaturansistem' || activeTab === 'sistem'"
+                                @showToast="handleShowToast"
+                            />
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Floating Pill Bottom Navigation Bar (Mobile / Tablet only, hidden on lg screens where Sidebar is active) -->
                 <LmsBottomNav
