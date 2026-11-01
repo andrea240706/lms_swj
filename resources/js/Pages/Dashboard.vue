@@ -20,6 +20,8 @@ import plottingguruadmin from '@/Components/Lms/Roles/Admin/plottingguruadmin.vu
 import walikelasadmin from '@/Components/Lms/Roles/Admin/walikelasadmin.vue';
 import pengaturansistemadmin from '@/Components/Lms/Roles/Admin/pengaturansistemadmin.vue';
 import LmsTopBar from '@/Components/Lms/LmsTopBar.vue';
+import LmsMaintenanceScreen from '@/Components/Lms/LmsMaintenanceScreen.vue';
+import { useLmsStore } from '@/Stores/lmsStateStore';
 import { notify } from '@/Utils/notify';
 
 const props = defineProps({
@@ -87,9 +89,15 @@ onMounted(() => {
     });
 });
 
-// Interactive features state
-const materialsLock = ref({ 1: false, 2: false, 3: true, 4: true });
-const assignments = ref([...props.initialAssignments]);
+// Interactive features state (Terpusat & Terhubung ke Seluruh Role)
+const {
+    systemSettings,
+    materialsLock,
+    assignments,
+    submitStudentAssignment,
+    gradeStudentAssignment,
+    toggleMaterialLock,
+} = useLmsStore();
 
 // Modal / Action Sheet state
 const actionSheet = ref({
@@ -167,10 +175,8 @@ const handleUploadModal = (assignmentId) => {
 };
 
 const handleSubmitAssignment = (assignmentId) => {
-    const item = assignments.value.find((a) => a.id === assignmentId);
-    if (item) {
-        item.status = 'Menunggu Penilaian Guru';
-    }
+    submitStudentAssignment(assignmentId);
+    handleShowToast('Tugas praktikum berhasil dikumpulkan ke guru pengampu.');
     closeActionSheet();
 };
 
@@ -185,14 +191,10 @@ const handleGradeModal = (studentName) => {
 const handleSubmitGrade = (sheetData) => {
     const item = assignments.value[0];
     if (item) {
-        item.score = sheetData.score;
-        item.feedback = sheetData.feedback;
+        gradeStudentAssignment(item.id, sheetData.score, sheetData.feedback);
+        handleShowToast(`Nilai ${sheetData.score} berhasil disimpan & disinkronkan ke Leger Rombel.`);
     }
     closeActionSheet();
-};
-
-const toggleMaterialLock = (id) => {
-    materialsLock.value[id] = !materialsLock.value[id];
 };
 
 const handleShowToast = (message, title = 'Berhasil', type = 'success') => {
@@ -275,9 +277,16 @@ const adminPageTitle = computed(() => {
         <main class="flex-1 flex flex-col h-full overflow-hidden min-w-0 relative z-10 w-full">
             <!-- Dynamic Role Viewport -->
             <div class="flex-1 flex flex-col h-full overflow-hidden w-full">
+                <!-- 0. MODE PEMELIHARAAN (Kunci Akses Non-Admin Global) -->
+                <LmsMaintenanceScreen
+                    v-if="systemSettings.maintenanceMode && currentRoleKey !== 'admin'"
+                    :currentRole="currentRole"
+                    @switchToAdmin="selectRole('admin')"
+                />
+
                 <!-- 1. SISWA -->
                 <SiswaView
-                    v-if="currentRoleKey === 'siswa'"
+                    v-else-if="currentRoleKey === 'siswa'"
                     :role="currentRole"
                     :activeTab="activeTab"
                     :selectedDay="selectedDay"

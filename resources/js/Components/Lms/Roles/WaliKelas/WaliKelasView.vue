@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import LmsIcon from '@/Components/Lms/LmsIcon.vue';
 import LmsSkeletonLoader from '@/Components/Lms/LmsSkeletonLoader.vue';
 import LmsTopBar from '@/Components/Lms/LmsTopBar.vue';
+import { useLmsStore } from '@/Stores/lmsStateStore';
 import {
     calculateStudentAvg,
     checkStudentTuntas,
@@ -55,8 +56,8 @@ const pageTitle = computed(() => {
     return map[props.activeTab] || 'Perwalian Rombel X DKV 1';
 });
 
-// Reactive copy of students to allow interactive attendance input & counseling log additions
-const students = ref(JSON.parse(JSON.stringify(daftarSiswaPerwalian)));
+// Menggunakan state siswa terpusat dari useLmsStore (sinkron real-time dengan Kepsek & Guru)
+const { waliKelasStudents: students, updateStudentPresensi } = useLmsStore();
 
 // ========================================================
 // TAB 2: PRESENSI PAGI STATE & METHODS
@@ -86,27 +87,18 @@ const presensiCounters = computed(() => {
 });
 
 const setPresensiStatus = (studentId, status) => {
-    const target = students.value.find((s) => s.id === studentId);
-    if (target) {
-        target.presensiHariIni = status;
-        if (status === 'Hadir') {
-            target.keteranganPresensi = 'Hadir apel pagi';
-        } else if (status === 'Sakit' && !target.keteranganPresensi.includes('dokter')) {
-            target.keteranganPresensi = 'Sakit (Surat keterangan diverifikasi)';
-        } else if (status === 'Izin') {
-            target.keteranganPresensi = 'Izin keperluan keluarga';
-        } else if (status === 'Alpa') {
-            target.keteranganPresensi = 'Tanpa keterangan';
-        } else if (status === 'Terlambat') {
-            target.keteranganPresensi = 'Hadir terlambat apel pagi';
-        }
-    }
+    let ket = 'Hadir apel pagi';
+    if (status === 'Sakit') ket = 'Sakit (Surat keterangan diverifikasi)';
+    else if (status === 'Izin') ket = 'Izin keperluan keluarga';
+    else if (status === 'Alpa') ket = 'Tanpa keterangan';
+    else if (status === 'Terlambat') ket = 'Hadir terlambat apel pagi';
+
+    updateStudentPresensi(studentId, status, ket);
 };
 
 const markAllPresent = () => {
     students.value.forEach((s) => {
-        s.presensiHariIni = 'Hadir';
-        s.keteranganPresensi = 'Hadir apel pagi';
+        updateStudentPresensi(s.id, 'Hadir', 'Hadir apel pagi');
     });
     emit('showToast', 'Semua siswa (36 orang) ditandai Hadir pada apel pagi.');
 };

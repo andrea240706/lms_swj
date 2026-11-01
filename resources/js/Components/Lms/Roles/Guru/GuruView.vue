@@ -129,6 +129,21 @@ const currentDayEvents = computed(() => {
     return props.calendarEvents[dateStr] || null;
 });
 
+// Hanya hari libur resmi atau ujian yang ditampilkan langsung di bawah jadwal
+const isCrucialScheduleEvent = computed(() => {
+    return (
+        currentDayEvents.value &&
+        (currentDayEvents.value.type === 'holiday' ||
+            currentDayEvents.value.type === 'leave' ||
+            currentDayEvents.value.type === 'exam')
+    );
+});
+
+// Peringatan hari nasional / agenda sekolah lainnya ditempatkan terpisah
+const isGeneralNationalEvent = computed(() => {
+    return currentDayEvents.value && !isCrucialScheduleEvent.value;
+});
+
 const jadwalHariIni = computed(() => {
     const dayName = getDayLabel(props.selectedDay);
     return jadwalByDayName[dayName] || [];
@@ -184,8 +199,12 @@ const statusSesiLabel = (status) => {
                         <!-- CONTENT -->
                         <template v-else>
 
-                        <!-- 1. HERO: Sesi Aktif / Sesi Terdekat -->
-                        <div v-if="sesiAktif" class="rounded-[28px] p-5 relative overflow-hidden soft-shadow" :class="sesiAktif.heroBg">
+                        <!-- 1. HERO: Sesi Aktif / Sesi Terdekat (Ukuran Konsisten & Tidak Mengecil Saat Kosong) -->
+                        <div
+                            v-if="sesiAktif"
+                            class="rounded-[28px] p-5 relative overflow-hidden soft-shadow min-h-[224px] flex flex-col justify-between"
+                            :class="sesiAktif.heroBg"
+                        >
                             <!-- Top row -->
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-1.5 text-[11px] font-bold text-charcoal/80">
@@ -201,12 +220,14 @@ const statusSesiLabel = (status) => {
                             </div>
 
                             <!-- Mapel & Rombel -->
-                            <h3 class="text-[22px] font-extrabold text-charcoal mt-2 leading-tight">
-                                {{ sesiAktif.shortName }}
-                            </h3>
-                            <p class="text-xs font-semibold text-charcoal/75 mt-0.5">
-                                {{ sesiAktif.rombel }} • {{ sesiAktif.jam }}
-                            </p>
+                            <div>
+                                <h3 class="text-[22px] font-extrabold text-charcoal mt-2 leading-tight">
+                                    {{ sesiAktif.shortName }}
+                                </h3>
+                                <p class="text-xs font-semibold text-charcoal/75 mt-0.5">
+                                    {{ sesiAktif.rombel }} • {{ sesiAktif.jam }}
+                                </p>
+                            </div>
 
                             <!-- Stats row -->
                             <div class="flex items-center gap-3 mt-4">
@@ -248,13 +269,70 @@ const statusSesiLabel = (status) => {
                             <div class="absolute right-10 -bottom-10 w-16 h-16 rounded-full bg-white/10 pointer-events-none"></div>
                         </div>
 
-                        <!-- Empty state hari tanpa jadwal -->
-                        <div v-else class="rounded-[28px] p-6 bg-white border border-[#ECEAE4] soft-shadow text-center">
-                            <div class="w-14 h-14 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-                                <LmsIcon name="clock" className="w-6 h-6 text-subtext" />
+                        <!-- Empty state hari tanpa jadwal: Ukuran & layout tetap sama konsisten -->
+                        <div
+                            v-else
+                            class="rounded-[28px] p-5 relative overflow-hidden soft-shadow bg-hero-sage min-h-[224px] flex flex-col justify-between"
+                        >
+                            <!-- Top row -->
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-1.5 text-[11px] font-bold text-charcoal/80">
+                                    <span class="w-2 h-2 rounded-full bg-subtext"></span>
+                                    <span>Jadwal Mengajar • Bebas Jam Mengajar / Mandiri</span>
+                                </div>
+                                <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-white/90 text-charcoal border border-white/60 shadow-2xs">
+                                    {{ getDayLabel(selectedDay) }}, {{ selectedDay }} Okt
+                                </span>
                             </div>
-                            <h3 class="text-sm font-extrabold text-charcoal">Tidak Ada Jadwal Mengajar</h3>
-                            <p class="text-xs text-subtext mt-1">{{ getDayLabel(selectedDay) }} tidak ada sesi mengajar terjadwal.</p>
+
+                            <!-- Title & Subtitle -->
+                            <div>
+                                <h3 class="text-[22px] font-extrabold text-charcoal mt-2 leading-tight">
+                                    Tidak Ada Sesi Mengajar Aktif
+                                </h3>
+                                <p class="text-xs font-semibold text-charcoal/75 mt-0.5">
+                                    Hari {{ getDayLabel(selectedDay) }} tidak ada sesi mengajar terjadwal • Alokasi persiapan pembelajaran &amp; administrasi
+                                </p>
+                            </div>
+
+                            <!-- Stats row (3 kartu dengan dimensi & struktur yang persis sama) -->
+                            <div class="flex items-center gap-3 mt-4">
+                                <div class="flex-1 bg-white/80 rounded-2xl px-3.5 py-2.5">
+                                    <div class="text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">Status KBM</div>
+                                    <div class="text-base font-extrabold text-charcoal mt-0.5">Bebas Mengajar</div>
+                                </div>
+                                <div class="flex-1 bg-white/80 rounded-2xl px-3.5 py-2.5">
+                                    <div class="text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">Aktivitas Guru</div>
+                                    <div class="text-base font-extrabold text-charcoal mt-0.5">Penyusunan Modul</div>
+                                </div>
+                                <div class="flex-1 bg-white/80 rounded-2xl px-3.5 py-2.5">
+                                    <div class="text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">Ruang Kerja</div>
+                                    <div class="text-base font-extrabold text-charcoal mt-0.5">Ruang Guru SWJ</div>
+                                </div>
+                            </div>
+
+                            <!-- CTA Buttons (Tetap ada tombol navigasi sehingga tinggi dan posisi tombol persis sama) -->
+                            <div class="flex items-center gap-2 mt-4">
+                                <button
+                                    type="button"
+                                    @click="$emit('selectTab', 'mapel')"
+                                    class="px-4 py-2.5 rounded-full bg-charcoal text-white text-xs font-extrabold shadow-sm active:scale-95 transition-transform cursor-pointer flex items-center gap-1.5"
+                                >
+                                    <span>Kelola Perangkat Ajar</span>
+                                    <LmsIcon name="chevronRight" className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="$emit('selectTab', 'rekapNilai')"
+                                    class="px-3.5 py-2.5 rounded-full bg-white/90 text-charcoal text-xs font-bold cursor-pointer hover:bg-white border border-white/60 transition-colors shadow-2xs"
+                                >
+                                    Rekap Nilai Guru
+                                </button>
+                            </div>
+
+                            <!-- Decorative blobs -->
+                            <div class="absolute -right-6 -bottom-6 w-28 h-28 rounded-full bg-white/15 pointer-events-none"></div>
+                            <div class="absolute right-10 -bottom-10 w-16 h-16 rounded-full bg-white/10 pointer-events-none"></div>
                         </div>
 
                         <!-- 2. KAPSUL KALENDER JADWAL MINGGUAN -->
@@ -266,37 +344,41 @@ const statusSesiLabel = (status) => {
                             @selectDay="(d, date) => $emit('selectDay', d, date)"
                         />
 
-                        <!-- Academic Notice Banner in Guru View -->
+                        <!-- Academic Notice Banner in Guru View (HANYA untuk Hari Libur Resmi atau Pekan Ujian UTS/UAS) -->
                         <div
-                            v-if="currentDayEvents"
+                            v-if="isCrucialScheduleEvent"
                             class="rounded-[22px] p-4 mt-4 border flex items-center gap-3.5"
                             :class="
                                 currentDayEvents.type === 'holiday' || currentDayEvents.type === 'leave'
                                     ? 'bg-rose-50/80 border-rose-200'
-                                    : currentDayEvents.type === 'exam'
-                                    ? 'bg-purple-50/80 border-purple-200'
-                                    : 'bg-sky-50/80 border-sky-200'
+                                    : 'bg-purple-50/80 border-purple-200'
                             "
                         >
-                            <span class="w-9 h-9 rounded-2xl flex items-center justify-center shrink-0" :class="currentDayEvents.type === 'holiday' ? 'bg-rose-100 text-rose-700' : currentDayEvents.type === 'exam' ? 'bg-purple-100 text-purple-700' : 'bg-sky-100 text-sky-700'">
-                                <LmsIcon :name="currentDayEvents.type === 'holiday' ? 'clock' : currentDayEvents.type === 'exam' ? 'task' : 'book'" className="w-4 h-4" />
+                            <span class="w-9 h-9 rounded-2xl flex items-center justify-center shrink-0" :class="currentDayEvents.type === 'holiday' || currentDayEvents.type === 'leave' ? 'bg-rose-100 text-rose-700' : 'bg-purple-100 text-purple-700'">
+                                <LmsIcon :name="currentDayEvents.type === 'holiday' || currentDayEvents.type === 'leave' ? 'clock' : 'task'" className="w-4 h-4" />
                             </span>
                             <div class="flex-1 min-w-0">
                                 <div class="text-[10px] font-bold uppercase tracking-wider text-charcoal/70">
-                                    {{ currentDayEvents.type === 'holiday' ? 'Libur Resmi (SKB 3 Menteri)' : currentDayEvents.type === 'exam' ? 'Agenda Ujian Kejuruan' : 'Agenda Kalender Pendidikan' }}
+                                    {{ currentDayEvents.type === 'holiday' || currentDayEvents.type === 'leave' ? 'Libur Resmi (SKB 3 Menteri)' : 'Agenda Ujian Kejuruan' }}
                                 </div>
                                 <h4 class="text-xs font-extrabold text-charcoal mt-0.5">{{ currentDayEvents.name }}</h4>
                                 <p class="text-[11px] text-subtext mt-0.5">{{ currentDayEvents.description }}</p>
                             </div>
                         </div>
 
-                        <!-- 3. SEMUA SESI HARI INI (jika > 1) -->
-                        <div v-if="jadwalHariIni.length > 1">
+                        <!-- 3. JADWAL SESI MENGAJAR HARI INI (Konsisten & Tetap Berspace Saat Kosong) -->
+                        <div class="mt-5">
                             <div class="flex items-center justify-between mb-3">
-                                <h3 class="text-[15px] font-extrabold text-charcoal">Semua Sesi Hari Ini</h3>
-                                <span class="text-[11px] font-bold text-subtext">{{ jadwalHariIni.length }} Sesi</span>
+                                <h3 class="text-[15px] font-extrabold text-charcoal">
+                                    Jadwal Sesi Mengajar — {{ getDayLabel(selectedDay) }}
+                                </h3>
+                                <span class="text-[11px] font-bold text-subtext">
+                                    {{ jadwalHariIni.length > 0 ? `${jadwalHariIni.length} Sesi` : 'Jadwal Kosong' }}
+                                </span>
                             </div>
-                            <div class="space-y-2.5">
+
+                            <!-- Jika Ada Jadwal -->
+                            <div v-if="jadwalHariIni.length > 0" class="space-y-2.5">
                                 <div
                                     v-for="sesi in jadwalHariIni"
                                     :key="sesi.id"
@@ -317,6 +399,18 @@ const statusSesiLabel = (status) => {
                                     </div>
                                     <LmsIcon name="chevronRight" className="w-4 h-4 text-subtext shrink-0" />
                                 </div>
+                            </div>
+
+                            <!-- Jika Tidak Ada Jadwal: Space yang setara & keterangan kosong yang rapi -->
+                            <div
+                                v-else
+                                class="bg-white rounded-[24px] p-6 border border-[#ECEAE4] soft-shadow flex flex-col items-center justify-center min-h-[160px] text-center"
+                            >
+                                <div class="w-10 h-10 rounded-full bg-canvas border border-[#ECEAE4] flex items-center justify-center mb-2.5 text-subtext">
+                                    <LmsIcon name="clock" className="w-4 h-4 text-subtext" />
+                                </div>
+                                <div class="text-xs font-bold text-charcoal">Tidak Ada Jadwal Mengajar</div>
+                                <p class="text-[11px] text-subtext mt-0.5">Jadwal kosong pada hari {{ getDayLabel(selectedDay) }}.</p>
                             </div>
                         </div>
 
@@ -394,6 +488,23 @@ const statusSesiLabel = (status) => {
                                         <LmsIcon name="chevronRight" className="w-4 h-4 text-subtext shrink-0" />
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Agenda & Peringatan Nasional (Ditempatkan di bagian terpisah agar tidak mengganggu alur jadwal) -->
+                        <div
+                            v-if="isGeneralNationalEvent"
+                            class="mt-5 bg-sky-50/70 rounded-[24px] p-4 sm:p-5 border border-sky-200 soft-shadow flex items-center gap-3.5"
+                        >
+                            <div class="w-10 h-10 rounded-2xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">
+                                <LmsIcon name="book" className="w-5 h-5" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-[10px] font-bold uppercase tracking-wider text-sky-800">
+                                    Agenda / Peringatan Nasional
+                                </div>
+                                <h4 class="text-xs sm:text-sm font-extrabold text-charcoal mt-0.5">{{ currentDayEvents.name }}</h4>
+                                <p class="text-[11px] text-subtext mt-0.5">{{ currentDayEvents.description }}</p>
                             </div>
                         </div>
                         </template>

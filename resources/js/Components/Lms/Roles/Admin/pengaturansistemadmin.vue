@@ -1,11 +1,11 @@
 <script setup>
 import { ref } from 'vue';
 import LmsIcon from '@/Components/Lms/LmsIcon.vue';
-import { initialSystemSettings } from './adminData';
+import { useLmsStore } from '@/Stores/lmsStateStore';
 
 const emit = defineEmits(['showToast']);
 
-const systemSettings = ref(JSON.parse(JSON.stringify(initialSystemSettings)));
+const { systemSettings, toggleMaintenanceMode } = useLmsStore();
 const isBackingUp = ref(false);
 
 const handleRunBackup = () => {
@@ -15,18 +15,18 @@ const handleRunBackup = () => {
         isBackingUp.value = false;
         const now = new Date();
         const timeStr = `Hari ini, ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')} WIB`;
-        systemSettings.value.lastBackupTime = timeStr;
+        systemSettings.lastBackupTime = timeStr;
         emit('showToast', 'Pencadangan basis data (snapshot SQL) berhasil disimpan.');
     }, 1200);
 };
 
 const handleToggleMaintenance = () => {
-    systemSettings.value.maintenanceMode = !systemSettings.value.maintenanceMode;
+    const isNowActive = toggleMaintenanceMode();
     emit(
         'showToast',
-        systemSettings.value.maintenanceMode
-            ? 'PERINGATAN: Mode Pemeliharaan aktif. Akses siswa dan guru dikunci sementara.'
-            : 'Mode Pemeliharaan dinonaktifkan. Seluruh akses sistem normal kembali.'
+        isNowActive
+            ? 'PERINGATAN: Mode Pemeliharaan aktif. Akses siswa, guru, wali kelas, & kepsek terkunci.'
+            : 'Mode Pemeliharaan dinonaktifkan. Akses seluruh peran normal kembali.'
     );
 };
 </script>

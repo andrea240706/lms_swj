@@ -55,6 +55,7 @@ export const guruMapelList = [
                     { id: 4, name: 'Fajar Nugraha', nisn: '008492145', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&auto=format&fit=crop&q=80', submittedAt: null, status: 'Belum Kumpul', submittedFile: null, score: null, grade: '-', feedback: '', gradedAt: null },
                 ],
             },
+
             {
                 id: 3, number: 3,
                 title: 'Database Migration, Seeder & Relasi Eloquent ORM',

@@ -4,6 +4,8 @@ import LmsIcon from '@/Components/Lms/LmsIcon.vue';
 import LmsSkeletonLoader from '@/Components/Lms/LmsSkeletonLoader.vue';
 import LmsTopBar from '@/Components/Lms/LmsTopBar.vue';
 import { guruMapelList } from './mapelGuruData';
+import { useLmsStore } from '@/Stores/lmsStateStore';
+import { downloadExcel } from '@/Components/Lms/Roles/Kepsek/exportUtils';
 import { notify } from '@/Utils/notify';
 
 const props = defineProps({
@@ -119,6 +121,45 @@ const avgRingColor = (avg, kkm) => {
     if (avg >= kkm + 10) return 'bg-sage-light text-sage-dark';
     if (avg >= kkm) return 'bg-sky-light text-sky-dark';
     return 'bg-blossom-light text-blossom-dark';
+};
+
+// State terpusat dari useLmsStore (sinkron real-time dengan Leger Nilai Wali Kelas)
+const { waliKelasStudents } = useLmsStore();
+
+const syncGradesToHomeroom = () => {
+    if (!selectedMapel.value) return;
+    const mapelKey = selectedMapel.value.id === 'pwpb' ? 'dkv' : 'foto';
+    allStudents.value.forEach((st) => {
+        const target = waliKelasStudents.value.find((ws) =>
+            ws.name.toLowerCase().includes(st.name.toLowerCase()) || ws.id === st.id
+        );
+        if (target && st.avg !== null) {
+            target.grades[mapelKey] = st.avg;
+        }
+    });
+    showToast(`Nilai ${selectedMapel.value.shortName} berhasil disinkronkan langsung ke Leger Wali Kelas!`);
+};
+
+const handleExportExcel = () => {
+    if (!selectedMapel.value) return;
+    const headers = ['No', 'Nama Siswa', 'NISN', 'Tugas Masuk', 'Tugas Kosong', 'Nilai Rata-rata', 'Predikat', 'Status KKM'];
+    const rows = allStudents.value.map((s, idx) => [
+        idx + 1,
+        s.name,
+        s.nisn,
+        `${s.submitted} Tugas`,
+        `${s.notSubmitted} Tugas`,
+        s.avg ?? '–',
+        s.grade,
+        s.avg === null ? 'Belum Tuntas' : s.tuntas ? 'Tuntas' : 'Remedial',
+    ]);
+    downloadExcel(
+        `Rekap_Nilai_${selectedMapel.value.shortName.replace(/\s+/g, '_')}.xls`,
+        `REKAPITULASI NILAI AKADEMIK — ${selectedMapel.value.name.toUpperCase()}`,
+        headers,
+        rows
+    );
+    showToast('Berkas Excel Rekapitulasi Nilai berhasil diunduh.');
 };
 
 // Toast via Laravel Notify
@@ -274,15 +315,28 @@ const showToast = (msg, type = 'success', title = 'Berhasil') => {
                             {{ selectedMapel?.rombel.join(', ') }} • KKM {{ selectedMapel?.kkm }}
                         </span>
                     </div>
-                    <!-- Export Button -->
-                    <button
-                        type="button"
-                        @click="showToast('Ekspor rekap nilai ke Excel akan segera tersedia.')"
-                        class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-2xl bg-charcoal text-white text-xs font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0"
-                    >
-                        <LmsIcon name="download" className="w-3.5 h-3.5" />
-                        Ekspor Excel
-                    </button>
+                    <!-- Action Buttons: Sinkron ke Leger Wali Kelas & Ekspor Excel Nyata -->
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button
+                            type="button"
+                            @click="syncGradesToHomeroom"
+                            class="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9] text-xs font-bold hover:bg-[#C8E6C9] active:scale-95 transition-all cursor-pointer shadow-2xs"
+                            title="Kirim dan sinkronkan nilai mapel ini langsung ke Leger Rombel Wali Kelas"
+                        >
+                            <LmsIcon name="task" className="w-3.5 h-3.5 text-[#2E7D32]" />
+                            <span class="hidden sm:inline">Kirim ke Leger Wali Kelas</span>
+                            <span class="sm:hidden">Kirim Leger</span>
+                        </button>
+                        <button
+                            type="button"
+                            @click="handleExportExcel"
+                            class="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-charcoal text-white text-xs font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs"
+                            title="Unduh rekapitulasi nilai resmi format Excel"
+                        >
+                            <LmsIcon name="download" className="w-3.5 h-3.5 text-white" />
+                            <span>Ekspor Excel</span>
+                        </button>
+                    </div>
                 </div>
             </header>
 
