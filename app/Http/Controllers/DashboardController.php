@@ -78,12 +78,12 @@ class DashboardController extends Controller
                 'userSub' => 'Kepala SMKN 1 Nusantara',
                 'avatar' => 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
                 'heroStyle' => 'hero-amber',
-                'focusNote' => 'Monitoring keterlaksanaan KBM makro, analitik jurusan, & unduh PDF resmi.',
+                'focusNote' => 'Supervisi KBM realtime, evaluasi kinerja mengajar guru, & pusat laporan resmi.',
                 'tabs' => [
-                    ['id' => 'home', 'label' => 'Home', 'icon' => 'home'],
-                    ['id' => 'jurusan', 'label' => 'Jurusan', 'icon' => 'chart'],
+                    ['id' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'home'],
                     ['id' => 'kbm', 'label' => 'KBM', 'icon' => 'book'],
-                    ['id' => 'ekspor', 'label' => 'Ekspor', 'icon' => 'download'],
+                    ['id' => 'kinerja', 'label' => 'Kinerja Guru', 'icon' => 'user'],
+                    ['id' => 'laporan', 'label' => 'Laporan', 'icon' => 'download'],
                 ],
             ],
             'admin' => [

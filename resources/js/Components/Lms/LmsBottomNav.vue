@@ -23,6 +23,10 @@ const getTabLabel = (t) => {
 
 const isTabActive = (t) => {
     if (props.activeTab === t.id) return true;
+    if (t.id === 'dashboard' && (props.activeTab === 'home' || props.activeTab === 'dashboard')) return true;
+    if (t.id === 'home' && (props.activeTab === 'home' || props.activeTab === 'dashboard')) return true;
+    if (t.id === 'kinerja' && (props.activeTab === 'jurusan' || props.activeTab === 'kinerja')) return true;
+    if (t.id === 'laporan' && (props.activeTab === 'ekspor' || props.activeTab === 'laporan')) return true;
     if (t.id === 'master' && props.activeTab.startsWith('master_')) return true;
     if (t.id === 'penugasan' && props.activeTab.startsWith('penugasan_')) return true;
     if ((props.activeTab === 'mapel' || props.activeTab === 'materi') && (t.id === 'mapel' || t.id === 'materi')) {
