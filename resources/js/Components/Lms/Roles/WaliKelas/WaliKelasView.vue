@@ -296,18 +296,9 @@ const getGradeBadgeClass = (score, kkm) => {
                     <!-- ======================================================== -->
                     <div v-if="activeTab === 'home'" class="space-y-5">
                         <!-- Hero Banner: Rombel X DKV 1 -->
-                        <div class="hero-sky rounded-[28px] p-5 soft-shadow relative overflow-hidden">
+                        <div class="hero-sky rounded-[28px] py-7 px-6 sm:py-8 sm:px-8 soft-shadow relative overflow-hidden flex flex-col justify-center min-h-[115px]">
                             <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div>
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <span class="bg-white/95 text-charcoal px-3 py-1 rounded-full text-[11px] font-black shadow-2xs">
-                                            Wali Kelas • {{ rombelInfo.name }}
-                                        </span>
-                                        <span class="text-xs font-bold text-sky-dark flex items-center gap-1.5">
-                                            <span class="w-2 h-2 rounded-full bg-[#2E7D32] animate-pulse"></span>
-                                            Apel Pagi: 34 Hadir, 1 Sakit, 1 Alpa
-                                        </span>
-                                    </div>
                                     <h2 class="text-[22px] sm:text-[24px] font-black text-charcoal leading-tight">
                                         Pembinaan Rombel {{ rombelInfo.name }}
                                     </h2>
@@ -958,12 +949,9 @@ const getGradeBadgeClass = (score, kkm) => {
                     <!-- ======================================================== -->
                     <div v-else-if="activeTab === 'rekapNilai'" class="space-y-4">
                         <!-- Top Summary Card -->
-                        <div class="hero-sky rounded-[28px] p-5 soft-shadow flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="hero-sky rounded-[28px] py-7 px-6 sm:py-8 sm:px-8 soft-shadow relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4 min-h-[115px]">
                             <div>
-                                <span class="bg-white/95 text-charcoal px-3 py-1 rounded-full text-[10px] font-black shadow-2xs">
-                                    Leger Rombel • 7 Mata Pelajaran
-                                </span>
-                                <h3 class="text-xl font-black text-charcoal mt-2">
+                                <h3 class="text-xl font-black text-charcoal">
                                     Buku Leger Nilai Rombel X DKV 1
                                 </h3>
                                 <p class="text-xs text-charcoal/80 mt-0.5">

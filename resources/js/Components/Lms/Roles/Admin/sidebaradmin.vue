@@ -54,7 +54,6 @@ const adminSections = [
     {
         title: 'Informasi & Sistem',
         tabs: [
-            { id: 'pengumuman', label: 'Pengumuman', icon: 'task' },
             { id: 'pengaturansistem', label: 'Pengaturan Sistem', icon: 'settings' },
         ],
     },

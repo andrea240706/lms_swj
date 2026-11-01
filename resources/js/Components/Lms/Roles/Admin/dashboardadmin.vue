@@ -18,36 +18,14 @@ const jadwalMingguan = ref(JSON.parse(JSON.stringify(initialJadwalMingguan)));
 <template>
     <div class="space-y-5">
         <!-- Hero Banner: Operational Overview -->
-        <div class="hero-lavender rounded-[28px] p-5 soft-shadow relative overflow-hidden">
-            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="bg-white/95 text-charcoal px-3 py-1 rounded-full text-[11px] font-black shadow-2xs">
-                            Operator Sekolah • Tata Usaha
-                        </span>
-                        <span class="text-xs font-bold text-lavender-dark flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-[#2E7D32] animate-pulse"></span>
-                            Dapodik Terkoneksi: {{ adminStats.terakhirSinkronDapodik }}
-                        </span>
-                    </div>
-                    <h2 class="text-[22px] sm:text-[24px] font-black text-charcoal leading-tight">
-                        Pusat Operasional Akademik
-                    </h2>
-                    <p class="text-xs text-charcoal/80 mt-1 max-w-xl">
-                        Tahun Ajaran {{ adminStats.tahunAjaranAktif }} • Pengelolaan 1.240 Siswa, 68 Tenaga Pendidik, &amp; 42 Rombel
-                    </p>
-                </div>
-
-                <div class="flex items-center gap-2 self-start md:self-auto shrink-0">
-                    <button
-                        type="button"
-                        @click="$emit('showToast', 'Sinkronisasi Dapodik berhasil diproses. Seluruh data siswa dan rombel terverifikasi.')"
-                        class="px-4 py-2.5 rounded-2xl bg-charcoal text-white text-xs font-extrabold hover:bg-black active:scale-95 transition-all shadow-sm cursor-pointer flex items-center gap-2"
-                    >
-                        <LmsIcon name="clock" className="w-4 h-4 text-white" />
-                        <span>Sinkron Dapodik</span>
-                    </button>
-                </div>
+        <div class="hero-lavender rounded-[28px] py-7 px-6 sm:py-8 sm:px-8 soft-shadow relative overflow-hidden flex flex-col justify-center min-h-[115px]">
+            <div class="relative z-10">
+                <h2 class="text-[22px] sm:text-[25px] font-black text-charcoal leading-tight">
+                    Pusat Operasional Akademik
+                </h2>
+                <p class="text-xs sm:text-[13px] text-charcoal/80 mt-1.5 max-w-xl leading-relaxed">
+                    Tahun Ajaran {{ adminStats.tahunAjaranAktif }} • Pengelolaan 1.240 Siswa, 68 Tenaga Pendidik, &amp; 42 Rombel
+                </p>
             </div>
         </div>
 

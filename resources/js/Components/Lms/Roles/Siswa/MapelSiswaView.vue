@@ -260,22 +260,12 @@ const submitHomework = () => {
                 <div class="px-4 sm:px-6 lg:px-8 xl:px-10 shrink-0">
                     <div class="w-full max-w-[1800px] mx-auto">
                         <!-- Semester Header Banner -->
-                    <div class="hero-sage rounded-[24px] sm:rounded-[28px] p-4 sm:p-5 relative overflow-hidden soft-shadow mb-3">
+                    <div class="hero-sage rounded-[28px] py-7 px-6 sm:py-8 sm:px-8 soft-shadow mb-3 relative overflow-hidden flex flex-col justify-center min-h-[115px]">
                         <div class="relative z-10">
-                            <div class="flex items-center gap-2">
-                                <span
-                                    class="inline-block bg-white/90 text-charcoal px-3 py-1 rounded-full text-[11px] font-extrabold shadow-2xs"
-                                >
-                                    Semester Ganjil 2026/2027
-                                </span>
-                                <span class="text-[11px] font-bold text-sage-dark">
-                                    • 5 Mapel Terdaftar
-                                </span>
-                            </div>
-                            <h2 class="text-[18px] sm:text-[20px] font-extrabold text-charcoal mt-1.5 leading-tight">
+                            <h2 class="text-[20px] sm:text-[23px] font-black text-charcoal leading-tight">
                                 Kurikulum Merdeka Kejuruan
                             </h2>
-                            <p class="text-xs font-medium text-charcoal/80 mt-1 max-w-[85%] line-clamp-2">
+                            <p class="text-xs sm:text-[13px] text-charcoal/80 mt-1.5 max-w-xl leading-relaxed">
                                 Pilih mata pelajaran di bawah untuk melihat modul belajar, mengumpulkan tugas, nilai, dan video materi per pertemuan.
                             </p>
                         </div>

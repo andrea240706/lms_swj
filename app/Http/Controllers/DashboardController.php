@@ -94,7 +94,7 @@ class DashboardController extends Controller
                 'userSub' => 'Pengelola Sistem & Akademik Sekolah',
                 'avatar' => 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
                 'heroStyle' => 'hero-lavender',
-                'focusNote' => 'Kelola akun civitas, data master, plotting jadwal, pengumuman & pengaturan sistem.',
+                'focusNote' => 'Kelola akun civitas, data master, plotting jadwal, dan pengaturan sistem.',
                 'sections' => [
                     [
                         'title' => 'Menu Utama',
@@ -123,7 +123,6 @@ class DashboardController extends Controller
                     [
                         'title' => 'Informasi & Sistem',
                         'tabs' => [
-                            ['id' => 'pengumuman', 'label' => 'Pengumuman', 'icon' => 'task'],
                             ['id' => 'pengaturansistem', 'label' => 'Pengaturan Sistem', 'icon' => 'settings'],
                         ],
                     ],
@@ -138,7 +137,6 @@ class DashboardController extends Controller
                     ['id' => 'jadwalpelajaran', 'label' => 'Jadwal Pelajaran', 'icon' => 'clock'],
                     ['id' => 'plottingguru', 'label' => 'Plotting Guru Mapel', 'icon' => 'user'],
                     ['id' => 'walikelas', 'label' => 'Penetapan Wali Kelas', 'icon' => 'shield'],
-                    ['id' => 'pengumuman', 'label' => 'Pengumuman', 'icon' => 'task'],
                     ['id' => 'pengaturansistem', 'label' => 'Pengaturan Sistem', 'icon' => 'settings'],
                 ],
             ],

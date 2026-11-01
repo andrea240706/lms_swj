@@ -86,14 +86,11 @@ const kbmSessions = [
                     <!-- ============================================ -->
                     <div v-if="activeTab === 'home'" class="space-y-5">
                         <!-- Hero Card: Executive Macro Indicators -->
-                        <div class="hero-amber rounded-[28px] p-5 soft-shadow">
-                            <span class="bg-white px-3 py-1 rounded-full text-[11px] font-extrabold text-charcoal shadow-2xs">
-                                Indikator KBM Hari Ini
-                            </span>
-                            <h3 class="text-[22px] font-extrabold text-charcoal mt-3">
+                        <div class="hero-amber rounded-[28px] py-7 px-6 sm:py-8 sm:px-8 soft-shadow relative overflow-hidden flex flex-col justify-center min-h-[115px]">
+                            <h3 class="text-[22px] sm:text-[24px] font-black text-charcoal leading-tight">
                                 96.2% Sesi Terlaksana
                             </h3>
-                            <p class="text-xs text-charcoal/75 mt-1">
+                            <p class="text-xs sm:text-[13px] text-charcoal/80 mt-1.5 max-w-xl leading-relaxed">
                                 42 Rombel Aktif • Kehadiran Siswa Makro: 95.8%
                             </p>
                         </div>
@@ -158,12 +155,9 @@ const kbmSessions = [
                     <!-- TAB 2: JURUSAN (DETAIL PROGRAM KEAHLIAN)    -->
                     <!-- ============================================ -->
                     <div v-else-if="activeTab === 'jurusan'" class="space-y-4">
-                        <div class="hero-amber rounded-[26px] p-4 soft-shadow">
-                            <span class="bg-white px-2.5 py-0.5 rounded-full text-[10px] font-extrabold text-charcoal">
-                                Analitik Vokasi
-                            </span>
-                            <h3 class="text-lg font-extrabold text-charcoal mt-2">Komparasi Antar Jurusan</h3>
-                            <p class="text-xs text-charcoal/75 mt-0.5">Pemetaan rata-rata nilai, kehadiran, dan rasio guru per konsentrasi keahlian.</p>
+                        <div class="hero-amber rounded-[28px] py-7 px-6 sm:py-8 sm:px-8 soft-shadow relative overflow-hidden flex flex-col justify-center min-h-[115px]">
+                            <h3 class="text-[20px] sm:text-[23px] font-black text-charcoal leading-tight">Komparasi Antar Jurusan</h3>
+                            <p class="text-xs sm:text-[13px] text-charcoal/80 mt-1.5 max-w-xl leading-relaxed">Pemetaan rata-rata nilai, kehadiran, dan rasio guru per konsentrasi keahlian.</p>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
@@ -235,9 +229,9 @@ const kbmSessions = [
                     <!-- TAB 4: EKSPOR (LAPORAN & DOKUMEN RESMI)     -->
                     <!-- ============================================ -->
                     <div v-else-if="activeTab === 'ekspor'" class="space-y-4">
-                        <div class="hero-amber rounded-[26px] p-4 soft-shadow">
-                            <h3 class="text-base font-extrabold text-charcoal">Arsip & Dokumen Resmi Sekolah</h3>
-                            <p class="text-xs text-charcoal/75 mt-0.5">Unduh rekapitulasi nilai dan kehadiran semester untuk keperluan akreditasi & dinas.</p>
+                        <div class="hero-amber rounded-[28px] py-7 px-6 sm:py-8 sm:px-8 soft-shadow relative overflow-hidden flex flex-col justify-center min-h-[115px]">
+                            <h3 class="text-[20px] sm:text-[23px] font-black text-charcoal leading-tight">Arsip & Dokumen Resmi Sekolah</h3>
+                            <p class="text-xs sm:text-[13px] text-charcoal/80 mt-1.5 max-w-xl leading-relaxed">Unduh rekapitulasi nilai dan kehadiran semester untuk keperluan akreditasi & dinas.</p>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">

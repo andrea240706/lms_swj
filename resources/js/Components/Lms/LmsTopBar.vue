@@ -103,7 +103,6 @@ defineEmits(['openMenu', 'openProfile', 'openNotification', 'toggleSidebar', 'op
             <div class="flex items-center gap-2.5 sm:gap-3 shrink-0">
                 <!-- Academic Term Tag for Desktop -->
                 <div class="hidden md:flex items-center gap-2 bg-white px-3.5 py-2 rounded-2xl border border-[#ECEAE4] soft-shadow text-xs font-bold text-charcoal">
-                    <span class="w-2 h-2 rounded-full bg-[#4CAF50] animate-pulse"></span>
                     <span>T.A 2026/2027 Ganjil</span>
                 </div>
 

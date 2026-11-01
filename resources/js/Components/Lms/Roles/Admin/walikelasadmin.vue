@@ -59,13 +59,13 @@ const saveWali = () => {
 <template>
     <div class="space-y-4">
         <!-- Hero Header -->
-        <div class="hero-lavender rounded-[26px] p-4 soft-shadow flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="hero-lavender rounded-[28px] py-7 px-6 sm:py-8 sm:px-8 soft-shadow relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-h-[115px]">
             <div>
-                <h3 class="text-base font-extrabold text-charcoal">Status Penetapan Pembina Rombel (Wali Kelas)</h3>
-                <p class="text-xs text-charcoal/75 mt-0.5">Penetapan guru wali kelas per rombel aktif tahun ajaran berjalan.</p>
+                <h3 class="text-[20px] sm:text-[23px] font-black text-charcoal leading-tight">Status Penetapan Pembina Rombel (Wali Kelas)</h3>
+                <p class="text-xs sm:text-[13px] text-charcoal/80 mt-1.5 max-w-xl leading-relaxed">Penetapan guru wali kelas per rombel aktif tahun ajaran berjalan.</p>
             </div>
             <div class="flex items-center gap-2">
-                <span class="px-3 py-1 rounded-full bg-white text-charcoal text-xs font-black shadow-2xs">
+                <span class="px-3.5 py-1.5 rounded-full bg-white text-charcoal text-xs font-black shadow-2xs">
                     {{ plottingWali.length }} Rombel Terplot
                 </span>
             </div>

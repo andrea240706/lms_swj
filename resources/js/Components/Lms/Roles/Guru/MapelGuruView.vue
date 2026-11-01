@@ -501,18 +501,10 @@ const gradeFromScore = (score) => {
                     <LmsSkeletonLoader v-if="isLoading" type="mapel-list" :cards="4" />
                     <template v-else>
                     <!-- Header Banner -->
-                    <div class="hero-blossom rounded-[26px] p-5 soft-shadow mb-4 relative overflow-hidden">
+                    <div class="hero-blossom rounded-[28px] py-7 px-6 sm:py-8 sm:px-8 soft-shadow mb-4 relative overflow-hidden flex flex-col justify-center min-h-[115px]">
                         <div class="relative z-10">
-                            <div class="flex items-center gap-2 mb-1.5">
-                                <span class="inline-block bg-white/90 text-charcoal px-3 py-1 rounded-full text-[11px] font-extrabold shadow-2xs">
-                                    Semester Ganjil 2026/2027
-                                </span>
-                                <span class="text-[11px] font-bold text-blossom-dark">
-                                    • {{ mapelList.length }} Mapel Diampu
-                                </span>
-                            </div>
-                            <h2 class="text-[19px] font-extrabold text-charcoal leading-tight">Kelola Mapel & Penilaian</h2>
-                            <p class="text-xs text-charcoal/75 mt-1 max-w-[80%]">
+                            <h2 class="text-[20px] sm:text-[23px] font-black text-charcoal leading-tight">Kelola Mapel & Penilaian</h2>
+                            <p class="text-xs sm:text-[13px] text-charcoal/80 mt-1.5 max-w-xl leading-relaxed">
                                 Pilih mata pelajaran untuk mengelola materi, tugas, kunci bab, dan nilai siswa per pertemuan.
                             </p>
                         </div>

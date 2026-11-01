@@ -18,7 +18,6 @@ import matapelajaranadmin from '@/Components/Lms/Roles/Admin/matapelajaranadmin.
 import jadwalpelajaranadmin from '@/Components/Lms/Roles/Admin/jadwalpelajaranadmin.vue';
 import plottingguruadmin from '@/Components/Lms/Roles/Admin/plottingguruadmin.vue';
 import walikelasadmin from '@/Components/Lms/Roles/Admin/walikelasadmin.vue';
-import pengumumanadmin from '@/Components/Lms/Roles/Admin/pengumumanadmin.vue';
 import pengaturansistemadmin from '@/Components/Lms/Roles/Admin/pengaturansistemadmin.vue';
 import LmsTopBar from '@/Components/Lms/LmsTopBar.vue';
 import { notify } from '@/Utils/notify';
@@ -225,7 +224,6 @@ const adminPageTitle = computed(() => {
         penugasan_guru: 'Penugasan • Plotting Guru Pengampu Mapel',
         walikelas: 'Penugasan • Penetapan Wali Kelas',
         penugasan_wali: 'Penugasan • Penetapan Wali Kelas',
-        pengumuman: 'Pengumuman & Broadcast Sekolah',
         pengaturansistem: 'Pengaturan Sistem & Pemeliharaan LMS',
         sistem: 'Pengaturan Sistem & Pemeliharaan LMS',
     };
@@ -399,10 +397,6 @@ const adminPageTitle = computed(() => {
                             />
                             <walikelasadmin
                                 v-else-if="activeTab === 'walikelas' || activeTab === 'penugasan_wali'"
-                                @showToast="handleShowToast"
-                            />
-                            <pengumumanadmin
-                                v-else-if="activeTab === 'pengumuman'"
                                 @showToast="handleShowToast"
                             />
                             <pengaturansistemadmin
