@@ -56,4 +56,9 @@ class TeachingAssignment extends Model
     {
         return $this->hasMany(Schedule::class);
     }
+
+    public function meetings(): HasMany
+    {
+        return $this->hasMany(Meeting::class)->orderBy('number');
+    }
 }

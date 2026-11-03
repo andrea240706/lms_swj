@@ -36,7 +36,19 @@ class MaterialPolicy
             return true;
         }
 
-        return $user->isStudent() && $material->is_published;
+        if ($user->isStudent()) {
+            if (! $material->is_published) {
+                return false;
+            }
+
+            if ($material->available_from !== null && now()->lt($material->available_from)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**

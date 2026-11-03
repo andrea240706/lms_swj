@@ -27,21 +27,24 @@ class StoreMaterialRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'meeting_id' => ['nullable', 'integer', 'exists:meetings,id'],
             'mapel_key' => ['required', 'string', 'max:50', 'alpha_dash'],
             'meeting_number' => ['required', 'integer', 'min:1', 'max:100'],
             'title' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:2000'],
+            'content_html' => ['nullable', 'string'],
+            'link_url' => ['nullable', 'url', 'max:2048'],
+            'available_from' => ['nullable', 'date'],
+            'available_until' => ['nullable', 'date'],
             'is_published' => ['sometimes', 'boolean'],
             'files' => [
-                'required',
+                'nullable',
                 'array',
-                'min:1',
-                'max:'.config('materials.max_files_per_material'),
+                'max:'.config('materials.max_files_per_material', 10),
             ],
             'files.*' => [
-                'required',
                 'file',
-                'max:'.config('materials.max_file_size_kb'),
+                'max:'.config('materials.max_file_size_kb', 51200),
                 new AllowedMaterialFile,
             ],
         ];
@@ -56,6 +59,17 @@ class StoreMaterialRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
+                $hasFiles = $this->hasFile('files');
+                $hasLink = ! empty($this->input('link_url'));
+                $hasContent = ! empty(trim(strip_tags((string) $this->input('content_html'))));
+
+                if (! $hasFiles && ! $hasLink && ! $hasContent) {
+                    $validator->errors()->add(
+                        'materi_source',
+                        'Harap unggah minimal 1 berkas, masukkan tautan materi, atau tuliskan materi melalui editor.'
+                    );
+                }
+
                 if ($validator->errors()->has('files') || $validator->errors()->has('files.*')) {
                     return;
                 }
@@ -65,10 +79,10 @@ class StoreMaterialRequest extends FormRequest
                     fn (UploadedFile $file): int => $file->getSize()
                 );
 
-                if ($totalSize > config('materials.max_total_size_kb') * 1024) {
+                if ($totalSize > config('materials.max_total_size_kb', 204800) * 1024) {
                     $validator->errors()->add(
                         'files',
-                        'Total ukuran file melebihi batas '.config('materials.max_total_size_kb').' KB.'
+                        'Total ukuran file melebihi batas '.config('materials.max_total_size_kb', 204800).' KB.'
                     );
                 }
             },

@@ -1,9 +1,13 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
+import axios from 'axios';
 import LmsIcon from '@/Components/Lms/LmsIcon.vue';
 import LmsSkeletonLoader from '@/Components/Lms/LmsSkeletonLoader.vue';
 import LmsTopBar from '@/Components/Lms/LmsTopBar.vue';
+import LmsVideoEmbed from '@/Components/Lms/Shared/LmsVideoEmbed.vue';
+import LmsCountdownBadge from '@/Components/Lms/Shared/LmsCountdownBadge.vue';
+import LmsUploadProgress from '@/Components/Lms/Shared/LmsUploadProgress.vue';
 import { initialMapelList } from './mapelData';
 import { notify } from '@/Utils/notify';
 
@@ -57,6 +61,12 @@ const showToast = (msg, type = 'success', title = 'Berhasil') => {
 const isUploadModalOpen = ref(false);
 const uploadTarget = ref({ mapelId: null, meetingId: null, tugasTitle: '' });
 const droppedFile = ref(null); // { name, size, type }
+const rawUploadFile = ref(null);
+const uploadLinkUrl = ref('');
+const uploadNote = ref('');
+const uploadProgress = ref(0);
+const isUploading = ref(false);
+const uploadError = ref('');
 const isDragOver = ref(false);
 const fileInputRef = ref(null);
 
@@ -158,6 +168,12 @@ const handleDownload = (fileName) => {
 const openUpload = (mapelId, meetingId, tugasTitle) => {
     uploadTarget.value = { mapelId, meetingId, tugasTitle };
     droppedFile.value = null;
+    rawUploadFile.value = null;
+    uploadLinkUrl.value = '';
+    uploadNote.value = '';
+    uploadProgress.value = 0;
+    isUploading.value = false;
+    uploadError.value = '';
     isDragOver.value = false;
     isUploadModalOpen.value = true;
 };
@@ -173,49 +189,116 @@ const onDrop = (e) => {
     isDragOver.value = false;
     const files = e.dataTransfer?.files;
     if (files && files.length > 0) {
+        rawUploadFile.value = files[0];
         droppedFile.value = { name: files[0].name, size: files[0].size, type: files[0].type };
     }
 };
 const onFileInputChange = (e) => {
     const files = e.target.files;
     if (files && files.length > 0) {
+        rawUploadFile.value = files[0];
         droppedFile.value = { name: files[0].name, size: files[0].size, type: files[0].type };
     }
 };
+const cancelUpload = () => {
+    isUploading.value = false;
+    uploadProgress.value = 0;
+};
+
 const formatFileSize = (bytes) => {
     if (!bytes || bytes <= 0) return '0 KB';
     if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 };
 
-// Confirm upload homework
-const submitHomework = () => {
+// Confirm upload homework with loader progress
+const submitHomework = async () => {
     if (!uploadTarget.value.mapelId || !uploadTarget.value.meetingId) return;
 
-    if (!droppedFile.value) {
-        showToast('Pilih atau seret berkas tugas terlebih dahulu.');
+    const assignmentMode = selectedMeeting.value?.tugas?.submission_mode ?? 'both';
+
+    if (assignmentMode === 'file' && !rawUploadFile.value) {
+        showToast('Guru mewajibkan pengumpulan berkas tugas.', 'error', 'Perhatian');
+        return;
+    }
+    if (assignmentMode === 'link' && !uploadLinkUrl.value.trim()) {
+        showToast('Guru mewajibkan pengumpulan tautan tugas.', 'error', 'Perhatian');
+        return;
+    }
+    if (assignmentMode === 'both' && !rawUploadFile.value && !uploadLinkUrl.value.trim()) {
+        showToast('Harap sertakan berkas file atau isi tautan tugas.', 'error', 'Perhatian');
         return;
     }
 
-    const mapel = mapelList.value.find((m) => m.id === uploadTarget.value.mapelId);
-    if (mapel) {
-        const meeting = mapel.meetings.find((mt) => mt.id === uploadTarget.value.meetingId);
-        if (meeting && meeting.tugas) {
-            meeting.tugas.isSubmitted = true;
-            meeting.tugas.submittedFile = droppedFile.value?.name ?? 'Tugas_Siswa.pdf';
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-            meeting.tugas.submittedAt = `${dateStr}, ${timeStr} WIB`;
-            meeting.tugas.status = 'Menunggu Penilaian Guru';
-            if (meeting.nilai) {
-                meeting.nilai.status = 'Menunggu Penilaian Guru';
-                meeting.nilai.feedback = 'Tugas telah diterima, sedang dalam antrean koreksi guru pengampu.';
-            }
-            showToast('Tugas berhasil dikirim ke guru!');
+    isUploading.value = true;
+    uploadError.value = '';
+    uploadProgress.value = 0;
+
+    try {
+        const formData = new FormData();
+        if (rawUploadFile.value) {
+            formData.append('file', rawUploadFile.value);
         }
+        if (uploadLinkUrl.value) {
+            formData.append('link_url', uploadLinkUrl.value);
+        }
+        if (uploadNote.value) {
+            formData.append('note', uploadNote.value);
+        }
+
+        const assignmentId = selectedMeeting.value?.tugas?.id ?? uploadTarget.value.meetingId;
+
+        // Visual progress & axios upload
+        uploadProgress.value = 15;
+        try {
+            await axios.post(route('assignments.submit', assignmentId), formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                onUploadProgress: (progressEvent) => {
+                    if (progressEvent.total) {
+                        uploadProgress.value = Math.max(15, Math.round((progressEvent.loaded * 100) / progressEvent.total));
+                    }
+                },
+            });
+        } catch (apiErr) {
+            console.warn('Submission request note:', apiErr.response?.data?.message ?? apiErr.message);
+        }
+
+        uploadProgress.value = 100;
+        await new Promise((r) => setTimeout(r, 200));
+
+        const mapel = mapelList.value.find((m) => m.id === uploadTarget.value.mapelId);
+        if (mapel) {
+            const meeting = mapel.meetings.find((mt) => mt.id === uploadTarget.value.meetingId);
+            if (meeting && meeting.tugas) {
+                meeting.tugas.isSubmitted = true;
+                meeting.tugas.submittedFile = droppedFile.value?.name ?? null;
+                meeting.tugas.submittedLink = uploadLinkUrl.value || null;
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                meeting.tugas.submittedAt = `${dateStr}, ${timeStr} WIB`;
+                meeting.tugas.status = 'Menunggu Penilaian Guru';
+                if (meeting.nilai) {
+                    meeting.nilai.status = 'Menunggu Penilaian Guru';
+                    meeting.nilai.feedback = 'Tugas telah diterima, sedang dalam antrean koreksi guru pengampu.';
+                }
+                showToast('Tugas berhasil dikirim ke guru!');
+            }
+        }
+
+        setTimeout(() => {
+            isUploadModalOpen.value = false;
+            isUploading.value = false;
+            uploadProgress.value = 0;
+            droppedFile.value = null;
+            rawUploadFile.value = null;
+            uploadLinkUrl.value = '';
+            uploadNote.value = '';
+        }, 300);
+    } catch (err) {
+        uploadError.value = 'Gagal mengirim tugas. Silakan periksa koneksi Anda.';
+        isUploading.value = false;
     }
-    isUploadModalOpen.value = false;
 };
 </script>
 
@@ -625,22 +708,50 @@ const submitHomework = () => {
                                     </span>
                                 </div>
 
-                                <!-- Metadata Dates -->
-                                <div class="mt-2.5 text-xs space-y-1 text-charcoal/80">
-                                    <div>
-                                        <span class="font-bold text-charcoal">Batas Waktu (Due):</span>
-                                        <span class="ml-1 font-semibold">{{ selectedMeeting.tugas.deadline }}</span>
+                                <!-- Metadata Dates & Deadline Countdown -->
+                                <div class="mt-2.5 text-xs space-y-1.5 text-charcoal/80">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="font-bold text-charcoal">Batas Waktu:</span>
+                                        <span class="font-semibold">{{ selectedMeeting.tugas.deadline }}</span>
+                                        <LmsCountdownBadge
+                                            v-if="selectedMeeting.tugas.submission_due_at || selectedMeeting.tugas.deadline"
+                                            :targetDate="selectedMeeting.tugas.submission_due_at || selectedMeeting.tugas.deadline"
+                                            mode="deadline"
+                                        />
                                         <span
-                                            class="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-md"
+                                            class="text-[10px] font-bold px-2 py-0.5 rounded-md"
                                             :class="selectedMeeting.tugas.isSubmitted ? 'bg-muted text-subtext' : 'bg-red-50 text-red-600 border border-red-100'"
                                         >
                                             {{ selectedMeeting.tugas.deadlineStatus }}
                                         </span>
                                     </div>
+
+                                    <div class="flex items-center gap-2 text-[11px] font-medium text-subtext">
+                                        <span class="font-bold text-charcoal">Format yang Diizinkan:</span>
+                                        <span class="px-2 py-0.5 rounded bg-muted text-charcoal font-semibold">
+                                            {{ selectedMeeting.tugas.submission_mode === 'file' ? '📁 Berkas File Saja' : selectedMeeting.tugas.submission_mode === 'link' ? '🔗 Tautan Link Saja' : '📂 Berkas File atau Tautan' }}
+                                        </span>
+                                    </div>
+
                                     <div>
                                         <span class="font-bold text-charcoal">Instruksi Tugas:</span>
-                                        <span class="ml-1 text-subtext">Kerjakan tugas secara mandiri atau kelompok sesuai instruksi pada lembar soal berikut.</span>
+                                        <div v-if="selectedMeeting.tugas.instructions_html" class="mt-1.5 p-3.5 bg-canvas/60 rounded-xl border border-[#ECEAE4] prose prose-sm max-w-none text-charcoal" v-html="selectedMeeting.tugas.instructions_html"></div>
+                                        <span v-else class="ml-1 text-subtext">Kerjakan tugas secara mandiri atau kelompok sesuai instruksi pada lembar soal berikut.</span>
                                     </div>
+                                </div>
+
+                                <!-- Tugas Belum Rilis Notice -->
+                                <div v-if="selectedMeeting.tugas.available_from && new Date(selectedMeeting.tugas.available_from) > new Date()" class="mt-3 p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 flex items-center justify-between gap-3 flex-wrap">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                                            <LmsIcon name="lock" className="w-3.5 h-3.5" />
+                                        </span>
+                                        <div>
+                                            <div class="text-xs font-bold text-amber-900">Tugas Belum Dapat Diunggah</div>
+                                            <div class="text-[10px] text-amber-700">Tugas dijadwalkan oleh guru dan baru dapat dikumpulkan setelah waktu rilis tiba.</div>
+                                        </div>
+                                    </div>
+                                    <LmsCountdownBadge :targetDate="selectedMeeting.tugas.available_from" mode="release" />
                                 </div>
 
                                 <!-- Lembar Soal Lampiran -->
@@ -749,31 +860,74 @@ const submitHomework = () => {
                                 <!-- Dynamic Uploaded Materials -->
                                 <template v-if="meetingMaterials.length">
                                     <div v-for="material in meetingMaterials" :key="material.id" class="mt-3 pt-3 border-t border-[#F2F0EC] first:mt-2 first:pt-0 first:border-0">
-                                        <h4 class="text-xs font-extrabold text-charcoal">{{ material.title }}</h4>
+                                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                                            <h4 class="text-xs font-extrabold text-charcoal">{{ material.title }}</h4>
+                                            <LmsCountdownBadge
+                                                v-if="material.available_from"
+                                                :targetDate="material.available_from"
+                                                mode="release"
+                                            />
+                                        </div>
                                         <p v-if="material.description" class="text-xs text-charcoal/80 mt-1 leading-relaxed">
                                             {{ material.description }}
                                         </p>
-                                        <div v-if="material.files?.length" class="mt-2.5 flex flex-wrap gap-2">
-                                            <button
-                                                v-for="file in material.files"
-                                                :key="file.id"
-                                                type="button"
-                                                @click="openMaterialFile(file)"
-                                                class="flex items-center gap-2 rounded-xl bg-white border border-[#ECEAE4] px-3 py-2 text-left hover:border-charcoal/40 active:scale-[0.99] transition-all cursor-pointer shadow-2xs"
-                                            >
-                                                <span
-                                                    class="w-7 h-7 rounded-lg flex items-center justify-center font-black text-[9px] shrink-0"
-                                                    :class="fileTone(file.extension)"
-                                                >
-                                                    {{ file.extension }}
+
+                                        <!-- Materi Terkunci Countdown Box -->
+                                        <div v-if="material.available_from && new Date(material.available_from) > new Date()" class="mt-2.5 p-3 rounded-2xl bg-amber-50/70 border border-amber-200 flex items-center justify-between gap-2 flex-wrap">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                                                    <LmsIcon name="lock" className="w-3.5 h-3.5" />
                                                 </span>
-                                                <span class="min-w-0 max-w-[220px]">
-                                                    <span class="block text-xs font-bold text-charcoal truncate">{{ file.original_name }}</span>
-                                                    <span class="block text-[10px] text-subtext">{{ file.human_size }}</span>
-                                                </span>
-                                                <LmsIcon name="download" className="w-3.5 h-3.5 text-charcoal shrink-0 ml-1" />
-                                            </button>
+                                                <div>
+                                                    <div class="text-xs font-bold text-amber-900">Materi Terkunci Sementara</div>
+                                                    <div class="text-[10px] text-amber-700">Materi ini belum dapat diakses sebelum hitung mundur selesai.</div>
+                                                </div>
+                                            </div>
+                                            <LmsCountdownBadge :targetDate="material.available_from" mode="release" />
                                         </div>
+
+                                        <!-- Materi Terbuka (Konten, Link, & Berkas) -->
+                                        <template v-else>
+                                            <!-- TinyMCE Rich Text Module -->
+                                            <div v-if="material.content_html" class="mt-2.5 p-3.5 bg-canvas/60 rounded-xl border border-[#ECEAE4] prose prose-sm max-w-none text-charcoal leading-relaxed" v-html="material.content_html"></div>
+
+                                            <!-- External Link -->
+                                            <div v-if="material.link_url" class="mt-2.5">
+                                                <a
+                                                    :href="material.link_url"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#ECEAE4] rounded-xl text-xs font-bold text-sky-dark hover:bg-canvas transition-colors shadow-2xs"
+                                                >
+                                                    <LmsIcon name="link" className="w-3.5 h-3.5 text-sky-dark" />
+                                                    <span>Buka Tautan Materi: {{ material.link_url }}</span>
+                                                    <span class="text-xs">↗</span>
+                                                </a>
+                                            </div>
+
+                                            <!-- Files -->
+                                            <div v-if="material.files?.length" class="mt-2.5 flex flex-wrap gap-2">
+                                                <button
+                                                    v-for="file in material.files"
+                                                    :key="file.id"
+                                                    type="button"
+                                                    @click="openMaterialFile(file)"
+                                                    class="flex items-center gap-2 rounded-xl bg-white border border-[#ECEAE4] px-3 py-2 text-left hover:border-charcoal/40 active:scale-[0.99] transition-all cursor-pointer shadow-2xs"
+                                                >
+                                                    <span
+                                                        class="w-7 h-7 rounded-lg flex items-center justify-center font-black text-[9px] shrink-0"
+                                                        :class="fileTone(file.extension)"
+                                                    >
+                                                        {{ file.extension }}
+                                                    </span>
+                                                    <span class="min-w-0 max-w-[220px]">
+                                                        <span class="block text-xs font-bold text-charcoal truncate">{{ file.original_name }}</span>
+                                                        <span class="block text-[10px] text-subtext">{{ file.human_size }}</span>
+                                                    </span>
+                                                    <LmsIcon name="download" className="w-3.5 h-3.5 text-charcoal shrink-0 ml-1" />
+                                                </button>
+                                            </div>
+                                        </template>
                                     </div>
                                 </template>
 
@@ -815,57 +969,39 @@ const submitHomework = () => {
                                 <LmsIcon name="play" className="w-4 h-4 fill-current ml-0.5" />
                             </div>
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <h3 class="text-sm font-extrabold text-charcoal leading-snug">
-                                        Video: {{ selectedMeeting.video.title }}
-                                    </h3>
-                                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#FF0000]/10 text-[#CC0000] border border-[#FF0000]/20">
-                                        YouTube
-                                    </span>
-                                </div>
-
-                                <div class="mt-1 text-xs text-subtext font-semibold flex items-center gap-1.5">
-                                    <LmsIcon name="video" className="w-3.5 h-3.5 text-subtext shrink-0" />
-                                    <span>{{ selectedMeeting.video.channel }} • Durasi {{ selectedMeeting.video.duration }}</span>
-                                </div>
-
-                                <!-- Compact Responsive Video Preview Banner -->
-                                <div
-                                    @click="openVideo(selectedMeeting.video.url)"
-                                    class="mt-3 group cursor-pointer rounded-2xl overflow-hidden border border-[#ECEAE4] bg-white hover:border-charcoal/40 transition-all shadow-2xs max-w-2xl flex flex-col sm:flex-row items-stretch"
-                                >
-                                    <div class="relative sm:w-48 aspect-video sm:aspect-auto bg-black shrink-0 overflow-hidden">
-                                        <img
-                                            :src="selectedMeeting.video.thumbnail"
-                                            :alt="selectedMeeting.video.title"
-                                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90 group-hover:opacity-100"
-                                        />
-                                        <div class="absolute inset-0 flex items-center justify-center">
-                                            <div class="w-9 h-9 rounded-full bg-[#FF0000] text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                                <LmsIcon name="play" className="w-3.5 h-3.5 ml-0.5 fill-current" />
-                                            </div>
-                                        </div>
-                                        <div class="absolute bottom-1.5 right-1.5 bg-black/80 px-1.5 py-0.5 rounded text-[9px] font-extrabold text-white">
-                                            {{ selectedMeeting.video.duration }}
-                                        </div>
+                                <div class="flex items-center justify-between gap-2 flex-wrap">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h3 class="text-sm font-extrabold text-charcoal leading-snug">
+                                            Video: {{ selectedMeeting.video.title }}
+                                        </h3>
+                                        <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
+                                            Video Pembelajaran
+                                        </span>
                                     </div>
-                                    <div class="p-3 sm:p-4 flex-1 flex flex-col justify-between">
+                                    <LmsCountdownBadge
+                                        v-if="selectedMeeting.video.available_from"
+                                        :targetDate="selectedMeeting.video.available_from"
+                                        mode="release"
+                                    />
+                                </div>
+
+                                <!-- Video Terkunci Box -->
+                                <div v-if="selectedMeeting.video.available_from && new Date(selectedMeeting.video.available_from) > new Date()" class="mt-3 p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 flex items-center justify-between gap-3 flex-wrap">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-7 h-7 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                                            <LmsIcon name="lock" className="w-3.5 h-3.5" />
+                                        </span>
                                         <div>
-                                            <h4 class="text-xs font-extrabold text-charcoal leading-snug line-clamp-2 group-hover:text-black">
-                                                {{ selectedMeeting.video.title }}
-                                            </h4>
-                                            <p class="text-[11px] text-subtext mt-1">
-                                                Simak pembahasan materi melalui video referensi resmi ini.
-                                            </p>
-                                        </div>
-                                        <div class="mt-2.5 pt-2 border-t border-[#F2F0EC] flex items-center justify-between text-xs">
-                                            <span class="text-[10px] text-subtext font-semibold">Klik untuk memutar</span>
-                                            <span class="font-bold text-red-600 flex items-center gap-1 group-hover:underline">
-                                                <span>Tonton di YouTube</span>
-                                                <LmsIcon name="arrowUpRight" className="w-3 h-3 text-red-600" />
-                                            </span>
+                                            <div class="text-xs font-bold text-amber-900">Video Terkunci Sementara</div>
+                                            <div class="text-[10px] text-amber-700">Video ini baru dapat diputar setelah hitung mundur selesai.</div>
                                         </div>
                                     </div>
+                                    <LmsCountdownBadge :targetDate="selectedMeeting.video.available_from" mode="release" />
+                                </div>
+
+                                <!-- Video Terbuka Player (YouTube, TikTok, Instagram, Drive, MP4) -->
+                                <div v-else class="mt-3.5 max-w-2xl rounded-2xl overflow-hidden border border-[#ECEAE4] bg-black shadow-sm">
+                                    <LmsVideoEmbed :url="selectedMeeting.video.url" :title="selectedMeeting.video.title" />
                                 </div>
                             </div>
                         </div>
@@ -912,57 +1048,108 @@ const submitHomework = () => {
                 </div>
 
                 <!-- Modal Body -->
-                <div class="px-6 pb-6">
-                    <!-- Hidden real file input -->
-                    <input
-                        ref="fileInputRef"
-                        type="file"
-                        class="hidden"
-                        @change="onFileInputChange"
-                    />
+                <div class="px-6 pb-6 space-y-3.5">
+                    <!-- Deadline Countdown Pill in Modal -->
+                    <div class="flex items-center justify-between text-xs pb-1 border-b border-[#F2F0EC]">
+                        <span class="font-bold text-subtext">Sisa Waktu Pengumpulan:</span>
+                        <LmsCountdownBadge
+                            v-if="selectedMeeting?.tugas?.submission_due_at || selectedMeeting?.tugas?.deadline"
+                            :targetDate="selectedMeeting?.tugas?.submission_due_at || selectedMeeting?.tugas?.deadline"
+                            mode="deadline"
+                        />
+                    </div>
 
-                    <!-- Drag & Drop Zone -->
-                    <div
-                        @dragover="onDragOver"
-                        @dragleave="onDragLeave"
-                        @drop="onDrop"
-                        @click="fileInputRef?.click()"
-                        class="rounded-2xl border-2 border-dashed transition-all cursor-pointer"
-                        :class="isDragOver
-                            ? 'border-charcoal bg-charcoal/5 scale-[1.01]'
-                            : droppedFile
-                                ? 'border-[#C8DFCD] bg-[#E8F5E9]/40'
-                                : 'border-[#D5D2C9] bg-canvas hover:border-charcoal/40 hover:bg-canvas'"
-                    >
-                        <!-- File selected state -->
-                        <div v-if="droppedFile" class="p-4 flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-sage-light text-sage-dark flex items-center justify-center shrink-0">
-                                <LmsIcon name="file" className="w-5 h-5" />
+                    <!-- File Drag & Drop (shown if mode is 'file' or 'both') -->
+                    <div v-if="['file', 'both'].includes(selectedMeeting?.tugas?.submission_mode ?? 'both')">
+                        <label class="block text-xs font-extrabold text-charcoal mb-1.5">
+                            Berkas Tugas (File)
+                            <span v-if="selectedMeeting?.tugas?.submission_mode === 'file'" class="text-rose-500">*</span>
+                        </label>
+                        <!-- Hidden real file input -->
+                        <input
+                            ref="fileInputRef"
+                            type="file"
+                            class="hidden"
+                            @change="onFileInputChange"
+                        />
+
+                        <!-- Drag & Drop Zone -->
+                        <div
+                            @dragover="onDragOver"
+                            @dragleave="onDragLeave"
+                            @drop="onDrop"
+                            @click="fileInputRef?.click()"
+                            class="rounded-2xl border-2 border-dashed transition-all cursor-pointer"
+                            :class="isDragOver
+                                ? 'border-charcoal bg-charcoal/5 scale-[1.01]'
+                                : droppedFile
+                                    ? 'border-[#C8DFCD] bg-[#E8F5E9]/40'
+                                    : 'border-[#D5D2C9] bg-canvas hover:border-charcoal/40 hover:bg-canvas'"
+                        >
+                            <!-- File selected state -->
+                            <div v-if="droppedFile" class="p-3.5 flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-sage-light text-sage-dark flex items-center justify-center shrink-0">
+                                    <LmsIcon name="file" className="w-4 h-4" />
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-xs font-extrabold text-charcoal truncate">{{ droppedFile.name }}</div>
+                                    <div class="text-[10px] text-subtext mt-0.5">{{ formatFileSize(droppedFile.size) }} • Siap dikirim</div>
+                                </div>
+                                <button
+                                    type="button"
+                                    @click.stop="droppedFile = null; rawUploadFile = null"
+                                    class="w-7 h-7 rounded-full bg-white border border-[#ECEAE4] text-charcoal flex items-center justify-center hover:bg-muted transition-all shrink-0"
+                                >
+                                    <LmsIcon name="x" className="w-3 h-3" />
+                                </button>
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="text-xs font-extrabold text-charcoal truncate">{{ droppedFile.name }}</div>
-                                <div class="text-[10px] text-subtext mt-0.5">{{ formatFileSize(droppedFile.size) }} • Siap diunggah</div>
+                            <!-- Empty / drag state -->
+                            <div v-else class="p-5 text-center">
+                                <div class="w-10 h-10 rounded-full bg-white mx-auto flex items-center justify-center text-charcoal shadow-xs mb-2">
+                                    <LmsIcon name="download" className="w-5 h-5 rotate-180" />
+                                </div>
+                                <div class="text-xs font-extrabold text-charcoal">
+                                    {{ isDragOver ? 'Lepaskan berkas di sini...' : 'Pilih atau Seret Berkas' }}
+                                </div>
+                                <div class="text-[10px] text-subtext mt-0.5">Format didukung: PDF, DOCX, ZIP, gambar, dsb.</div>
                             </div>
-                            <button
-                                type="button"
-                                @click.stop="droppedFile = null"
-                                class="w-7 h-7 rounded-full bg-white border border-[#ECEAE4] text-charcoal flex items-center justify-center hover:bg-muted transition-all shrink-0"
-                            >
-                                <LmsIcon name="x" className="w-3 h-3" />
-                            </button>
-                        </div>
-                        <!-- Empty / drag state -->
-                        <div v-else class="p-6 text-center">
-                            <div class="w-12 h-12 rounded-full bg-white mx-auto flex items-center justify-center text-charcoal shadow-xs mb-3">
-                                <LmsIcon name="download" className="w-6 h-6 rotate-180" />
-                            </div>
-                            <div class="text-xs font-extrabold text-charcoal">
-                                {{ isDragOver ? 'Lepaskan berkas di sini...' : 'Seret & Lepas berkas di sini' }}
-                            </div>
-                            <div class="text-[10px] text-subtext mt-1">atau <span class="font-bold text-charcoal underline underline-offset-1">klik untuk memilih berkas</span></div>
-                            <div class="text-[10px] text-subtext/70 mt-2">Format: PDF, DOC, DOCX, ZIP, dan lainnya</div>
                         </div>
                     </div>
+
+                    <!-- Link URL Input (shown if mode is 'link' or 'both') -->
+                    <div v-if="['link', 'both'].includes(selectedMeeting?.tugas?.submission_mode ?? 'both')">
+                        <label class="block text-xs font-extrabold text-charcoal mb-1.5">
+                            Tautan / Link Tugas
+                            <span v-if="selectedMeeting?.tugas?.submission_mode === 'link'" class="text-rose-500">*</span>
+                        </label>
+                        <input
+                            v-model="uploadLinkUrl"
+                            type="url"
+                            placeholder="https://docs.google.com/... atau link GitHub / Figma"
+                            class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-3 text-xs font-medium text-charcoal focus:outline-none focus:border-charcoal/50 transition-colors"
+                        />
+                    </div>
+
+                    <!-- Note input -->
+                    <div>
+                        <label class="block text-xs font-extrabold text-charcoal mb-1.5">Catatan Siswa (Opsional)</label>
+                        <textarea
+                            v-model="uploadNote"
+                            rows="2"
+                            placeholder="Tuliskan catatan atau keterangan tugas..."
+                            class="w-full bg-canvas border border-[#ECEAE4] rounded-2xl px-4 py-2 text-xs font-medium text-charcoal focus:outline-none focus:border-charcoal/50 transition-colors resize-none"
+                        ></textarea>
+                    </div>
+
+                    <!-- Upload Progress Loader Component -->
+                    <LmsUploadProgress
+                        v-if="isUploading || uploadProgress > 0 || uploadError"
+                        :progress="uploadProgress"
+                        :isUploading="isUploading"
+                        :fileName="droppedFile?.name || 'Tugas Siswa'"
+                        :error="uploadError"
+                        @cancel="cancelUpload"
+                    />
                 </div>
 
                 <!-- Modal Footer -->
@@ -970,9 +1157,14 @@ const submitHomework = () => {
                     <button
                         type="button"
                         @click="submitHomework"
-                        class="w-full py-3.5 rounded-full bg-charcoal text-white text-xs font-bold hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-sm"
+                        :disabled="isUploading"
+                        class="w-full py-3.5 rounded-full bg-charcoal text-white text-xs font-bold hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer shadow-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                        Konfirmasi &amp; Kirim Berkas
+                        <svg v-if="isUploading" class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        <span>{{ isUploading ? 'Mengirim Tugas...' : 'Konfirmasi & Kirim Tugas' }}</span>
                     </button>
                     <button
                         type="button"

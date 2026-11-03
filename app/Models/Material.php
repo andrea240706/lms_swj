@@ -10,11 +10,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
+    'meeting_id',
     'mapel_key',
     'meeting_number',
     'title',
     'description',
+    'content_html',
+    'link_url',
     'is_published',
+    'available_from',
+    'available_until',
     'created_by',
     'updated_by',
 ])]
@@ -22,6 +27,11 @@ class Material extends Model
 {
     /** @use HasFactory<MaterialFactory> */
     use HasFactory;
+
+    public function meeting(): BelongsTo
+    {
+        return $this->belongsTo(Meeting::class);
+    }
 
     public function files(): HasMany
     {
@@ -48,6 +58,8 @@ class Material extends Model
         return [
             'meeting_number' => 'integer',
             'is_published' => 'boolean',
+            'available_from' => 'datetime',
+            'available_until' => 'datetime',
         ];
     }
 }

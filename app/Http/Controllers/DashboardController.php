@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\AssignmentResource;
 use App\Http\Resources\MaterialResource;
+use App\Http\Resources\MeetingVideoResource;
+use App\Models\Assignment;
 use App\Models\Material;
+use App\Models\MeetingVideo;
 use App\Services\AcademicCalendarService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -186,6 +190,15 @@ class DashboardController extends Controller
             ->latest('id')
             ->get();
 
+        $meetingVideos = MeetingVideo::query()
+            ->when(! $canManageMaterials, fn ($query) => $query->where('is_published', true))
+            ->get();
+
+        $assignmentsData = Assignment::query()
+            ->with(['files', 'submissions.files', 'submissions.student'])
+            ->when(! $canManageMaterials, fn ($query) => $query->where('is_published', true))
+            ->get();
+
         return Inertia::render('Dashboard', [
             'roles' => $roles,
             'initialRole' => isset($roles[$simulatedRole]) ? $simulatedRole : 'siswa',
@@ -196,6 +209,8 @@ class DashboardController extends Controller
             'initialAssignments' => $assignments,
             'currentUser' => $user,
             'materials' => MaterialResource::collection($materials)->resolve($request),
+            'meetingVideos' => MeetingVideoResource::collection($meetingVideos)->resolve($request),
+            'meetingAssignments' => AssignmentResource::collection($assignmentsData)->resolve($request),
             'canManageMaterials' => $canManageMaterials,
             'materialConfig' => [
                 'disk' => config('materials.disk'),

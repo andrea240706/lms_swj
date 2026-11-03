@@ -27,7 +27,7 @@ class MaterialController extends Controller
     public function store(StoreMaterialRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $files = $data['files'];
+        $files = $data['files'] ?? [];
         unset($data['files']);
 
         $data['is_published'] = $data['is_published'] ?? true;
@@ -40,7 +40,9 @@ class MaterialController extends Controller
             DB::transaction(function () use ($data, $files, &$storedFiles): void {
                 $material = Material::create($data);
 
-                $this->saveUploadedFiles($material, $files, $storedFiles);
+                if (! empty($files)) {
+                    $this->saveUploadedFiles($material, $files, $storedFiles);
+                }
             });
         } catch (Throwable $exception) {
             $this->deleteStoredFiles($storedFiles);
@@ -124,9 +126,9 @@ class MaterialController extends Controller
 
         abort_unless($file->material_id === $material->id, 404);
 
-        if ($material->files()->count() <= 1) {
+        if ($material->files()->count() <= 1 && empty($material->content_html) && empty($material->link_url)) {
             throw ValidationException::withMessages([
-                'file' => 'Materi harus memiliki minimal satu file.',
+                'file' => 'Materi harus memiliki minimal satu sumber pembelajaran (berkas, tautan, atau teks).',
             ]);
         }
 

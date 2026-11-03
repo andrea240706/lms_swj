@@ -29,6 +29,10 @@ class UpdateMaterialRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:2000'],
+            'content_html' => ['nullable', 'string'],
+            'link_url' => ['nullable', 'url', 'max:2048'],
+            'available_from' => ['nullable', 'date'],
+            'available_until' => ['nullable', 'date'],
             'is_published' => ['sometimes', 'boolean'],
         ];
     }
