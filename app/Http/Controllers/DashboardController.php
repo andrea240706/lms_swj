@@ -148,38 +148,7 @@ class DashboardController extends Controller
         $days = $calendarService->getWeekDays();
         $calendarEvents = $calendarService->getCombinedEvents((int) Carbon::now()->year);
 
-        $assignments = [
-            [
-                'id' => 101,
-                'title' => 'Praktikum REST API Laravel 13',
-                'subject' => 'Pemrograman Web',
-                'due' => 'Hari ini, 16:00',
-                'status' => 'Perlu Dikumpulkan',
-                'score' => null,
-                'feedback' => '',
-                'allowRevision' => true,
-            ],
-            [
-                'id' => 102,
-                'title' => 'Desain ERD Sistem Kasir SMK',
-                'subject' => 'Basis Data',
-                'due' => '22 Okt 2026',
-                'status' => 'Dinilai',
-                'score' => 92,
-                'feedback' => 'Relasi antar tabel sudah sangat rapi dan memenuhi 3NF.',
-                'allowRevision' => false,
-            ],
-            [
-                'id' => 103,
-                'title' => 'Konfigurasi VLAN & Routing Statis',
-                'subject' => 'Infrastruktur Jaringan',
-                'due' => '18 Okt 2026',
-                'status' => 'Perlu Revisi',
-                'score' => 70,
-                'feedback' => 'Sub-interface router belum diberi IP gateway yang sesuai.',
-                'allowRevision' => true,
-            ],
-        ];
+        $assignments = [];
 
         $canManageMaterials = $user !== null && ($user->isTeacher() || $user->isAdmin());
 

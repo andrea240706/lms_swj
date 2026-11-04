@@ -47,6 +47,12 @@ class AssignmentController extends Controller
         $validated['created_by'] = $request->user()->id;
         $validated['updated_by'] = $request->user()->id;
 
+        foreach (['available_from', 'available_until', 'submission_opens_at', 'submission_due_at', 'attachment_link_url', 'instructions_html'] as $field) {
+            if (isset($validated[$field]) && trim((string) $validated[$field]) === '') {
+                $validated[$field] = null;
+            }
+        }
+
         $storedFiles = [];
 
         try {

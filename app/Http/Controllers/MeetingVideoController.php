@@ -41,6 +41,12 @@ class MeetingVideoController extends Controller
         $validated['created_by'] = $request->user()->id;
         $validated['updated_by'] = $request->user()->id;
 
+        foreach (['available_from', 'available_until'] as $field) {
+            if (isset($validated[$field]) && trim((string) $validated[$field]) === '') {
+                $validated[$field] = null;
+            }
+        }
+
         MeetingVideo::create($validated);
 
         notify()->success()->title('Berhasil')->message('Materi video berhasil ditambahkan.')->send();
@@ -77,6 +83,12 @@ class MeetingVideoController extends Controller
         $validated['provider'] = $provider;
         $validated['is_published'] = $request->boolean('is_published', true);
         $validated['updated_by'] = $request->user()->id;
+
+        foreach (['available_from', 'available_until'] as $field) {
+            if (isset($validated[$field]) && trim((string) $validated[$field]) === '') {
+                $validated[$field] = null;
+            }
+        }
 
         $video->update($validated);
 

@@ -91,47 +91,7 @@ const updateStudentPresensi = (studentId, status, keterangan = '') => {
 };
 
 // 4. PENUGASAN, TUGAS & NILAI (Siswa <-> Guru <-> Wali Kelas Leger)
-const assignments = ref([
-    {
-        id: 101,
-        title: 'Praktikum REST API Laravel 13',
-        subject: 'Pemrograman Web',
-        mapelCode: 'dkv', // Relasi ke leger
-        due: 'Hari ini, 16:00',
-        status: 'Perlu Dikumpulkan',
-        score: null,
-        feedback: '',
-        allowRevision: true,
-        studentName: 'Nadia Putri',
-        studentNisn: '008492104',
-    },
-    {
-        id: 102,
-        title: 'Desain ERD Sistem Kasir SMK',
-        subject: 'Basis Data',
-        mapelCode: 'grafis',
-        due: '22 Okt 2026',
-        status: 'Dinilai',
-        score: 92,
-        feedback: 'Relasi antar tabel sudah sangat rapi dan memenuhi 3NF.',
-        allowRevision: false,
-        studentName: 'Nadia Putri',
-        studentNisn: '008492104',
-    },
-    {
-        id: 103,
-        title: 'Konfigurasi VLAN & Routing Statis',
-        subject: 'Infrastruktur Jaringan',
-        mapelCode: 'foto',
-        due: '18 Okt 2026',
-        status: 'Perlu Revisi',
-        score: 70,
-        feedback: 'Sub-interface router belum diberi IP gateway yang sesuai.',
-        allowRevision: true,
-        studentName: 'Nadia Putri',
-        studentNisn: '008492104',
-    },
-]);
+const assignments = ref([]);
 
 // Siswa mengumpulkan tugas -> Update status tugas & antrean guru
 const submitStudentAssignment = (assignmentId) => {

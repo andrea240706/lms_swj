@@ -10,9 +10,6 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,500,600,700,800&display=swap" rel="stylesheet" />
 
-        <!-- Laravel Notify CSS -->
-        @notifyCss
-
         <!-- Scripts -->
         @routes
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
@@ -20,8 +17,5 @@
     </head>
     <body class="font-sans antialiased">
         @inertia
-
-        <x-notify::notify />
-        @notifyJs
     </body>
 </html>

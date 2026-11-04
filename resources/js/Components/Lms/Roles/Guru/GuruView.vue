@@ -148,10 +148,7 @@ const jadwalHariIni = computed(() => {
 const sesiAktif = computed(() => jadwalHariIni.value.find(j => j.status === 'sedang') || jadwalHariIni.value[0] || null);
 
 // Pending grading queue
-const pendingNilai = [
-    { nama: 'Praktikum REST API Laravel', rombel: 'XII RPL 1', belumDinilai: 6, totalKumpul: 28, mapel: 'Web Dev' },
-    { nama: 'Desain Skema DDL Perpustakaan', rombel: 'XI RPL 1', belumDinilai: 5, totalKumpul: 33, mapel: 'Basis Data' },
-];
+const pendingNilai = [];
 
 const statusSesiColor = (status) => {
     if (status === 'sedang') return 'bg-[#E8F5E9] text-[#2E7D32]';

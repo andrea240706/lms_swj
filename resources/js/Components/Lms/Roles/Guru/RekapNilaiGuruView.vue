@@ -170,25 +170,6 @@ const showToast = (msg, type = 'success', title = 'Berhasil') => {
 
 <template>
     <div class="flex-1 flex flex-col h-full overflow-hidden relative">
-
-        <!-- Toast -->
-        <transition
-            enter-active-class="transform ease-out duration-200 transition"
-            enter-from-class="translate-y-2 opacity-0"
-            enter-to-class="translate-y-0 opacity-100"
-            leave-active-class="transition ease-in duration-150"
-            leave-from-class="opacity-100"
-            leave-to-class="opacity-0"
-        >
-            <div
-                v-if="toastMessage"
-                class="absolute top-14 left-1/2 -translate-x-1/2 z-50 bg-charcoal text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg border border-white/20 flex items-center gap-2 pointer-events-none"
-            >
-                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                <span>{{ toastMessage }}</span>
-            </div>
-        </transition>
-
         <LmsTopBar
             :role="role"
             title="Rekap Nilai Mapel"
@@ -547,7 +528,7 @@ const showToast = (msg, type = 'success', title = 'Berhasil') => {
                                             >
                                                 {{ meeting.status }}
                                             </span>
-                                            <span v-if="meeting.tugas.ungradedCount > 0" class="text-[10px] font-extrabold text-[#E65100]">
+                                            <span v-if="meeting.tugas?.ungradedCount > 0" class="text-[10px] font-extrabold text-[#E65100]">
                                                 • {{ meeting.tugas.ungradedCount }} Belum Dinilai
                                             </span>
                                         </div>
@@ -555,8 +536,8 @@ const showToast = (msg, type = 'success', title = 'Berhasil') => {
                                         <p class="text-[11px] text-subtext mt-0.5">{{ meeting.date }}</p>
                                     </div>
                                     <div class="text-right">
-                                        <div class="text-sm font-extrabold text-charcoal">{{ meeting.tugas.totalSubmitted }}/{{ meeting.tugas.totalStudents }}</div>
-                                        <div class="text-[10px] text-subtext">Mengumpulkan</div>
+                                        <div class="text-sm font-extrabold text-charcoal">{{ meeting.tugas ? `${meeting.tugas.totalSubmitted || 0}/${meeting.tugas.totalStudents || 34}` : '-' }}</div>
+                                        <div class="text-[10px] text-subtext">{{ meeting.tugas ? 'Mengumpulkan' : 'Belum Ada Tugas' }}</div>
                                     </div>
                                 </div>
 

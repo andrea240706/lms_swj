@@ -398,7 +398,7 @@ const assignmentStatusColor = (status) => {
                                             <span>→</span>
                                         </button>
                                     </div>
-                                    <div class="space-y-3">
+                                    <div v-if="assignments.length" class="space-y-3">
                                         <div
                                             v-for="a in assignments.slice(0,3)"
                                             :key="a.id"
@@ -417,6 +417,9 @@ const assignmentStatusColor = (status) => {
                                                 {{ a.status }}
                                             </span>
                                         </div>
+                                    </div>
+                                    <div v-else class="text-center py-6 text-subtext text-xs">
+                                        Belum ada tugas baru yang perlu dikerjakan 🎉
                                     </div>
                                 </div>
                             </div>
@@ -530,7 +533,7 @@ const assignmentStatusColor = (status) => {
                         <!-- SKELETON -->
                         <LmsSkeletonLoader v-if="isLoading" type="card-list" :rows="3" />
                         <!-- CONTENT -->
-                        <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
+                        <div v-else-if="assignments.length" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
                             <div
                                 v-for="a in assignments"
                                 :key="a.id"
@@ -555,6 +558,9 @@ const assignmentStatusColor = (status) => {
                                     <span class="text-[11px] text-subtext">• {{ a.feedback }}</span>
                                 </div>
                             </div>
+                        </div>
+                        <div v-else class="text-center py-12 text-subtext text-sm">
+                            Tidak ada tugas yang perlu dikerjakan 🎉
                         </div>
                     </div>
                 </div>
