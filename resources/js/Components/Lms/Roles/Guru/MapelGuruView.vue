@@ -9,6 +9,7 @@ import LmsVideoEmbed from "@/Components/Lms/Shared/LmsVideoEmbed.vue";
 import LmsCountdownBadge from "@/Components/Lms/Shared/LmsCountdownBadge.vue";
 import { guruMapelList } from "./mapelGuruData";
 import { notify } from "@/Utils/notify";
+import { useLmsStore } from "@/Stores/lmsStateStore";
 
 const props = defineProps({
     role: { type: Object, required: true },
@@ -18,6 +19,7 @@ const props = defineProps({
 const emit = defineEmits(["openMenu", "openProfile", "toggleSidebar", "openSettings"]);
 
 const page = usePage();
+const { waliKelasStudents } = useLmsStore();
 
 // ===== SKELETON LOADER =====
 const isLoading = ref(true);
@@ -502,6 +504,84 @@ const notSubmittedStudents = computed(() => {
     });
 });
 
+// Submissions list view state
+const submissionSearchQuery = ref("");
+const submissionActiveFilter = ref("semua"); // 'semua' | 'sudah' | 'belum' | 'perlu_dinilai'
+
+const allMeetingSubmissions = computed(() => {
+    if (!selectedMeeting.value) return [];
+
+    const existing = selectedMeeting.value.students || [];
+    const existingMap = new Map();
+    existing.forEach((s) => {
+        if (s.id) existingMap.set(String(s.id), s);
+        if (s.nisn) existingMap.set(String(s.nisn), s);
+        if (s.name) existingMap.set(s.name.toLowerCase().trim(), s);
+    });
+
+    const roster = waliKelasStudents.value?.length ? waliKelasStudents.value : [];
+    if (roster.length > 0) {
+        return roster.map((ws, idx) => {
+            const found =
+                existingMap.get(String(ws.id)) ||
+                (ws.nisn && existingMap.get(String(ws.nisn))) ||
+                (ws.name && existingMap.get(ws.name.toLowerCase().trim()));
+            if (found) {
+                return found;
+            }
+            return {
+                id: ws.id || (idx + 100),
+                name: ws.name,
+                nisn: ws.nisn || `0084921${String(idx + 1).padStart(2, "0")}`,
+                avatar: ws.avatar,
+                submittedAt: null,
+                status: "Belum Mengumpulkan",
+                submittedFile: null,
+                score: null,
+                grade: "-",
+                feedback: "",
+                gradedAt: null,
+            };
+        });
+    }
+
+    return existing;
+});
+
+const submissionCounts = computed(() => {
+    const list = allMeetingSubmissions.value;
+    const total = list.length;
+    const sudah = list.filter((s) => Boolean(s.submittedFile)).length;
+    const belum = total - sudah;
+    const perluDinilai = list.filter((s) => Boolean(s.submittedFile) && s.score === null).length;
+    const sudahDinilai = list.filter((s) => s.score !== null).length;
+
+    return { total, sudah, belum, perluDinilai, sudahDinilai };
+});
+
+const filteredMeetingSubmissions = computed(() => {
+    let list = allMeetingSubmissions.value;
+
+    const q = submissionSearchQuery.value.trim().toLowerCase();
+    if (q) {
+        list = list.filter(
+            (s) => s.name.toLowerCase().includes(q) || (s.nisn && s.nisn.includes(q))
+        );
+    }
+
+    if (submissionActiveFilter.value === "sudah") {
+        return list.filter((s) => Boolean(s.submittedFile));
+    }
+    if (submissionActiveFilter.value === "belum") {
+        return list.filter((s) => !s.submittedFile);
+    }
+    if (submissionActiveFilter.value === "perlu_dinilai") {
+        return list.filter((s) => Boolean(s.submittedFile) && s.score === null);
+    }
+
+    return list;
+});
+
 // Navigation
 const openMapel = (mapelId) => {
     selectedMapelId.value = mapelId;
@@ -509,6 +589,14 @@ const openMapel = (mapelId) => {
 };
 const openMeeting = (meetingId) => {
     selectedMeetingId.value = meetingId;
+    currentView.value = "meeting_detail";
+};
+const openSubmissionsView = () => {
+    submissionSearchQuery.value = "";
+    submissionActiveFilter.value = "semua";
+    currentView.value = "submissions_detail";
+};
+const backToMeetingDetail = () => {
     currentView.value = "meeting_detail";
 };
 const backToList = () => {
@@ -549,9 +637,14 @@ const saveGrade = () => {
     gradingStudent.value.feedback = gradingFeedback.value;
     gradingStudent.value.gradedAt = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 
-    // Update tugas ungradedCount on meeting
+    // Pastikan siswa tersimpan di meeting.students
     const meeting = selectedMeeting.value;
     if (meeting) {
+        if (!meeting.students) meeting.students = [];
+        const idx = meeting.students.findIndex((s) => s.id === gradingStudent.value.id);
+        if (idx === -1) {
+            meeting.students.push(gradingStudent.value);
+        }
         meeting.tugas.ungradedCount = meeting.students.filter((s) => {
             return Boolean(s.submittedFile) && s.score === null;
         }).length;
@@ -877,36 +970,7 @@ const gradeFromScore = (score) => {
                                 <span class="text-[11px] font-bold text-subtext">Pertemuan {{ selectedMeeting.number }}</span>
                             </div>
 
-                            <!-- 1. DAFTAR HADIR (PRESENSI) -->
-                            <div class="p-5 sm:p-6 hover:bg-[#FAF9F6]/50 transition-colors">
-                                <div class="flex items-start gap-3 sm:gap-4">
-                                    <div class="w-9 h-9 rounded-xl bg-sage-light text-sage-dark flex items-center justify-center shrink-0 mt-0.5">
-                                        <LmsIcon name="calendar" className="w-4 h-4" />
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <div class="flex items-center gap-2 flex-wrap">
-                                            <h3 class="text-sm font-extrabold text-charcoal leading-snug">
-                                                Daftar Hadir Pertemuan {{ selectedMeeting.number }}
-                                            </h3>
-                                            <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-sage-light text-sage-dark border border-[#C8DFCD]">
-                                                ● Sesi Aktif
-                                            </span>
-                                        </div>
-
-                                        <div class="mt-2 text-xs space-y-1 text-charcoal/80 font-medium">
-                                            <div><span class="font-bold text-charcoal">Jadwal Sesi:</span> {{ selectedMeeting.date }} • {{ selectedMeeting.time || selectedMapel.dayTime }}</div>
-                                            <div><span class="font-bold text-charcoal">Ruang Kelas:</span> {{ selectedMapel.room }} (Pengajar: {{ $page.props.auth?.user?.name || 'Budi Santoso, S.Kom' }})</div>
-                                        </div>
-
-                                        <div class="mt-3 flex items-center gap-2 text-[11px] text-[#2E7D32] bg-[#E8F5E9]/60 px-3 py-1.5 rounded-xl border border-[#C8DFCD] w-fit">
-                                            <LmsIcon name="check" className="w-3.5 h-3.5" />
-                                            <span class="font-bold">Kehadiran siswa otomatis tercatat dalam sistem presensi harian kelas</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 2. TUGAS (PENUGASAN & PENILAIAN SISWA) -->
+                            <!-- 1. TUGAS (PENUGASAN & PENILAIAN SISWA) -->
                             <div class="p-5 sm:p-6 hover:bg-[#FAF9F6]/50 transition-colors">
                                 <div class="flex items-start gap-3 sm:gap-4">
                                     <div class="w-9 h-9 rounded-xl bg-blossom-light text-blossom-dark flex items-center justify-center shrink-0 mt-0.5">
@@ -983,125 +1047,46 @@ const gradeFromScore = (score) => {
                                             </button>
                                         </div>
 
-                                        <!-- Panel Rekapitulasi & Penilaian Pengumpulan Siswa -->
+                                        <!-- Panel Status Pengumpulan Tugas -->
                                         <div class="mt-4 rounded-2xl border border-[#ECEAE4] p-4 bg-canvas/70">
                                             <div class="flex items-center justify-between mb-2">
                                                 <span class="text-xs font-extrabold text-charcoal">
-                                                    Status Pengumpulan: {{ selectedMeeting.tugas?.totalSubmitted }}/{{ selectedMeeting.tugas?.totalStudents }} Siswa
+                                                    Status Pengumpulan: {{ submissionCounts.sudah }}/{{ submissionCounts.total }} Siswa
                                                 </span>
                                                 <span
                                                     class="text-[11px] font-bold"
-                                                    :class="selectedMeeting.tugas?.ungradedCount > 0 ? 'text-[#E65100]' : 'text-sage-dark'"
+                                                    :class="submissionCounts.perluDinilai > 0 ? 'text-[#E65100]' : 'text-sage-dark'"
                                                 >
-                                                    {{ selectedMeeting.tugas?.ungradedCount > 0 ? selectedMeeting.tugas.ungradedCount + ' Belum Dinilai' : 'Semua Sudah Dinilai ✓' }}
+                                                    {{ submissionCounts.perluDinilai > 0 ? submissionCounts.perluDinilai + ' Belum Dinilai' : 'Semua Sudah Dinilai ✓' }}
                                                 </span>
                                             </div>
-                                            <div class="w-full h-1.5 bg-muted rounded-full overflow-hidden mb-4">
+                                            <div class="w-full h-1.5 bg-muted rounded-full overflow-hidden mb-3.5">
                                                 <div
                                                     class="h-full bg-charcoal rounded-full transition-all"
-                                                    :style="'width:' + (selectedMeeting.tugas?.totalStudents ? (selectedMeeting.tugas.totalSubmitted / selectedMeeting.tugas.totalStudents) * 100 : 0) + '%'"
+                                                    :style="'width:' + (submissionCounts.total ? (submissionCounts.sudah / submissionCounts.total) * 100 : 0) + '%'"
                                                 ></div>
                                             </div>
 
-                                            <!-- Submissions Grid: Ungraded & Graded -->
-                                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
-                                                <!-- Menunggu Penilaian -->
-                                                <div class="space-y-2.5">
-                                                    <h4 class="text-xs font-extrabold text-charcoal flex items-center gap-1.5">
-                                                        <span class="w-2 h-2 rounded-full bg-[#E65100]"></span>
-                                                        Menunggu Penilaian ({{ ungradedStudents.length }})
-                                                    </h4>
-                                                    <div v-if="ungradedStudents.length === 0" class="text-center py-5 text-subtext text-xs font-medium bg-white rounded-xl border border-[#ECEAE4]">
-                                                        Tidak ada tugas yang perlu dinilai 🎉
-                                                    </div>
-                                                    <div
-                                                        v-for="student in ungradedStudents"
-                                                        :key="student.id"
-                                                        class="bg-white rounded-xl p-3 border border-[#ECEAE4] soft-shadow"
-                                                    >
-                                                        <div class="flex items-center gap-2.5">
-                                                            <img :src="student.avatar" :alt="student.name" class="w-8 h-8 rounded-full object-cover border border-[#E6E4DF] shrink-0" />
-                                                            <div class="flex-1 min-w-0">
-                                                                <div class="text-xs font-extrabold text-charcoal truncate">{{ student.name }}</div>
-                                                                <div class="text-[10px] mt-0.5 font-semibold" :class="submissionStatusColor(student.status)">
-                                                                    {{ student.status }} • {{ student.submittedAt }}
-                                                                </div>
-                                                                <div v-if="student.submittedFile" class="flex items-center gap-2 mt-0.5">
-                                                                    <button type="button" @click.stop="handleDownload(student.submittedFile)" class="text-[10px] font-bold text-charcoal underline underline-offset-1 truncate max-w-[170px]">
-                                                                        📎 {{ student.submittedFile }}
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                            <button
-                                                                type="button"
-                                                                @click="openGradeModal(student)"
-                                                                class="px-3 py-1.5 rounded-full bg-charcoal text-white text-[10px] font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shrink-0"
-                                                            >
-                                                                Beri Nilai
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Sudah Dinilai + Belum Mengumpulkan -->
-                                                <div class="space-y-2.5">
-                                                    <h4 class="text-xs font-extrabold text-charcoal flex items-center gap-1.5">
-                                                        <span class="w-2 h-2 rounded-full bg-sage-dark"></span>
-                                                        Sudah Dinilai ({{ gradedStudents.length }})
-                                                    </h4>
-                                                    <div
-                                                        v-for="student in gradedStudents"
-                                                        :key="student.id"
-                                                        class="bg-white rounded-xl p-3 border border-[#ECEAE4] soft-shadow flex items-center gap-2.5"
-                                                    >
-                                                        <img :src="student.avatar" :alt="student.name" class="w-8 h-8 rounded-full object-cover border border-[#E6E4DF] shrink-0" />
-                                                        <div class="flex-1 min-w-0">
-                                                            <div class="text-xs font-extrabold text-charcoal truncate">{{ student.name }}</div>
-                                                            <div class="text-[10px] text-subtext mt-0.5">Dinilai: {{ student.gradedAt }}</div>
-                                                            <div v-if="student.feedback" class="text-[10px] italic text-charcoal/70 mt-0.5 line-clamp-1">"{{ student.feedback }}"</div>
-                                                        </div>
-                                                        <div class="flex flex-col items-center shrink-0 mr-1">
-                                                            <span class="w-8 h-8 rounded-full bg-sage-light text-sage-dark font-black text-xs flex items-center justify-center">
-                                                                {{ student.score }}
-                                                            </span>
-                                                            <span class="text-[9px] font-bold text-sage-dark">Grade {{ student.grade }}</span>
-                                                        </div>
-                                                        <button
-                                                            type="button"
-                                                            @click="openGradeModal(student)"
-                                                            class="w-7 h-7 rounded-full bg-muted text-charcoal flex items-center justify-center hover:bg-canvas active:scale-95 transition-all cursor-pointer shrink-0"
-                                                            title="Edit Nilai"
-                                                        >
-                                                            <LmsIcon name="task" className="w-3 h-3" />
-                                                        </button>
-                                                    </div>
-
-                                                    <template v-if="notSubmittedStudents.length > 0">
-                                                        <h4 class="text-xs font-extrabold text-charcoal flex items-center gap-1.5 mt-3">
-                                                            <span class="w-2 h-2 rounded-full bg-subtext"></span>
-                                                            Belum Mengumpulkan ({{ notSubmittedStudents.length }})
-                                                        </h4>
-                                                        <div
-                                                            v-for="student in notSubmittedStudents"
-                                                            :key="student.id"
-                                                            class="bg-muted rounded-xl p-3 border border-[#ECEAE4] flex items-center gap-2.5 opacity-70"
-                                                        >
-                                                            <img :src="student.avatar" :alt="student.name" class="w-8 h-8 rounded-full object-cover border border-[#E6E4DF] shrink-0 grayscale" />
-                                                            <div class="flex-1 min-w-0">
-                                                                <div class="text-xs font-extrabold text-charcoal truncate">{{ student.name }}</div>
-                                                                <div class="text-[10px] text-subtext mt-0.5">Belum ada pengumpulan</div>
-                                                            </div>
-                                                            <span class="text-[10px] font-bold text-subtext bg-white border border-[#ECEAE4] px-2 py-0.5 rounded-full shrink-0">-</span>
-                                                        </div>
-                                                    </template>
-                                                </div>
+                                            <!-- Teks bergaris bawah untuk melihat daftar pengumpulan -->
+                                            <div class="flex items-center justify-between pt-0.5">
+                                                <button
+                                                    type="button"
+                                                    @click="openSubmissionsView"
+                                                    class="text-xs font-bold text-charcoal underline underline-offset-4 decoration-charcoal/60 hover:decoration-charcoal hover:opacity-80 transition-all cursor-pointer inline-flex items-center gap-1.5 group"
+                                                >
+                                                    <span>Lihat daftar pengumpulan</span>
+                                                    <LmsIcon name="chevronRight" className="w-3.5 h-3.5 text-charcoal/70 group-hover:translate-x-0.5 transition-transform" />
+                                                </button>
+                                                <span class="text-[11px] text-subtext font-medium">
+                                                    {{ submissionCounts.sudah }} sudah &bull; {{ submissionCounts.belum }} belum
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- 3. MATERI PEMBELAJARAN -->
+                            <!-- 2. MATERI PEMBELAJARAN -->
                             <div class="p-5 sm:p-6 hover:bg-[#FAF9F6]/50 transition-colors">
                                 <div class="flex items-start gap-3 sm:gap-4">
                                     <div class="w-9 h-9 rounded-xl bg-sky-light text-sky-dark flex items-center justify-center shrink-0 mt-0.5">
@@ -1270,7 +1255,7 @@ const gradeFromScore = (score) => {
                                 </div>
                             </div>
 
-                            <!-- 4. VIDEO PEMBELAJARAN -->
+                            <!-- 3. VIDEO PEMBELAJARAN -->
                             <div class="p-5 sm:p-6 hover:bg-[#FAF9F6]/50 transition-colors">
                                 <div class="flex items-start gap-3 sm:gap-4">
                                     <div class="w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0 mt-0.5">
@@ -1337,6 +1322,251 @@ const gradeFromScore = (score) => {
                     </template>
                 </div>
             </div>
+            </div>
+        </template>
+
+        <!-- ============================================ -->
+        <!-- LEVEL 4: DAFTAR PENGUMPULAN TUGAS PERTEMUAN  -->
+        <!-- ============================================ -->
+        <template v-else-if="currentView === 'submissions_detail'">
+            <div class="flex-1 flex flex-col h-full overflow-hidden">
+                <!-- Top Header Bar -->
+                <header class="px-4 sm:px-6 lg:px-8 xl:px-10 pt-4 pb-3 shrink-0 bg-white border-b border-[#ECEAE4]">
+                    <div class="w-full max-w-[1800px] mx-auto flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <button
+                                type="button"
+                                @click="backToMeetingDetail"
+                                class="w-10 h-10 rounded-2xl bg-white border border-[#ECEAE4] flex items-center justify-center text-charcoal soft-shadow hover:bg-canvas active:scale-95 transition-all cursor-pointer shrink-0"
+                                title="Kembali ke Detail Pertemuan"
+                            >
+                                <LmsIcon name="back" className="w-4 h-4" />
+                            </button>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-[11px] text-subtext font-medium truncate">
+                                    {{ selectedMapel?.shortName }} &bull; Pertemuan {{ selectedMeeting?.number }} &bull; {{ selectedMeeting?.rombel || selectedMapel?.rombel?.[0] || 'Kelas Siswa' }}
+                                </div>
+                                <h1 class="text-[15px] sm:text-[17px] font-extrabold text-charcoal leading-tight truncate">
+                                    Daftar Pengumpulan: {{ selectedMeeting?.tugas?.title || ('Tugas Pertemuan ' + selectedMeeting?.number) }}
+                                </h1>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button
+                                type="button"
+                                @click="openEditAssignment"
+                                class="px-3.5 py-2 rounded-2xl bg-canvas border border-[#ECEAE4] text-xs font-bold text-charcoal hover:bg-white active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                            >
+                                <LmsIcon name="edit" className="w-3.5 h-3.5" />
+                                <span class="hidden sm:inline">Pengaturan Tugas</span>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Scrollable Content Area -->
+                <div class="flex-1 overflow-y-auto no-scrollbar px-4 sm:px-6 lg:px-8 xl:px-10 py-5 pb-28 lg:pb-8">
+                    <div class="w-full max-w-[1800px] mx-auto space-y-4">
+
+                        <!-- 1. Stats Summary Cards -->
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div class="bg-white rounded-2xl p-4 border border-[#ECEAE4] soft-shadow">
+                                <div class="text-[10px] font-bold text-subtext uppercase tracking-wider">Total Siswa</div>
+                                <div class="text-2xl font-black text-charcoal mt-1">{{ submissionCounts.total }}</div>
+                                <div class="text-[10px] text-subtext mt-0.5">{{ selectedMapel?.rombel?.[0] || 'Rombel' }}</div>
+                            </div>
+                            <div class="bg-[#E8F5E9]/80 rounded-2xl p-4 border border-[#C8DFCD]">
+                                <div class="text-[10px] font-bold text-[#2E7D32] uppercase tracking-wider">Sudah Mengumpulkan</div>
+                                <div class="text-2xl font-black text-[#2E7D32] mt-1">{{ submissionCounts.sudah }}</div>
+                                <div class="text-[10px] text-[#2E7D32]/80 mt-0.5">
+                                    {{ submissionCounts.total ? Math.round((submissionCounts.sudah / submissionCounts.total) * 100) : 0 }}% terkumpul
+                                </div>
+                            </div>
+                            <div class="bg-[#FFF3E0]/80 rounded-2xl p-4 border border-[#FFE0B2]">
+                                <div class="text-[10px] font-bold text-[#E65100] uppercase tracking-wider">Belum Mengumpulkan</div>
+                                <div class="text-2xl font-black text-[#E65100] mt-1">{{ submissionCounts.belum }}</div>
+                                <div class="text-[10px] text-[#E65100]/80 mt-0.5">Perlu pengingat tugas</div>
+                            </div>
+                            <div class="bg-white rounded-2xl p-4 border border-[#ECEAE4] soft-shadow">
+                                <div class="text-[10px] font-bold text-subtext uppercase tracking-wider">Status Penilaian</div>
+                                <div class="text-2xl font-black" :class="submissionCounts.perluDinilai > 0 ? 'text-[#E65100]' : 'text-sage-dark'">
+                                    {{ submissionCounts.perluDinilai }}
+                                </div>
+                                <div class="text-[10px] text-subtext mt-0.5">
+                                    {{ submissionCounts.perluDinilai > 0 ? 'Tugas menunggu dinilai' : 'Semua sudah dinilai ✓' }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Search & Filter Bar -->
+                        <div class="bg-white rounded-[22px] p-3.5 border border-[#ECEAE4] soft-shadow flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                            <!-- Search -->
+                            <div class="relative flex-1">
+                                <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-subtext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" />
+                                </svg>
+                                <input
+                                    v-model="submissionSearchQuery"
+                                    type="text"
+                                    placeholder="Cari siswa berdasarkan nama atau NISN..."
+                                    class="w-full bg-canvas border border-[#ECEAE4] rounded-xl pl-10 pr-4 py-2 text-xs font-medium text-charcoal placeholder:text-subtext/70 focus:outline-none focus:border-charcoal/40 transition-colors"
+                                />
+                            </div>
+
+                            <!-- Filter Chips -->
+                            <div class="flex items-center gap-1.5 flex-wrap overflow-x-auto no-scrollbar">
+                                <button
+                                    type="button"
+                                    @click="submissionActiveFilter = 'semua'"
+                                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+                                    :class="submissionActiveFilter === 'semua' ? 'bg-charcoal text-white shadow-2xs' : 'bg-canvas text-charcoal/70 hover:bg-muted'"
+                                >
+                                    Semua ({{ submissionCounts.total }})
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="submissionActiveFilter = 'sudah'"
+                                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+                                    :class="submissionActiveFilter === 'sudah' ? 'bg-[#2E7D32] text-white shadow-2xs' : 'bg-canvas text-[#2E7D32] hover:bg-[#E8F5E9]'"
+                                >
+                                    Sudah Mengumpulkan ({{ submissionCounts.sudah }})
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="submissionActiveFilter = 'belum'"
+                                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+                                    :class="submissionActiveFilter === 'belum' ? 'bg-[#E65100] text-white shadow-2xs' : 'bg-canvas text-[#E65100] hover:bg-[#FFF3E0]'"
+                                >
+                                    Belum Mengumpulkan ({{ submissionCounts.belum }})
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="submissionActiveFilter = 'perlu_dinilai'"
+                                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+                                    :class="submissionActiveFilter === 'perlu_dinilai' ? 'bg-amber-600 text-white shadow-2xs' : 'bg-canvas text-amber-700 hover:bg-amber-50'"
+                                >
+                                    Perlu Dinilai ({{ submissionCounts.perluDinilai }})
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 3. Student Submissions Cards List -->
+                        <div class="space-y-2.5">
+                            <div
+                                v-if="filteredMeetingSubmissions.length === 0"
+                                class="bg-white rounded-[22px] p-8 border border-[#ECEAE4] text-center text-subtext text-xs font-medium"
+                            >
+                                Tidak ada siswa yang cocok dengan filter pencarian.
+                            </div>
+
+                            <div
+                                v-for="(student, idx) in filteredMeetingSubmissions"
+                                :key="student.id"
+                                class="bg-white rounded-[22px] p-4 border border-[#ECEAE4] soft-shadow transition-all hover:border-charcoal/20 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                            >
+                                <!-- Student Info -->
+                                <div class="flex items-start sm:items-center gap-3.5 min-w-0">
+                                    <div class="relative shrink-0">
+                                        <img
+                                            :src="student.avatar"
+                                            :alt="student.name"
+                                            class="w-11 h-11 rounded-full object-cover border border-[#ECEAE4]"
+                                            :class="{ 'grayscale opacity-70': !student.submittedFile }"
+                                        />
+                                        <span class="absolute -top-1 -left-1 w-4 h-4 rounded-full bg-charcoal text-white text-[8px] font-extrabold flex items-center justify-center">
+                                            {{ idx + 1 }}
+                                        </span>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <h3 class="text-sm font-extrabold text-charcoal truncate">{{ student.name }}</h3>
+                                            <!-- Status Badge -->
+                                            <span
+                                                class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full"
+                                                :class="student.submittedFile ? (student.status === 'Terlambat' ? 'bg-[#FFF3E0] text-[#E65100] border border-[#FFE0B2]' : 'bg-[#E8F5E9] text-[#2E7D32] border border-[#C8DFCD]') : 'bg-muted text-subtext border border-[#ECEAE4]'"
+                                            >
+                                                {{ student.submittedFile ? (student.status || 'Sudah Mengumpulkan') : 'Belum Mengumpulkan' }}
+                                            </span>
+                                        </div>
+                                        <div class="text-[11px] text-subtext mt-0.5">NISN: {{ student.nisn }}</div>
+
+                                        <!-- Submission detail info -->
+                                        <div class="mt-1 flex items-center gap-3 text-[11px] text-charcoal/80 flex-wrap">
+                                            <span v-if="student.submittedAt" class="font-medium">
+                                                Dikumpulkan: {{ student.submittedAt }}
+                                            </span>
+                                            <span v-else class="text-subtext italic">
+                                                Belum ada berkas tugas yang diunggah
+                                            </span>
+
+                                            <button
+                                                v-if="student.submittedFile"
+                                                type="button"
+                                                @click="handleDownload(student.submittedFile)"
+                                                class="font-bold text-charcoal underline underline-offset-2 hover:opacity-80 inline-flex items-center gap-1 cursor-pointer"
+                                            >
+                                                <span>📎 {{ student.submittedFile }}</span>
+                                            </button>
+                                        </div>
+
+                                        <!-- Teacher Feedback Note (if graded) -->
+                                        <div v-if="student.feedback" class="mt-1 text-[10px] italic text-charcoal/70 line-clamp-1 bg-canvas px-2.5 py-1 rounded-lg border border-[#ECEAE4]/60 w-fit">
+                                            Catatan: "{{ student.feedback }}"
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Actions & Grades -->
+                                <div class="flex items-center justify-between md:justify-end gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-[#ECEAE4]">
+                                    <!-- Score Display if Graded -->
+                                    <div v-if="student.score !== null" class="flex items-center gap-2">
+                                        <div class="flex flex-col items-end">
+                                            <div class="text-xs font-black text-[#2E7D32]">Skor: {{ student.score }}/100</div>
+                                            <div class="text-[10px] font-bold text-subtext">Grade {{ student.grade }}</div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            @click="openGradeModal(student)"
+                                            class="px-3 py-1.5 rounded-full bg-canvas border border-[#ECEAE4] hover:bg-white text-charcoal text-[11px] font-bold transition-all active:scale-95 cursor-pointer flex items-center gap-1 shadow-2xs"
+                                            title="Edit Nilai"
+                                        >
+                                            <LmsIcon name="edit" className="w-3 h-3" />
+                                            <span>Edit Nilai</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Action if Submitted but NOT graded yet -->
+                                    <div v-else-if="student.submittedFile" class="flex items-center gap-2">
+                                        <span class="text-[11px] font-bold text-[#E65100]">Belum Dinilai</span>
+                                        <button
+                                            type="button"
+                                            @click="openGradeModal(student)"
+                                            class="px-3.5 py-1.5 rounded-full bg-charcoal text-white text-[11px] font-bold hover:bg-black transition-all active:scale-95 cursor-pointer flex items-center gap-1 shadow-xs"
+                                        >
+                                            <LmsIcon name="task" className="w-3 h-3" />
+                                            <span>Beri Nilai</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Action if NOT submitted -->
+                                    <div v-else class="flex items-center gap-2">
+                                        <span class="text-[11px] text-subtext font-medium">-</span>
+                                        <button
+                                            type="button"
+                                            @click="showToast('Notifikasi pengingat tugas berhasil dikirimkan ke ' + student.name)"
+                                            class="px-3 py-1.5 rounded-full bg-canvas border border-[#ECEAE4] text-charcoal/80 text-[11px] font-bold hover:bg-white active:scale-95 transition-all cursor-pointer flex items-center gap-1"
+                                            title="Kirim pengingat pengerjaan tugas ke siswa"
+                                        >
+                                            <LmsIcon name="bell" className="w-3 h-3 text-subtext" />
+                                            <span>Kirim Pengingat</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
             </div>
         </template>
 

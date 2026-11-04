@@ -660,36 +660,7 @@ const submitHomework = async () => {
                         <span class="text-[11px] font-bold text-subtext">Pertemuan {{ selectedMeeting.number }}</span>
                     </div>
 
-                    <!-- 1. DAFTAR HADIR (PRESENSI) -->
-                    <div class="p-5 sm:p-6 hover:bg-[#FAF9F6]/50 transition-colors">
-                        <div class="flex items-start gap-3 sm:gap-4">
-                            <div class="w-9 h-9 rounded-xl bg-sage-light text-sage-dark flex items-center justify-center shrink-0 mt-0.5">
-                                <LmsIcon name="calendar" className="w-4 h-4" />
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <h3 class="text-sm font-extrabold text-charcoal leading-snug">
-                                        Daftar Hadir Pertemuan {{ selectedMeeting.number }}
-                                    </h3>
-                                    <span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-sage-light text-sage-dark border border-[#C8DFCD]">
-                                        ● Sesi Aktif
-                                    </span>
-                                </div>
-
-                                <div class="mt-2 text-xs space-y-1 text-charcoal/80 font-medium">
-                                    <div><span class="font-bold text-charcoal">Jadwal Sesi:</span> {{ selectedMeeting.date }} • {{ selectedMeeting.time }}</div>
-                                    <div><span class="font-bold text-charcoal">Ruang Kelas:</span> {{ selectedMapel.room }} (Pengajar: {{ selectedMapel.teacher }})</div>
-                                </div>
-
-                                <div class="mt-3 flex items-center gap-2 text-[11px] text-[#2E7D32] bg-[#E8F5E9]/60 px-3 py-1.5 rounded-xl border border-[#C8DFCD] w-fit">
-                                    <LmsIcon name="check" className="w-3.5 h-3.5" />
-                                    <span class="font-bold">Kehadiran Anda otomatis tercatat dalam sistem presensi harian kelas</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 2. TUGAS (PENUGASAN SISWA) -->
+                    <!-- 1. TUGAS (PENUGASAN SISWA) -->
                     <div class="p-5 sm:p-6 hover:bg-[#FAF9F6]/50 transition-colors">
                         <div class="flex items-start gap-3 sm:gap-4">
                             <div class="w-9 h-9 rounded-xl bg-blossom-light text-blossom-dark flex items-center justify-center shrink-0 mt-0.5">
@@ -841,7 +812,7 @@ const submitHomework = async () => {
                         </div>
                     </div>
 
-                    <!-- 3. MATERI & DOKUMEN PEMBELAJARAN -->
+                    <!-- 2. MATERI & DOKUMEN PEMBELAJARAN -->
                     <div class="p-5 sm:p-6 hover:bg-[#FAF9F6]/50 transition-colors">
                         <div class="flex items-start gap-3 sm:gap-4">
                             <div class="w-9 h-9 rounded-xl bg-sky-light text-sky-dark flex items-center justify-center shrink-0 mt-0.5">
@@ -962,7 +933,7 @@ const submitHomework = async () => {
                         </div>
                     </div>
 
-                    <!-- 4. VIDEO PEMBELAJARAN (MEDIA REFERENSI) -->
+                    <!-- 3. VIDEO PEMBELAJARAN (MEDIA REFERENSI) -->
                     <div class="p-5 sm:p-6 hover:bg-[#FAF9F6]/50 transition-colors">
                         <div class="flex items-start gap-3 sm:gap-4">
                             <div class="w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0 mt-0.5">
